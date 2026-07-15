@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,touch-action=none">
-  <title>8bit Jump Game - v1.37.11 Global Edition</title>
+  <title>8bit Jump Game - v1.37.12 - 20260715</title>
   <link rel="stylesheet" href="/src/game.css">
 </head>
 <body>
   <div id="debugModal">
     <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
       <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">v1.37.11 Global Edition</p>
+      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">v1.37.12 - 20260715</p>
       
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
         <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
@@ -36,6 +36,7 @@
         
         <button id="db_start" class="dbg-btn" style="width:100%; margin-top:20px; padding:12px; background:#e60012; border-color:#faa; font-size:18px;">NORMAL START</button>
         <button id="db_rank_reset" class="dbg-btn" style="width:100%; margin-top:5px; padding:8px; background:#555; border-color:#aaa; font-size:12px;">RESET RANKING</button>
+        <button id="db_title" class="dbg-btn" style="width:100%; margin-top:10px; padding:12px; background:#444; border-color:#888; font-size:14px; font-family:'Press Start 2P', sans-serif;">RETURN TO TITLE</button>
         
         <div style="display:flex; width:100%; margin-top:10px; gap:5px;">
           <button id="db_b10" class="dbg-btn" style="flex:1; padding:12px; background:#0055ff; border-color:#aaf; font-size:14px;">🤖 10 RUNS</button>
@@ -50,7 +51,7 @@
     <div id="canvasWrapper">
       <div id="ui"></div>
       <div id="pauseScreen">
-        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:5px; font-size:10px;">TITLE</button>
+        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">TITLE</button>
         <h1>PAUSED</h1>
       </div>
       <div id="autoBtn">🤖 ON</div>

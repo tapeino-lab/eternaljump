@@ -108,7 +108,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
     
     const RankingAPI = {
       key: '8bitJump_Rankings',
-      version: 'v1.37.11',
+      version: 'v1.37.12 - 20260715',
       isShowingResult: false,
       getScores: async function() {
         if (LootLockerAPI.apiKey !== 'YOUR_API_KEY_HERE') return await LootLockerAPI.getScores(100);
@@ -2761,6 +2761,12 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
       
       if (IMG.title && IMG.title.complete && IMG.title.naturalWidth > 0) {
         ctx.drawImage(IMG.title, FLR((config.gameWidth - IMG.title.naturalWidth) / 2), 95);
+        ctx.save();
+        ctx.font = '6px "Press Start 2P", sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.textAlign = 'right';
+        ctx.fillText(RankingAPI.version, config.gameWidth - 5, 205);
+        ctx.restore();
       }
       
       if (isDev && game.demoMode && game.aiActive && game.player.aiPath && game.player.aiPath.length > 0) {
@@ -3005,6 +3011,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
         else if (t.id === 'db_h130') selHgt(130000, t);
         else if (t.id === 'db_start') startWithSettings();
         else if (t.id === 'db_rank_reset') RankingAPI.reset();
+        else if (t.id === 'db_title') { $('debugModal').style.display = 'none'; startAttractCycle(); }
         else if (t.id === 'db_b10') startBenchmark(10);
         else if (t.id === 'db_b50') startBenchmark(50);
         else if (t.id === 'db_b100') startBenchmark(100);
