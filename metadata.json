@@ -1,0 +1,6 @@
+{
+  "name": "8bit Jump Game",
+  "description": "An 8-bit style vertical scroll jumping game in a single HTML file.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

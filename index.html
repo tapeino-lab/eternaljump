@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,touch-action=none">
+  <title>8bit Jump Game - v1.37.11 Global Edition</title>
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init();</script>
+  <link rel="stylesheet" href="/src/game.css">
+</head>
+<body>
+  <div id="debugModal">
+    <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
+      <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
+      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">v1.37.11 Global Edition</p>
+      
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
+        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
+        <button id="db_m" class="dbg-btn mode-btn" style="border-color:#0f0">MANUAL</button>
+        <button id="db_a" class="dbg-btn mode-btn">AUTO</button>
+        
+        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">AUTO RANK ENTRY</div>
+        <button id="db_ar" class="dbg-btn" style="width:100%; margin-top:5px; padding:8px; border-color:#555; font-size:12px;">ENTRY: OFF</button>
+        
+        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">START HEIGHT</div>
+        <button id="db_h0" class="dbg-btn hgt-btn" style="border-color:#0f0">0m<br><span style="font-size:10px; font-weight:normal">GROUND</span></button>
+        <button id="db_h35" class="dbg-btn hgt-btn">35K<br><span style="font-size:10px; font-weight:normal">EVENING</span></button>
+        <button id="db_h75" class="dbg-btn hgt-btn">75K<br><span style="font-size:10px; font-weight:normal">ICE/METEOR</span></button>
+        <button id="db_h115" class="dbg-btn hgt-btn">115K<br><span style="font-size:10px; font-weight:normal">RUSH</span></button>
+        <button id="db_h130" class="dbg-btn hgt-btn">130K<br><span style="font-size:10px; font-weight:normal">PRE-HEAVEN</span></button>
+        
+        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">BUTTON THEME</div>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:100%;">
+          <button id="th_neo" class="dbg-btn thm-btn" style="border-color:#0f0; flex:1; font-size:10px; padding:6px; min-width:30%;">NEO-CLS</button>
+          <button id="th_cls" class="dbg-btn thm-btn" style="flex:1; font-size:10px; padding:6px; min-width:30%;">CLASSIC</button>
+          <button id="th_vin" class="dbg-btn thm-btn" style="flex:1; font-size:10px; padding:6px; min-width:30%;">VINTAGE</button>
+        </div>
+        
+        <button id="db_start" class="dbg-btn" style="width:100%; margin-top:20px; padding:12px; background:#e60012; border-color:#faa; font-size:18px;">NORMAL START</button>
+        <button id="db_rank_reset" class="dbg-btn" style="width:100%; margin-top:5px; padding:8px; background:#555; border-color:#aaa; font-size:12px;">RESET RANKING</button>
+        
+        <div style="display:flex; width:100%; margin-top:10px; gap:5px;">
+          <button id="db_b10" class="dbg-btn" style="flex:1; padding:12px; background:#0055ff; border-color:#aaf; font-size:14px;">🤖 10 RUNS</button>
+          <button id="db_b50" class="dbg-btn" style="flex:1; padding:12px; background:#0033cc; border-color:#aaf; font-size:14px;">🤖 50 RUNS</button>
+          <button id="db_b100" class="dbg-btn" style="flex:1; padding:12px; background:#c0c; border-color:#faa; font-size:14px;">🤖 100 RUNS</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameContainer">
+    <div id="canvasWrapper">
+      <div id="ui"></div>
+      <div id="pauseScreen">
+        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:5px; font-size:10px;">TITLE</button>
+        <h1>PAUSED</h1>
+      </div>
+      <div id="autoBtn">🤖 ON</div>
+      <div id="pauseBtn">II</div>
+      <canvas id="gameCanvas"></canvas>
+      <div id="touchOverlay"></div>
+      <div id="fadeOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:250; opacity:0; pointer-events:none; transition:opacity 1s; display:none;"></div>
+      
+      <div id="demoRankingContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:30; display:none; pointer-events:none; overflow:hidden; font-family:'Press Start 2P', sans-serif;">
+        <div id="demoHeader" style="position:absolute; left:5%; width:90%; z-index:3; top:0;"></div>
+        <div id="demoTop3" style="position:absolute; left:5%; width:90%; z-index:2; background:rgba(255,255,255,0.15); border-radius:8px; top:0;"></div>
+        <div id="demoOthersWrapper" style="position:absolute; left:5%; width:90%; z-index:1; overflow:hidden; -webkit-mask-image:linear-gradient(to bottom, transparent 0%, black 10%, black 100%); mask-image:linear-gradient(to bottom, transparent 0%, black 10%, black 100%); top:0;">
+          <div id="demoOthers" style="position:absolute; width:100%; top:0;"></div>
+        </div>
+      </div>
+      
+      <div id="prodControls" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; flex-direction:column; align-items:center; justify-content:center; z-index:50; cursor:pointer; pointer-events:auto;">
+        <div id="btnToDev" style="position:absolute; top:10px; right:10px; font-size:24px; cursor:pointer; z-index:100; background:rgba(255,255,255,0.2); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center;">⚙️</div>
+      </div>
+      
+      <div id="rankingModal" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:200; display:none; flex-direction:column; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif;"></div>
+    </div>
+  </div>
+
+  <div id="controlArea">
+    <div id="btnLeft" class="dir-btn"><span class="tri">◀</span></div>
+    <div id="btnRight" class="dir-btn"><span class="tri">▶</span></div>
+    <div id="tapToStartMsg" style="position:absolute; width:100%; top:50%; transform:translateY(-50%); text-align:center; font-family:'Press Start 2P', sans-serif; color:#fff; font-size:10px; pointer-events:none; animation:blinkLong 1.2s infinite; z-index:10; display:none;">TAP TO START</div>
+  </div>
+
+  <script type="module" src="/src/game.js"></script>
+</body>
+</html>
