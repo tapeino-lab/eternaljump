@@ -108,7 +108,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
     
     const RankingAPI = {
       key: '8bitJump_Rankings',
-      version: 'v1.37.14 - 2026/07/16 02:40',
+      version: 'v1.37.18 - 2026/07/16 03:13',
       isShowingResult: false,
       getScores: async function() {
         if (LootLockerAPI.apiKey !== 'YOUR_API_KEY_HERE') return await LootLockerAPI.getScores(100);
@@ -184,7 +184,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
           title = '<h1 style="animation:superBlink 0.1s steps(1) infinite;margin:0 0 10px 0;font-size:12px;text-align:center;">CONGRATULATIONS!</h1>';
         } else if (state === 'gameover') {
           if (game.isNewRecord) {
-            title = '<h1 style="color:#f0f;margin:0 0 10px 0;font-size:12px;text-align:center;animation:superBlink 0.3s steps(1) infinite;">★ NEW RECORD! ★</h1>';
+            title = '<h1 style="color:#f0f;margin:0 0 10px 0;font-size:12px;text-align:center;animation:superBlink 0.3s steps(1) infinite;">NEW RECORD!</h1>';
           } else {
             title = '<h1 style="color:#fff;margin:0 0 10px 0;font-size:12px;text-align:center;">TRY AGAIN!</h1>';
           }
@@ -192,7 +192,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
         
         let h = title;
         if (game.lastScoreObj) {
-          let pbHTML = (game.isNewRecord && state === 'clear') ? '<div style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;">★ NEW RECORD! ★</div>' : '';
+          let pbHTML = (game.isNewRecord && state === 'clear') ? '<div style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;">NEW RECORD!</div>' : '';
           
           h += '<div style="background:#222;padding:10px;margin-bottom:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">' + pbHTML + '<h2 style="color:#ff0;margin:0 0 8px 0;font-size:12px;">RESULT</h2>';
           h += '<div style="display:flex;flex-direction:column;gap:12px;font-size:10px;color:#ddd;margin-top:10px;">';
@@ -1566,15 +1566,18 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
         else if (r < 0.60) t = 'h-slide';
         else if (r < 0.70) t = 'v-slide';
       } else if (spS < 80000) {
-        if (r < 0.05) forceSubIcy = true;
+        if (spS >= 60000 && r < 0.20) forceSubIcy = true;
         let r2 = RND();
         if (r2 < 0.05) t = 'super';
         else if (r2 < 0.25) t = 'h-slide';
       } else if (spS <= 100000) {
         if (r < 0.25) forceSubIcy = true;
         if (RND() < 0.15) t = 'h-slide';
-      } else if (spS < 120000) {
+      } else if (spS <= 105000) {
         icy = r < 0.25;
+        if (!icy && RND() < 0.15) t = 'h-slide';
+      } else if (spS < 120000) {
+        icy = r < 0.15;
         if (!icy && RND() < 0.15) t = 'h-slide';
       } else if (spS < 135000) {
         icy = r < 0.35;
@@ -1612,6 +1615,11 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
           subIcy = true;
         }
       }
+      if (forceSubIcy && t !== 'super') {
+        genSub = true;
+        subIcy = true;
+      }
+
       
       if (genSub) {
         let np2 = getPl(y, subT, false, null, null, null, subC, subIcy);
