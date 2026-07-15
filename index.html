@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,touch-action=none">
-  <title>8bit Jump Game - v1.37.18 - 2026/07/16 03:13</title>
+  <title>8bit Jump Game - v1.37.21 - 2026/07/16 08:31</title>
   <link rel="stylesheet" href="/src/game.css">
 </head>
 <body>
   <div id="debugModal">
     <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
       <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">v1.37.18 - 2026/07/16 03:13</p>
+      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">v1.37.21 - 2026/07/16 08:31</p>
       
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
         <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
@@ -42,6 +42,25 @@
           <button id="db_b10" class="dbg-btn" style="flex:1; padding:12px; background:#0055ff; border-color:#aaf; font-size:14px;">🤖 10 RUNS</button>
           <button id="db_b50" class="dbg-btn" style="flex:1; padding:12px; background:#0033cc; border-color:#aaf; font-size:14px;">🤖 50 RUNS</button>
           <button id="db_b100" class="dbg-btn" style="flex:1; padding:12px; background:#c0c; border-color:#faa; font-size:14px;">🤖 100 RUNS</button>
+        </div>
+
+        <div style="width:100%; text-align:center; color:#ff0; font-size:11px; margin-top:15px; border-top:1px dashed #555; padding-top:12px; font-family:'Press Start 2P', sans-serif;">LOOTLOCKER DIAGNOSTICS</div>
+        <div style="background:#111; border:2px solid #555; border-radius:6px; width:100%; margin-top:8px; padding:10px; box-sizing:border-box; font-family:monospace; text-align:left; font-size:10px; color:#fff; display:flex; flex-direction:column; gap:5px;">
+          <div style="display:flex; justify-content:space-between;"><span>Status:</span><span id="ll-status" style="color:#ff5555;font-weight:bold;">UNINITIALIZED</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>Mode:</span><span id="ll-mode" style="color:#aaa;">-</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>API Key:</span><span id="ll-key" style="color:#aaa;">-</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>Domain:</span><span id="ll-domain" style="color:#aaa;">-</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>Ldrboard:</span><span id="ll-lbid" style="color:#aaa;">-</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>Player ID:</span><span id="ll-pid" style="color:#aaa;">-</span></div>
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid #444; padding-bottom:5px;"><span>Session Token:</span><span id="ll-token" style="color:#aaa;">-</span></div>
+          
+          <div style="color:#ffb; margin-top:4px; font-weight:bold; font-size:9px; font-family:'Press Start 2P', sans-serif;">LIVE DEBUG LOGS:</div>
+          <div id="llDebugLogArea" style="background:#050505; border:1px solid #333; height:120px; overflow-y:auto; padding:6px; border-radius:4px; font-size:9px; color:#0f0; word-break:break-all; white-space:pre-wrap; font-family:monospace; line-height:1.2;"></div>
+          
+          <div style="display:flex; gap:5px; margin-top:5px;">
+            <button id="ll_btn_test" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#0f0; color:#0f0;">TEST CON</button>
+            <button id="ll_btn_clear" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#f55; color:#f55;">RESET ID</button>
+          </div>
         </div>
       </div>
     </div>

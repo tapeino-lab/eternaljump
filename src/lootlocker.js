@@ -6,12 +6,91 @@ export const LootLockerAPI = {
   apiKey: import.meta.env.VITE_LOOTLOCKER_API_KEY || '',
   domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok',
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2',
+  playerIdentifier: localStorage.getItem('LL_PID'),
+  sessionToken: null,
+  playerId: null,
+  version: 'v1.37.21',
+  logs: [],
+
+  log: function(msg, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    this.logs.push({ timestamp, msg, type });
+    console.log(`[LootLocker ${type.toUpperCase()}] ${msg}`);
+    
+    try {
+      const logArea = document.getElementById('llDebugLogArea');
+      if (logArea) {
+        const color = type === 'error' ? '#ff5555' : (type === 'success' ? '#00ff00' : '#ffffff');
+        logArea.innerHTML += `<div style="color:${color};margin-bottom:4px;">[${timestamp}] [${type.toUpperCase()}] ${msg}</div>`;
+        logArea.scrollTop = logArea.scrollHeight;
+      }
+    } catch (e) {}
+    this.updateUI();
+  },
+
+  updateUI: function() {
+    try {
+      const statusEl = document.getElementById('ll-status');
+      if (!statusEl) return;
+      
+      const modeEl = document.getElementById('ll-mode');
+      const keyEl = document.getElementById('ll-key');
+      const domainEl = document.getElementById('ll-domain');
+      const lbidEl = document.getElementById('ll-lbid');
+      const pidEl = document.getElementById('ll-pid');
+      const tokenEl = document.getElementById('ll-token');
+      
+      if (this.sessionToken) {
+        statusEl.innerText = 'CONNECTED';
+        statusEl.style.color = '#00ff00';
+      } else if (this.hasLootLockerConfig === false) {
+        statusEl.innerText = 'UNCONFIGURED';
+        statusEl.style.color = '#ff5555';
+      } else {
+        statusEl.innerText = 'UNINITIALIZED';
+        statusEl.style.color = '#ffaa00';
+      }
+      
+      if (modeEl) modeEl.innerText = this.hasLootLockerConfig ? (this.isDirectMode ? 'Direct Client API' : 'Server Proxy') : 'None';
+      
+      if (keyEl) {
+        const k = this.apiKey;
+        if (!k) {
+          keyEl.innerText = '[EMPTY]';
+          keyEl.style.color = '#ff5555';
+        } else if (k === 'YOUR_API_KEY_HERE') {
+          keyEl.innerText = '[PLACEHOLDER]';
+          keyEl.style.color = '#ffaa00';
+        } else {
+          keyEl.innerText = k.substring(0, 6) + '...' + k.substring(k.length - 4);
+          keyEl.style.color = '#00ff00';
+        }
+      }
+      
+      if (domainEl) domainEl.innerText = this.domainKey || '-';
+      if (lbidEl) lbidEl.innerText = this.leaderboardId || '-';
+      if (pidEl) pidEl.innerText = this.playerIdentifier || '-';
+      
+      if (tokenEl) {
+        if (this.sessionToken) {
+          tokenEl.innerText = this.sessionToken.substring(0, 8) + '...';
+          tokenEl.style.color = '#00ff00';
+        } else {
+          tokenEl.innerText = 'None';
+          tokenEl.style.color = '#ff5555';
+        }
+      }
+    } catch (e) {}
+  },
 
   checkConfig: async function() {
     if (this.hasLootLockerConfig !== null) return this.hasLootLockerConfig;
     
+    this.log('Checking LootLocker configuration...', 'info');
+    
     // 1. Try Express Proxy backend check first
     try {
+      this.log('Checking Express Server proxy availability...', 'info');
       let r = await fetch('/api/lootlocker/config-check');
       if (r.ok) {
         let contentType = r.headers.get("content-type");
@@ -20,12 +99,17 @@ export const LootLockerAPI = {
           if (d.hasLootLocker) {
             this.hasLootLockerConfig = true;
             this.isDirectMode = false;
+            this.log('Server proxy active (hasLootLocker = true)', 'success');
             return true;
+          } else {
+            this.log('Server proxy reported that LOOTLOCKER_API_KEY is not set on server side.', 'warning');
           }
         }
+      } else {
+        this.log(`Server configuration check returned status: ${r.status}`, 'warning');
       }
     } catch (e) {
-      console.warn('Server config check failed (possibly running on static hosting like github.io):', e);
+      this.log(`Server check failed/unavailable: ${e.message} (Possibly static hosting)`, 'info');
     }
 
     // 2. Fallback to direct client-side requests if Express is missing but VITE env vars are available
@@ -34,33 +118,42 @@ export const LootLockerAPI = {
     if (clientKey && clientKey !== 'YOUR_API_KEY_HERE' && clientKey.trim() !== '' && clientDomain) {
       this.hasLootLockerConfig = true;
       this.isDirectMode = true;
-      console.log('LootLocker active in Direct Client-to-API mode (Static Hosting Fallback)');
+      this.log(`Static hosting mode active. Direct connection via Domain: ${clientDomain}`, 'success');
       return true;
     }
 
+    this.log('No LootLocker credentials found on server or compiled client-side. Leaderboards disabled.', 'error');
     this.hasLootLockerConfig = false;
     return false;
   },
 
-  playerIdentifier: localStorage.getItem('LL_PID'),
-  sessionToken: null,
-  playerId: null,
-  version: 'v1.37.11',
-
   init: async function() {
     const isConfigured = await this.checkConfig();
-    if (!isConfigured) return false;
+    if (!isConfigured) {
+      this.log('Initialization aborted (Not Configured)', 'error');
+      return false;
+    }
 
     if (!this.playerIdentifier) {
       this.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
       localStorage.setItem('LL_PID', this.playerIdentifier);
+      this.log(`Generated new Player Identifier: ${this.playerIdentifier}`, 'info');
+    } else {
+      this.log(`Loaded existing Player Identifier: ${this.playerIdentifier}`, 'info');
     }
-    if (this.sessionToken) return true;
+    
+    if (this.sessionToken) {
+      this.log('Active session token already loaded.', 'success');
+      return true;
+    }
 
     try {
       let r;
+      let url = '';
       if (this.isDirectMode) {
-        r = await fetch(`https://${this.domainKey}.api.lootlocker.io/game/v2/session/guest`, {
+        url = `https://${this.domainKey}.api.lootlocker.io/game/v2/session/guest`;
+        this.log(`POSTing to Direct API: ${url}`, 'info');
+        r = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -70,7 +163,9 @@ export const LootLockerAPI = {
           })
         });
       } else {
-        r = await fetch('/api/lootlocker/session/guest', {
+        url = '/api/lootlocker/session/guest';
+        this.log(`POSTing to Server Proxy: ${url}`, 'info');
+        r = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -80,31 +175,42 @@ export const LootLockerAPI = {
         });
       }
 
+      this.log(`Session response status: ${r.status}`, 'info');
       let d = await r.json();
+      
       if (!r.ok) {
-        console.error('LL_Init_Error:', d);
+        this.log(`Session initialization error: ${JSON.stringify(d)}`, 'error');
         return false;
       }
+      
       if (d.session_token) {
         this.sessionToken = d.session_token;
         this.playerId = d.player_id;
+        this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
         return true;
       }
+      this.log('No session token in response data.', 'error');
       return false;
     } catch (e) {
-      console.error('LL_Init_Fail:', e);
+      this.log(`Session guest login failed: ${e.message}`, 'error');
       return false;
     }
   },
 
   submitScore: async function(a, c, l) {
-    if (!await this.init()) return false;
+    this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
+    if (!await this.init()) {
+      this.log('Score submission aborted (Init Failed)', 'error');
+      return false;
+    }
     let sc = a * 1000 + (c || 0);
     let meta = JSON.stringify({ alt: a, coins: c, lang: l });
     try {
       let r;
       if (this.isDirectMode) {
-        r = await fetch(`https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/submit`, {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/submit`;
+        this.log(`Submitting score directly to: ${url}`, 'info');
+        r = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -113,6 +219,7 @@ export const LootLockerAPI = {
           body: JSON.stringify({ member_id: String(this.playerId), score: sc, metadata: meta })
         });
       } else {
+        this.log('Submitting score via server proxy...', 'info');
         r = await fetch('/api/lootlocker/leaderboards/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -125,39 +232,53 @@ export const LootLockerAPI = {
         });
       }
 
+      this.log(`Score submit response status: ${r.status}`, 'info');
       let d = await r.json();
       if (!r.ok) {
-        console.error('LL_Submit_Error:', d);
+        this.log(`Score submission error: ${JSON.stringify(d)}`, 'error');
         return false;
       }
+      this.log('Score successfully registered on LootLocker!', 'success');
       return true;
     } catch (e) {
-      console.error('LL_Submit_Fail:', e);
+      this.log(`Score submission failed: ${e.message}`, 'error');
       return false;
     }
   },
 
   getScores: async function(lm = 100) {
-    if (!await this.init()) return [];
+    this.log(`Attempting to fetch top ${lm} scores...`, 'info');
+    if (!await this.init()) {
+      this.log('Score fetch aborted (Init Failed)', 'error');
+      return [];
+    }
     try {
       let r;
       if (this.isDirectMode) {
-        r = await fetch(`https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/list?count=${lm}`, {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/list?count=${lm}`;
+        this.log(`Fetching scores directly from: ${url}`, 'info');
+        r = await fetch(url, {
           headers: {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
           }
         });
       } else {
+        this.log('Fetching scores via server proxy...', 'info');
         r = await fetch(`/api/lootlocker/leaderboards/list?count=${lm}&session_token=${encodeURIComponent(this.sessionToken)}`);
       }
 
+      this.log(`Score fetch response status: ${r.status}`, 'info');
       let d = await r.json();
       if (!r.ok) {
-        console.error('LL_Get_Error:', d);
+        this.log(`Score fetch error: ${JSON.stringify(d)}`, 'error');
         return [];
       }
-      if (!d.items) return [];
+      if (!d.items) {
+        this.log('No items returned in score list.', 'warning');
+        return [];
+      }
+      this.log(`Successfully fetched ${d.items.length} records!`, 'success');
       return d.items.map(i => {
         let m = { alt: FLR(i.score / 1000), coins: i.score % 1000, lang: '---' };
         try {
@@ -166,13 +287,57 @@ export const LootLockerAPI = {
         return { id: i.member_id, rank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang };
       });
     } catch (e) {
-      console.error('LL_Get_Fail:', e);
+      this.log(`Score fetch failed: ${e.message}`, 'error');
       return [];
     }
+  },
+
+  resetPlayerSession: function() {
+    this.log('Resetting player identifier and session...', 'warning');
+    localStorage.removeItem('LL_PID');
+    this.playerIdentifier = null;
+    this.sessionToken = null;
+    this.playerId = null;
+    this.init();
   }
 };
 
+// Auto generate pid if missing
 if (!LootLockerAPI.playerIdentifier) {
   LootLockerAPI.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
   localStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
 }
+
+// Attach click listeners to the diagnostic UI buttons when DOM content is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    LootLockerAPI.updateUI();
+    
+    const testBtn = document.getElementById('ll_btn_test');
+    if (testBtn) {
+      testBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        testBtn.innerText = 'TESTING...';
+        testBtn.disabled = true;
+        // Reset config check so it re-runs config fetch
+        LootLockerAPI.hasLootLockerConfig = null;
+        LootLockerAPI.sessionToken = null;
+        await LootLockerAPI.init();
+        testBtn.innerText = 'TEST CON';
+        testBtn.disabled = false;
+      });
+    }
+    
+    const clearBtn = document.getElementById('ll_btn_clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (confirm('Are you sure you want to reset your Player ID and session?')) {
+          LootLockerAPI.resetPlayerSession();
+        }
+      });
+    }
+  }, 1000);
+});
