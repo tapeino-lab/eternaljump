@@ -3,13 +3,13 @@ import { FLR } from './utils.js';
 export const LootLockerAPI = {
   hasLootLockerConfig: null,
   isDirectMode: false,
-  apiKey: import.meta.env.VITE_LOOTLOCKER_API_KEY || '',
+  apiKey: import.meta.env.VITE_LOOTLOCKER_API_KEY || 'dev_a30dce847162445799eac173326a4f9d',
   domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok',
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2',
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.37.22',
+  version: 'v1.37.23',
   logs: [],
 
   log: function(msg, type = 'info') {
