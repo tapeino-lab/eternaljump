@@ -1,8 +1,9 @@
 import { config } from './config.js';
 import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI } from "./utils.js";
 
-// We will import game, ctx, dR, IMG from game.js later.
-import { game, ctx, dR, IMG, logAIEvent, groundCache, groundCached, isDev } from './game.js';
+// We will import game, ctx, IMG from game.js later.
+import { game, ctx, IMG, logAIEvent, groundCache, groundCached, isDev } from './game.js';
+import { dR } from './renderer.js';
 import { runAI } from './ai.js';
 
     export const P_PT = [], P_PL = [], P_CN = [], P_BD = [], P_MT = [], P_IT = [];

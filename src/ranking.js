@@ -5,10 +5,14 @@ import { getLang, MIN } from './utils.js';
 
     export const RankingAPI = {
       key: '8bitJump_Rankings',
-      version: 'v1.37.18 - 2026/07/16 03:13',
+      version: 'v1.37.19 - 2026/07/16 06:26',
       isShowingResult: false,
+      hasLootLocker: function() {
+        return LootLockerAPI.hasLootLockerConfig === true;
+      },
       getScores: async function() {
-        if (LootLockerAPI.apiKey !== 'YOUR_API_KEY_HERE') return await LootLockerAPI.getScores(100);
+        const isConfigured = await LootLockerAPI.checkConfig();
+        if (isConfigured) return await LootLockerAPI.getScores(100);
         try {
           let d = localStorage.getItem(this.key);
           if (!d) return [];
@@ -41,7 +45,8 @@ import { getLang, MIN } from './utils.js';
           localStorage.setItem(pbKey, JSON.stringify(cObj));
         }
         if (game.isNewRecord) {
-          if (LootLockerAPI.apiKey !== 'YOUR_API_KEY_HERE') {
+          const isConfigured = await LootLockerAPI.checkConfig();
+          if (isConfigured) {
             await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l);
           } else {
             try {
