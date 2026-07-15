@@ -9,7 +9,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.37.21',
+  version: 'v1.37.22',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -336,6 +336,66 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         if (confirm('Are you sure you want to reset your Player ID and session?')) {
           LootLockerAPI.resetPlayerSession();
+        }
+      });
+    }
+
+    const copyBtn = document.getElementById('ll_btn_copy');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const keyVal = LootLockerAPI.apiKey;
+        const maskedKey = keyVal ? (keyVal === 'YOUR_API_KEY_HERE' ? '[PLACEHOLDER]' : `${keyVal.substring(0, 6)}...${keyVal.substring(keyVal.length - 4)}`) : '[EMPTY]';
+        const logsStr = LootLockerAPI.logs.map(l => `[${l.timestamp}] [${l.type.toUpperCase()}] ${l.msg}`).join('\n');
+        
+        const diags = [
+          `=== LOOTLOCKER DIAGNOSTICS (v${LootLockerAPI.version}) ===`,
+          `Status: ${LootLockerAPI.sessionToken ? 'CONNECTED' : (LootLockerAPI.hasLootLockerConfig === false ? 'UNCONFIGURED' : 'UNINITIALIZED')}`,
+          `Mode: ${LootLockerAPI.hasLootLockerConfig ? (LootLockerAPI.isDirectMode ? 'Direct Client API' : 'Server Proxy') : 'None'}`,
+          `API Key: ${maskedKey}`,
+          `Domain: ${LootLockerAPI.domainKey || '-'}`,
+          `Leaderboard ID: ${LootLockerAPI.leaderboardId || '-'}`,
+          `Player ID: ${LootLockerAPI.playerIdentifier || '-'}`,
+          `Session Token: ${LootLockerAPI.sessionToken || 'None'}`,
+          `User Agent: ${navigator.userAgent}`,
+          `URL: ${window.location.href}`,
+          `Local Time: ${new Date().toString()}`,
+          '',
+          '--- LIVE DEBUG LOGS ---',
+          logsStr || '(No logs captured yet)'
+        ].join('\n');
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(diags);
+          } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = diags;
+            textArea.style.position = 'fixed';
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+          }
+          LootLockerAPI.log('Diagnostics copied to clipboard!', 'success');
+          const originalText = copyBtn.innerText;
+          copyBtn.innerText = 'COPIED!';
+          copyBtn.style.color = '#00ff00';
+          copyBtn.style.borderColor = '#00ff00';
+          setTimeout(() => {
+            copyBtn.innerText = originalText;
+            copyBtn.style.color = '#ff0';
+            copyBtn.style.borderColor = '#ff0';
+          }, 1500);
+        } catch (err) {
+          LootLockerAPI.log(`Copy failed: ${err.message}`, 'error');
+          alert('Could not copy automatically. You can copy the logs directly from the log area.');
         }
       });
     }

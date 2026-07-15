@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,touch-action=none">
-  <title>8bit Jump Game - v1.37.21 - 2026/07/16 08:31</title>
+  <title>8bit Jump Game - v1.37.22 - 2026/07/16 08:39</title>
   <link rel="stylesheet" href="/src/game.css">
 </head>
 <body>
   <div id="debugModal">
     <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
       <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">v1.37.21 - 2026/07/16 08:31</p>
+      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">v1.37.22 - 2026/07/16 08:39</p>
       
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
         <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
@@ -57,9 +57,12 @@
           <div style="color:#ffb; margin-top:4px; font-weight:bold; font-size:9px; font-family:'Press Start 2P', sans-serif;">LIVE DEBUG LOGS:</div>
           <div id="llDebugLogArea" style="background:#050505; border:1px solid #333; height:120px; overflow-y:auto; padding:6px; border-radius:4px; font-size:9px; color:#0f0; word-break:break-all; white-space:pre-wrap; font-family:monospace; line-height:1.2;"></div>
           
-          <div style="display:flex; gap:5px; margin-top:5px;">
-            <button id="ll_btn_test" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#0f0; color:#0f0;">TEST CON</button>
-            <button id="ll_btn_clear" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#f55; color:#f55;">RESET ID</button>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-top:5px; width:100%;">
+            <div style="display:flex; gap:5px; width:100%;">
+              <button id="ll_btn_test" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#0f0; color:#0f0; margin:0;">TEST CON</button>
+              <button id="ll_btn_copy" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#ff0; color:#ff0; margin:0;">COPY INFO</button>
+            </div>
+            <button id="ll_btn_clear" class="dbg-btn" style="width:100%; padding:8px; font-size:9px; background:#222; border-color:#f55; color:#f55; margin:0;">RESET ID & SESSION</button>
           </div>
         </div>
       </div>
