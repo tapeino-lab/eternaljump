@@ -108,7 +108,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
     
     const RankingAPI = {
       key: '8bitJump_Rankings',
-      version: 'v1.37.12 - 20260715',
+      version: 'v1.37.14 - 2026/07/16 02:40',
       isShowingResult: false,
       getScores: async function() {
         if (LootLockerAPI.apiKey !== 'YOUR_API_KEY_HERE') return await LootLockerAPI.getScores(100);
@@ -1546,7 +1546,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
       }
       
       let spS = (game.baseScoreY - y) * config.scoreMultiplier;
-      let t = 'normal', r = RND(), c = 1, icy = false;
+      let t = 'normal', r = RND(), c = 1, icy = false, forceSubIcy = false;
       let isFinalStairs = (spS >= 140000);
       let isDarkBeforeFinal = (spS >= 135000 && spS < 140000);
       
@@ -1566,10 +1566,13 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
         else if (r < 0.60) t = 'h-slide';
         else if (r < 0.70) t = 'v-slide';
       } else if (spS < 80000) {
-        icy = r < 0.05;
+        if (r < 0.05) forceSubIcy = true;
         let r2 = RND();
-        if (!icy && r2 < 0.05) t = 'super';
-        else if (!icy && r2 < 0.25) t = 'h-slide';
+        if (r2 < 0.05) t = 'super';
+        else if (r2 < 0.25) t = 'h-slide';
+      } else if (spS <= 100000) {
+        if (r < 0.25) forceSubIcy = true;
+        if (RND() < 0.15) t = 'h-slide';
       } else if (spS < 120000) {
         icy = r < 0.25;
         if (!icy && RND() < 0.15) t = 'h-slide';
