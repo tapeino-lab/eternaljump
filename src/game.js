@@ -143,23 +143,25 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
           game.isNewRecord = true;
           localStorage.setItem(pbKey, JSON.stringify(cObj));
         }
-        if (LootLockerAPI.apiKey !== 'YOUR_API_KEY_HERE') {
-          await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l);
-        } else {
-          try {
-            let s = await this.getScores();
-            let ex = s.findIndex(x => x.id === pid);
-            if (ex !== -1) {
-              let ca = s[ex].alt, cc = s[ex].coins;
-              if (a > ca || (a === ca && c > cc)) s[ex] = game.lastScoreObj;
-            } else {
-              s.push(game.lastScoreObj);
-            }
-            s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
-            game.lastRank = s.findIndex(x => x.id === pid) + 1;
-            s = s.slice(0, 100);
-            localStorage.setItem(this.key, JSON.stringify(s));
-          } catch (e) {}
+        if (game.isNewRecord) {
+          if (LootLockerAPI.apiKey !== 'YOUR_API_KEY_HERE') {
+            await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l);
+          } else {
+            try {
+              let s = await this.getScores();
+              let ex = s.findIndex(x => x.id === pid);
+              if (ex !== -1) {
+                let ca = s[ex].alt, cc = s[ex].coins;
+                if (a > ca || (a === ca && c > cc)) s[ex] = game.lastScoreObj;
+              } else {
+                s.push(game.lastScoreObj);
+              }
+              s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
+              game.lastRank = s.findIndex(x => x.id === pid) + 1;
+              s = s.slice(0, 100);
+              localStorage.setItem(this.key, JSON.stringify(s));
+            } catch (e) {}
+          }
         }
       },
       show: async function(state) {
@@ -251,7 +253,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
           });
           if (!hl && game.lastScoreId && game.lastRank > 10) {
             h += `<tr><td colspan="4" style="text-align:center;padding:5px 0;color:#888;">...</td></tr>`;
-            let r = game.lastScoreObj;
+            let r = pRank || game.lastScoreObj;
             let m = '';
             if (game.lastRank === 1) m = '<span class="mdl mdl-1"></span>';
             else if (game.lastRank === 2) m = '<span class="mdl mdl-2"></span>';
