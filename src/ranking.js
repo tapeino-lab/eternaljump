@@ -5,7 +5,7 @@ import { getLang, MIN } from './utils.js';
 
     export const RankingAPI = {
       key: '8bitJump_Rankings',
-      version: 'v1.37.19 - 2026/07/16 06:26',
+      version: 'v1.37.20 - 2026/07/16 06:40',
       isShowingResult: false,
       hasLootLocker: function() {
         return LootLockerAPI.hasLootLockerConfig === true;
