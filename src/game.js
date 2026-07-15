@@ -186,7 +186,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
         
         let h = title;
         if (game.lastScoreObj) {
-          let pbHTML = game.isNewRecord ? '<div style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;">★ NEW PERSONAL BEST! ★</div>' : '';
+          let pbHTML = game.isNewRecord ? '<div style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;">★ YOUR NEW RECORD! ★</div>' : '';
           
           h += '<div style="background:#222;padding:10px;margin-bottom:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">' + pbHTML + '<h2 style="color:#ff0;margin:0 0 8px 0;font-size:12px;">RESULT</h2>';
           h += '<div style="display:flex;flex-direction:column;gap:12px;font-size:10px;color:#ddd;margin-top:10px;">';
@@ -2010,14 +2010,14 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang } from "./utils.js";
         if (cover) cover.blink = (FLR(game.introAnimTimer / 4) % 2 === 0);
         
         if (game.introAnimTimer < 60 && game.introAnimTimer > 0 && game.introAnimTimer % 4 === 0) {
-          game.shakeAmount = 2;
+          game.shakeAmount = 0;
         }
         
         if (game.introAnimTimer <= 0) {
           if (cover) {
             cover.isCrumbling = true;
           }
-          game.shakeAmount = 10;
+          game.shakeAmount = 0;
           game.state = 'intro';
         }
       } else if (game.state !== 'gameover') {
