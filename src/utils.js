@@ -16,3 +16,4 @@ export const getLang = () => {
     return '---';
   }
 };
+export const $ = i => document.getElementById(i);
