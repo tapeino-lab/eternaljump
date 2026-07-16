@@ -51,6 +51,10 @@ export function setupInputListeners() {
         setIgnoreNextTap(true);
         setTimeout(() => setIgnoreNextTap(false), 500);
         startAttractCycle();
+      } else {
+        e.preventDefault();
+        e.stopPropagation();
+        togglePause();
       }
     }, { passive: false });
   });

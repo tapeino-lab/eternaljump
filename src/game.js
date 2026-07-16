@@ -73,6 +73,10 @@ export { dR, inputHandler };
       if (document.visibilityState === 'visible') {
         drawGroundCache();
         resetBGScore();
+      } else {
+        if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
+          togglePause();
+        }
       }
     });
     
