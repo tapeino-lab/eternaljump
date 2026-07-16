@@ -62,7 +62,7 @@ import { getLang, MIN, escapeHTML } from './utils.js';
         if (game.isNewRecord) {
           const isConfigured = await LootLockerAPI.checkConfig();
           if (isConfigured) {
-            await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l);
+            await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l, game.lastScoreObj.time);
           } else {
             try {
               let s = await this.getScores();

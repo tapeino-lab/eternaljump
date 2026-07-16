@@ -1,5 +1,18 @@
 import { FLR } from './utils.js';
 
+
+function generateSignature(alt, coins, playTime, lang) {
+  const salt = "E7eRn4L_JumP_Pr0t3ct10n";
+  let str = alt + "_" + (coins || 0) + "_" + Math.floor(playTime / 1000) + "_" + lang + "_" + salt;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+      let char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
 export const LootLockerAPI = {
   hasLootLockerConfig: null,
   isDirectMode: false,
@@ -197,14 +210,15 @@ export const LootLockerAPI = {
     }
   },
 
-  submitScore: async function(a, c, l) {
+  submitScore: async function(a, c, l, t) {
     this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
     if (!await this.init()) {
       this.log('Score submission aborted (Init Failed)', 'error');
       return false;
     }
     let sc = a * 1000 + (c || 0);
-    let meta = JSON.stringify({ alt: a, coins: c, lang: l });
+    let sig = generateSignature(a, c, t, l);
+    let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig });
     try {
       let r;
       if (this.isDirectMode) {
@@ -279,13 +293,40 @@ export const LootLockerAPI = {
         return [];
       }
       this.log(`Successfully fetched ${d.items.length} records!`, 'success');
-      return d.items.map(i => {
-        let m = { alt: FLR(i.score / 1000), coins: i.score % 1000, lang: '---' };
+      
+      let validItems = [];
+      d.items.forEach(i => {
+        let m = { alt: FLR(i.score / 1000), coins: i.score % 1000, lang: '---', t: 0, sig: '' };
         try {
           if (i.metadata) m = JSON.parse(i.metadata);
         } catch (e) {}
-        return { id: i.member_id, rank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang };
+        
+        let isValid = true;
+        if (m.sig) {
+            let expectedSig = generateSignature(m.alt, m.coins, (m.t || 0) * 1000, m.lang);
+            if (expectedSig !== m.sig) isValid = false;
+        } else {
+            // For backward compatibility, allow old scores if they look reasonable
+            if (m.alt > 30000 && !m.t) isValid = false;
+        }
+        
+        // Impossible speed check (e.g. 400m per second)
+        if (m.t && m.t > 0) {
+            if (m.alt / m.t > 4000) isValid = false;
+        }
+        
+        if (isValid) {
+           validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang });
+        }
       });
+      
+      // Re-assign ranks based on filtered list
+      validItems.forEach((v, idx) => {
+         v.rank = idx + 1;
+      });
+      
+      return validItems;
+
     } catch (e) {
       this.log(`Score fetch failed: ${e.message}`, 'error');
       return [];
