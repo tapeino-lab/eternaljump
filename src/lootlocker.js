@@ -211,12 +211,13 @@ export const LootLockerAPI = {
   },
 
   submitScore: async function(a, c, l, t) {
+    c = Math.min(c || 0, 999);
     this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
     if (!await this.init()) {
       this.log('Score submission aborted (Init Failed)', 'error');
       return false;
     }
-    let sc = a * 1000 + (c || 0);
+    let sc = a * 1000 + c;
     let sig = generateSignature(a, c, t, l);
     let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig });
     try {
@@ -310,9 +311,9 @@ export const LootLockerAPI = {
             if (m.alt > 30000 && !m.t) isValid = false;
         }
         
-        // Impossible speed check (e.g. 400m per second)
+        // Impossible speed check (max theoretical speed is ~3600m/s)
         if (m.t && m.t > 0) {
-            if (m.alt / m.t > 4000) isValid = false;
+            if (m.alt / m.t > 6000) isValid = false;
         }
         
         if (isValid) {

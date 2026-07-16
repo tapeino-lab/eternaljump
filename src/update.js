@@ -277,7 +277,7 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttr
       c.collected = true;
       c.animTimer = 30;
       c.vy = -5;
-      game.scoreCoin++;
+      if (game.scoreCoin < 999) game.scoreCoin++;
       spawnParticles(c.x + c.w / 2, c.y + c.h / 2, '#fd0', 3, 2);
     }
   });
