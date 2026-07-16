@@ -70,13 +70,28 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, e => {
-      if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('.thm-btn')) return;
-      
       if (RankingAPI.isShowingResult) {
         if (ignoreNextTap) return;
+        e.preventDefault();
         RankingAPI.showRanking(game.state);
         return;
       }
+
+      if ($('rankingModal').style.display === 'flex' && (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo')) {
+        if (ignoreNextTap) return;
+        e.preventDefault();
+        $('rankingModal').style.display = 'none';
+        if (isAttractMode) {
+          startRealGame();
+        } else {
+          initGame(true);
+          $('tapToStartMsg').style.display = 'none';
+        }
+        return;
+      }
+
+      if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('.thm-btn')) return;
+      
       if (isAttractMode) {
         if (ignoreNextTap) return;
         e.preventDefault();

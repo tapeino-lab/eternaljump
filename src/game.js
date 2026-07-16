@@ -1241,12 +1241,14 @@ export { dR, inputHandler };
         let m = '';
         let color = 'rgba(255,255,255,0.85)';
         let fw = 'normal';
+        let isC = (r.id === LootLockerAPI.playerIdentifier);
         if (i === 0) { m = '<span class="mdl mdl-1"></span>'; color = '#ff0'; fw = 'bold'; }
         else if (i === 1) { m = '<span class="mdl mdl-2"></span>'; color = '#ccc'; fw = 'bold'; }
         else if (i === 2) { m = '<span class="mdl mdl-3"></span>'; color = '#d98'; fw = 'bold'; }
         
+        let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
         let pt = '6px 0';
-        let row = `<tr style="color:${color};font-weight:${fw};"><td style="padding:${pt};text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;padding:${pt};width:20%;white-space:nowrap;overflow:hidden;">${r.lang || '---'}</td><td style="text-align:center;padding:${pt};width:40%;white-space:nowrap;overflow:hidden;">${r.alt}m</td><td style="text-align:right;padding:${pt};width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${r.coins || 0}</td></tr>`;
+        let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;padding:${pt};width:20%;white-space:nowrap;overflow:hidden;">${r.lang || '---'}</td><td style="text-align:center;padding:${pt};width:40%;white-space:nowrap;overflow:hidden;">${r.alt}m</td><td style="text-align:right;padding:${pt};width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${r.coins || 0}</td></tr>`;
         
         if (i < 3) t3Html += row;
         else otHtml += row;

@@ -9,7 +9,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.37.23',
+  version: 'v1.37.26',
   logs: [],
 
   log: function(msg, type = 'info') {

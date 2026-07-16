@@ -5,23 +5,37 @@ import { getLang, MIN } from './utils.js';
 
     export const RankingAPI = {
       key: '8bitJump_Rankings',
-      version: 'v1.37.23 - 2026/07/16 08:46',
+      version: 'v1.37.26 - 2026/07/16 10:21',
       isShowingResult: false,
+      prefetchedScoresPromise: null,
       hasLootLocker: function() {
         return LootLockerAPI.hasLootLockerConfig === true;
       },
-      getScores: async function() {
-        const isConfigured = await LootLockerAPI.checkConfig();
-        if (isConfigured) return await LootLockerAPI.getScores(100);
-        try {
-          let d = localStorage.getItem(this.key);
-          if (!d) return [];
-          let s = JSON.parse(d);
-          s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
-          return s.map((r, i) => ({ ...r, rank: i + 1 }));
-        } catch (e) {
-          return [];
+      prefetchScores: function() {
+        this.prefetchedScoresPromise = (async () => {
+          const isConfigured = await LootLockerAPI.checkConfig();
+          if (isConfigured) {
+            return await LootLockerAPI.getScores(100);
+          } else {
+            try {
+              let d = localStorage.getItem(this.key);
+              if (!d) return [];
+              let s = JSON.parse(d);
+              s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
+              return s.map((r, i) => ({ ...r, rank: i + 1 }));
+            } catch (e) {
+              return [];
+            }
+          }
+        })();
+      },
+      getScores: async function(bypassCache = false) {
+        if (bypassCache || !this.prefetchedScoresPromise) {
+          this.prefetchScores();
         }
+        const s = await this.prefetchedScoresPromise;
+        this.prefetchedScoresPromise = null;
+        return s;
       },
       saveScore: async function(a, t, c, r) {
         if (game.isBenchmarking) return;
@@ -65,6 +79,9 @@ import { getLang, MIN } from './utils.js';
             } catch (e) {}
           }
         }
+
+        // Start background prefetch of scores immediately for latest values
+        this.prefetchScores();
       },
       show: async function(state) {
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
@@ -118,7 +135,7 @@ import { getLang, MIN } from './utils.js';
         
         setTimeout(() => {
           setIgnoreNextTap(false);
-          $('tapToStartMsg').innerText = 'TAP TO SHOW RANKING';
+          $('tapToStartMsg').innerText = 'TAP TO RANKING';
           $('tapToStartMsg').style.display = 'block';
         }, 500);
       },
@@ -153,14 +170,15 @@ import { getLang, MIN } from './utils.js';
             else if (i === 2) m = '<span class="mdl mdl-3"></span>';
             h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${r.lang || '---'}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${r.alt}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${r.coins || 0}</td></tr>`;
           });
-          if (!hl && game.lastScoreId && game.lastRank > 10) {
+          if (!hl && pRank && pRank.rank > 10) {
             h += `<tr><td colspan="4" style="text-align:center;padding:5px 0;color:#888;">...</td></tr>`;
-            let r = pRank || game.lastScoreObj;
+            let r = pRank;
+            let rRank = pRank.rank;
             let m = '';
-            if (game.lastRank === 1) m = '<span class="mdl mdl-1"></span>';
-            else if (game.lastRank === 2) m = '<span class="mdl mdl-2"></span>';
-            else if (game.lastRank === 3) m = '<span class="mdl mdl-3"></span>';
-            h += `<tr style="animation:rowBlink 1s infinite;font-weight:bold;border-top:1px solid #fff;"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${game.lastRank}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${r.lang || '---'}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${r.alt}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${r.coins || 0}</td></tr>`;
+            if (rRank === 1) m = '<span class="mdl mdl-1"></span>';
+            else if (rRank === 2) m = '<span class="mdl mdl-2"></span>';
+            else if (rRank === 3) m = '<span class="mdl mdl-3"></span>';
+            h += `<tr style="animation:rowBlink 1s infinite;font-weight:bold;border-top:1px solid #fff;"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${rRank}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${r.lang || '---'}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${r.alt}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${r.coins || 0}</td></tr>`;
           }
           h += '</table>';
         h += '</div>';
@@ -187,3 +205,6 @@ import { getLang, MIN } from './utils.js';
         } catch (e) {}
       }
     };
+
+    // Start background score prefetch immediately upon loading the game
+    RankingAPI.prefetchScores();
