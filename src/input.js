@@ -62,6 +62,11 @@ export function setupInputListeners() {
   window.addEventListener('keydown', e => {
     if (e.repeat) return;
     if (e.code === 'KeyP') togglePause(e);
+    if (game.isPaused && (e.code === 'ArrowLeft' || e.code === 'KeyA' || e.code === 'ArrowRight' || e.code === 'KeyD')) {
+      e.stopPropagation();
+      togglePause();
+      return;
+    }
     if (game.demoMode && game.aiActive) return;
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') inputHandler.start('k_l', -1);
     if (e.code === 'ArrowRight' || e.code === 'KeyD') inputHandler.start('k_r', 1);
@@ -74,6 +79,11 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, e => {
+      if (game.isPaused) {
+        e.stopPropagation();
+        if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen')) togglePause();
+        return;
+      }
       if (RankingAPI.isShowingResult) {
         if (ignoreNextTap) return;
         e.preventDefault();
@@ -127,6 +137,11 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     ctrlArea.addEventListener(ev, e => {
       e.preventDefault();
+      if (game.isPaused) {
+        e.stopPropagation();
+        togglePause();
+        return;
+      }
       if (isAttractMode) {
         startRealGame();
         return;
@@ -181,6 +196,11 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     tOv.addEventListener(ev, e => {
       e.preventDefault();
+      if (game.isPaused) {
+        e.stopPropagation();
+        togglePause();
+        return;
+      }
       if (isAttractMode) {
         startRealGame();
         return;
