@@ -33,6 +33,9 @@ jobs:
       - name: Build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_LOOTLOCKER_API_KEY: ${{ secrets.VITE_LOOTLOCKER_API_KEY }}
+          VITE_LOOTLOCKER_DOMAIN_KEY: ${{ vars.VITE_LOOTLOCKER_DOMAIN_KEY }}
+          VITE_LOOTLOCKER_LEADERBOARD_ID: ${{ vars.VITE_LOOTLOCKER_LEADERBOARD_ID }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4
