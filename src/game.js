@@ -1241,7 +1241,8 @@ export { dR, inputHandler };
         let m = '';
         let color = 'rgba(255,255,255,0.85)';
         let fw = 'normal';
-        let isC = (r.id === LootLockerAPI.playerIdentifier);
+        let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : null;
+        let isC = (r.id === LootLockerAPI.playerIdentifier || (pIdVal && r.id === pIdVal));
         if (i === 0) { m = '<span class="mdl mdl-1"></span>'; color = '#ff0'; fw = 'bold'; }
         else if (i === 1) { m = '<span class="mdl mdl-2"></span>'; color = '#ccc'; fw = 'bold'; }
         else if (i === 2) { m = '<span class="mdl mdl-3"></span>'; color = '#d98'; fw = 'bold'; }

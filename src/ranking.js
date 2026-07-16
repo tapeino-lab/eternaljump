@@ -5,7 +5,7 @@ import { getLang, MIN } from './utils.js';
 
     export const RankingAPI = {
       key: '8bitJump_Rankings',
-      version: 'v1.37.26 - 2026/07/16 10:21',
+      version: 'v1.37.27 - 2026/07/16 11:13',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -145,7 +145,8 @@ import { getLang, MIN } from './utils.js';
         setIgnoreNextTap(true);
         let s = await this.getScores();
         let pid = LootLockerAPI.playerIdentifier;
-        let pRank = s.find(x => x.id === pid);
+        let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : null;
+        let pRank = s.find(x => x.id === pid || (pIdVal && x.id === pIdVal));
         if (pRank) game.lastRank = pRank.rank;
         
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
@@ -161,7 +162,7 @@ import { getLang, MIN } from './utils.js';
         let top10 = s.slice(0, 10);
         let hl = false;
         top10.forEach((r, i) => {
-            let isC = (r.id === pid);
+            let isC = (r.id === pid || (pIdVal && r.id === pIdVal));
             if (isC) hl = true;
             let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
             let m = '';
