@@ -4,8 +4,9 @@ import { LootLockerAPI } from './lootlocker.js';
 import { getLang, MIN } from './utils.js';
 
     export const RankingAPI = {
-      key: '8bitJump_Rankings',
-      version: 'v1.37.27 - 2026/07/16 11:13',
+      key: 'EternalJumper_Rankings',
+      pbKey: 'EternalJumper_PB',
+      version: 'v1.37.29 - 2026/07/16 11:54',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -43,7 +44,7 @@ import { getLang, MIN } from './utils.js';
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;
         game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l };
         game.lastScoreId = pid;
-        let pbKey = '8bitJump_PB', storedPB = localStorage.getItem(pbKey);
+        let pbKey = this.pbKey, storedPB = localStorage.getItem(pbKey);
         game.isNewRecord = false;
         game.personalBest = null;
         let cObj = { alt: game.lastScoreObj.alt, coins: game.lastScoreObj.coins, time: game.lastScoreObj.time };
@@ -201,11 +202,26 @@ import { getLang, MIN } from './utils.js';
       reset: function() {
         try {
           localStorage.removeItem(this.key);
-          localStorage.removeItem('8bitJump_PB');
+          localStorage.removeItem(this.pbKey);
           alert('RANKING CLEARED!')
         } catch (e) {}
       }
     };
+
+    // Data migration from old keys
+    try {
+      const oldKey = '8bitJump_Rankings';
+      const oldPBKey = '8bitJump_PB';
+      const newKey = 'EternalJumper_Rankings';
+      const newPBKey = 'EternalJumper_PB';
+      
+      if (localStorage.getItem(oldKey) && !localStorage.getItem(newKey)) {
+        localStorage.setItem(newKey, localStorage.getItem(oldKey));
+      }
+      if (localStorage.getItem(oldPBKey) && !localStorage.getItem(newPBKey)) {
+        localStorage.setItem(newPBKey, localStorage.getItem(oldPBKey));
+      }
+    } catch (e) {}
 
     // Start background score prefetch immediately upon loading the game
     RankingAPI.prefetchScores();
