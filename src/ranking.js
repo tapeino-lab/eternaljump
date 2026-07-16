@@ -1,7 +1,7 @@
 import { game, setIgnoreNextTap } from './game.js';
 import { $ } from './utils.js';
 import { LootLockerAPI } from './lootlocker.js';
-import { getLang, MIN } from './utils.js';
+import { getLang, MIN, escapeHTML } from './utils.js';
 
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
@@ -170,7 +170,7 @@ import { getLang, MIN } from './utils.js';
             if (i === 0) m = '<span class="mdl mdl-1"></span>';
             else if (i === 1) m = '<span class="mdl mdl-2"></span>';
             else if (i === 2) m = '<span class="mdl mdl-3"></span>';
-            h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${r.lang || '---'}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${r.alt}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${r.coins || 0}</td></tr>`;
+            h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.lang || '---')}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
           });
           if (!hl && pRank && pRank.rank > 10) {
             h += `<tr><td colspan="4" style="text-align:center;padding:5px 0;color:#888;">...</td></tr>`;
@@ -180,7 +180,7 @@ import { getLang, MIN } from './utils.js';
             if (rRank === 1) m = '<span class="mdl mdl-1"></span>';
             else if (rRank === 2) m = '<span class="mdl mdl-2"></span>';
             else if (rRank === 3) m = '<span class="mdl mdl-3"></span>';
-            h += `<tr style="animation:rowBlink 1s infinite;font-weight:bold;border-top:1px solid #fff;"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${rRank}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${r.lang || '---'}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${r.alt}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${r.coins || 0}</td></tr>`;
+            h += `<tr style="animation:rowBlink 1s infinite;font-weight:bold;border-top:1px solid #fff;"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${rRank}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.lang || '---')}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
           }
           h += '</table>';
         h += '</div>';

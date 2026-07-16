@@ -3,9 +3,9 @@ import { FLR } from './utils.js';
 export const LootLockerAPI = {
   hasLootLockerConfig: null,
   isDirectMode: false,
-  apiKey: import.meta.env.VITE_LOOTLOCKER_API_KEY || 'dev_a30dce847162445799eac173326a4f9d',
-  domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok',
-  leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2',
+  apiKey: import.meta.env.VITE_LOOTLOCKER_API_KEY || '',
+  domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '',
+  leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
