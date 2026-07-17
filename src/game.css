@@ -297,11 +297,30 @@
       font-weight: bold;
       transition: all 0.05s ease;
     }
+    
+    @media (hover: hover) {
+      .dbg-btn:hover {
+        background: #444 !important;
+        border-color: #ddd !important;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
+      }
+      #pauseEditIcon:hover {
+        background: #444 !important;
+        border-color: #ddd !important;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
+      }
+      #pauseBtn:hover, #autoBtn:hover {
+        background: rgba(255,255,255,0.3) !important;
+        border-color: #fff !important;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
+      }
+    }
+
     .dbg-btn:active {
       background: #555 !important;
       border-color: #fff !important;
       transform: scale(0.95);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
     }
     
     #pauseEditIcon {
@@ -311,7 +330,7 @@
       background: #555 !important;
       border-color: #fff !important;
       transform: scale(0.95);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
     }
     
     #pauseBtn {
@@ -326,12 +345,16 @@
       z-index: 20;
       cursor: pointer;
       pointer-events: auto;
+      transition: all 0.05s ease;
       color: #fff;
       border: 1px solid rgba(255,255,255,0.3);
     }
     
-    #pauseBtn:active {
-      background: rgba(255,255,255,0.2);
+    #pauseBtn:active, #autoBtn:active {
+      background: rgba(255,255,255,0.2) !important;
+      border-color: #fff !important;
+      transform: scale(0.95);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
     }
     
     #autoBtn {
@@ -346,6 +369,7 @@
       z-index: 20;
       cursor: pointer;
       pointer-events: auto;
+      transition: all 0.05s ease;
       color: #fff;
       border: 1px solid rgba(255,255,255,0.3);
       display: none;

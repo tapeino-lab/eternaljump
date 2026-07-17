@@ -6,7 +6,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.37.70 - 2026/07/17 03:12',
+      version: 'v1.37.80 - 2026/07/17 05:20',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -173,10 +173,10 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         let cI = '<div class="coin-icon" style="margin-top:0;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
         
         h += '<div style="border:1px solid #fff;border-radius:4px;padding:8px 0;background:rgba(0,0,0,0.5);margin-bottom:10px;">';
-        h += '<table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="color:#fff;"><th style="padding-bottom:4px;text-align:left;width:24px;padding-left:4px;vertical-align:middle;">#</th><th style="padding-bottom:4px;text-align:center;width:34px;vertical-align:middle;">LANG</th><th style="padding-bottom:4px;width:2px;padding:0;vertical-align:middle;"></th><th style="padding-bottom:4px;text-align:center;vertical-align:middle;">NAME</th><th style="padding-bottom:4px;text-align:right;width:26%;vertical-align:middle;">HEIGHT</th><th style="padding-bottom:4px;width:30px;vertical-align:middle;"><div style="display:flex;justify-content:center;align-items:center;height:8px;">' + cI + '</div></th></tr>';
+        h += '<table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="color:#fff;font-size:7px;"><th style="padding-bottom:4px;text-align:left;width:24px;padding-left:4px;vertical-align:middle;">#</th><th style="padding-bottom:4px;text-align:center;width:32px;vertical-align:middle;">LANG</th><th style="padding-bottom:4px;width:4px;padding:0;vertical-align:middle;"></th><th style="padding-bottom:4px;text-align:center;width:32px;vertical-align:middle;">NAME</th><th style="padding-bottom:4px;text-align:center;vertical-align:middle;">HEIGHT</th><th style="padding-bottom:4px;width:32px;padding-right:4px;vertical-align:middle;"><div style="display:flex;justify-content:center;align-items:center;height:8px;">' + cI + '</div></th></tr>';
         
         let curLen = s.length;
-        for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: '---', n: '--- ??' });
+        for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });
 
         let top10 = s.slice(0, 10);
         let hl = false;
@@ -206,7 +206,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             if (lang.length > 3) lang = lang.substring(0, 3);
             if (name.length > 2) name = name.substring(0, 2);
 
-            h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;width:34px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:2px;padding:0;"></td><td style="text-align:center;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="text-align:right;width:26%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:center;width:30px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+            h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
         });
         h += '</table></div>';
         
@@ -230,7 +230,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             if (rLang.length > 3) rLang = rLang.substring(0, 3);
             if (rName.length > 2) rName = rName.substring(0, 2);
 
-            h += `<div style="padding:4px 0;margin-top:4px;"><table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="animation:rowBlink 1s infinite;font-weight:bold;color:#fff;"><td style="padding:0 0 0 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${rRank}</td><td style="padding:0;text-align:center;width:34px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(rLang)}</td><td style="width:2px;padding:0;"></td><td style="padding:0;text-align:center;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(rName)}</td><td style="padding:0;text-align:right;width:26%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:0;text-align:center;width:30px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr></table></div>`;
+            h += `<div style="padding:4px 0;margin-top:4px;"><table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="animation:rowBlink 1s infinite;font-weight:bold;color:#fff;"><td style="padding:0 0 0 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${rRank}</td><td style="padding:0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(rLang)}</td><td style="width:4px;padding:0;"></td><td style="padding:0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(rName)}</td><td style="padding:0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:0 4px 0 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr></table></div>`;
         }
         
         h += '</div>';

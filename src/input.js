@@ -35,6 +35,57 @@ export function setupInputListeners() {
   const tOv = $('touchOverlay');
   const tOrgs = new Map();
 
+  document.addEventListener('keydown', e => {
+    if ($('nameEditModal').style.display === 'flex') return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'a' || e.key === 'd' || e.key === 'A' || e.key === 'D') {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      e.preventDefault();
+      if (game.isPaused) {
+        togglePause();
+        return;
+      }
+      if (isAttractMode) {
+        startRealGame();
+        return;
+      }
+      if ($('rankingModal').style.display === 'flex') {
+        if (ignoreNextTap) return;
+        if (RankingAPI.isShowingResult) {
+          RankingAPI.showRanking(game.state);
+        } else {
+          $('rankingModal').style.display = 'none';
+          $('tapToStartMsg').style.display = 'none';
+          if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
+            if (!game.demoMode) {
+              initGame(true);
+            }
+          }
+        }
+        return;
+      }
+      if (game.state === 'gameover' || game.state === 'clear') {
+        if (!game.demoMode) {
+          if (ignoreNextTap) return;
+          initGame(true);
+          $('tapToStartMsg').style.display = 'none';
+        }
+        return;
+      }
+      if (game.demoMode && game.aiActive) setAuto(false);
+      let dir = (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') ? -1 : 1;
+      inputHandler.start('k_' + dir, dir);
+    }
+  });
+
+  document.addEventListener('keyup', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+      inputHandler.end('k_-1');
+    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      inputHandler.end('k_1');
+    }
+  });
+
+
   // Intercept all touch/mousedown events globally when ranking modal is open
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, e => {

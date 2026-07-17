@@ -22,7 +22,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.37.70',
+  version: 'v1.37.80',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -140,6 +140,20 @@ export const LootLockerAPI = {
     return false;
   },
 
+  submitPendingScores: async function() {
+    try {
+      let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+      if (pending && pending.length > 0) {
+        this.log(`Found ${pending.length} pending scores, attempting to submit...`, 'info');
+        let remaining = [];
+        for (let s of pending) {
+           let success = await this.submitScore(s.alt, s.coins, s.t, s.lang);
+           if (!success) remaining.push(s);
+        }
+        localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(remaining));
+      }
+    } catch(e) {}
+  },
   init: async function() {
     const isConfigured = await this.checkConfig();
     if (!isConfigured) {
@@ -198,6 +212,7 @@ export const LootLockerAPI = {
       
       if (d.session_token) {
         this.sessionToken = d.session_token;
+        setTimeout(() => this.submitPendingScores(), 2000);
         this.playerId = d.player_id;
         localStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
         this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
@@ -357,7 +372,13 @@ export const LootLockerAPI = {
       this.log('Score successfully registered on LootLocker!', 'success');
       return true;
     } catch (e) {
-      this.log(`Score submission failed: ${e.message}`, 'error');
+      this.log(`Score submission failed (offline?): ${e.message}`, 'error');
+      try {
+        let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+        pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
+        localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
+        this.log('Score saved locally for offline queue.', 'warning');
+      } catch (err) {}
       return false;
     }
   },
@@ -430,7 +451,7 @@ export const LootLockerAPI = {
       return validItems;
 
     } catch (e) {
-      this.log(`Score fetch failed: ${e.message}`, 'error');
+      this.log(`Score fetch failed (offline?): ${e.message}`, 'error');
       return [];
     }
   },
