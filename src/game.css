@@ -295,6 +295,23 @@
       cursor: pointer;
       margin: 3px;
       font-weight: bold;
+      transition: all 0.05s ease;
+    }
+    .dbg-btn:active {
+      background: #555 !important;
+      border-color: #fff !important;
+      transform: scale(0.95);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    
+    #pauseEditIcon {
+      transition: all 0.05s ease;
+    }
+    #pauseEditIcon:active {
+      background: #555 !important;
+      border-color: #fff !important;
+      transform: scale(0.95);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
     
     #pauseBtn {

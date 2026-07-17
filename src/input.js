@@ -92,6 +92,8 @@ export function setupInputListeners() {
       } else if (e.target.closest('#pauseConfirmModal')) {
         e.preventDefault();
         e.stopPropagation();
+      } else if (e.target.closest('#pausePlayerNameInput') || e.target.closest('#pauseEditIcon') || e.target.closest('#nameEditModal')) {
+        e.stopPropagation();
       } else {
         e.preventDefault();
         e.stopPropagation();
@@ -127,7 +129,7 @@ export function setupInputListeners() {
     document.addEventListener(ev, e => {
       if (game.isPaused) {
         e.stopPropagation();
-        if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen')) togglePause();
+        if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen') && !e.target.closest('#nameEditModal')) togglePause();
         return;
       }
       if (RankingAPI.isShowingResult) {
@@ -138,7 +140,7 @@ export function setupInputListeners() {
       }
 
 
-      if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('.thm-btn')) return;
+      if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('#nameEditModal') || e.target.closest('.thm-btn')) return;
       
       if (isAttractMode) {
         if (ignoreNextTap) return;
@@ -171,6 +173,10 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     ctrlArea.addEventListener(ev, e => {
       e.preventDefault();
+      if ($('nameEditModal').style.display === 'flex') {
+        e.stopPropagation();
+        return;
+      }
       if (game.isPaused) {
         e.stopPropagation();
         togglePause();

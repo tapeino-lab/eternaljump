@@ -745,9 +745,9 @@ export { dR, inputHandler };
       if (!isAttractMode) return;
       
       let curLen = s.length;
-      for (let i = 0; i < 100 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: '---' });
+      for (let i = 0; i < 100 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: '---', n: '--- ??' });
       
-      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:32px;padding-left:4px;vertical-align:middle;">RANK</th><th style="padding:4px 0;text-align:center;width:75px;vertical-align:middle;">ID</th><th style="padding:4px 0;text-align:right;vertical-align:middle;">HEIGHT</th><th style="padding:4px 0;width:36px;padding-right:4px;vertical-align:middle;"><div style="display:flex;justify-content:flex-end;align-items:center;height:8px;"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th></tr></table>';
+      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:24px;padding-left:4px;vertical-align:middle;">#</th><th style="padding:4px 0;text-align:center;width:34px;vertical-align:middle;">LANG</th><th style="padding:4px 0;width:2px;padding:0;vertical-align:middle;"></th><th style="padding:4px 0;text-align:center;vertical-align:middle;">NAME</th><th style="padding:4px 0;text-align:right;vertical-align:middle;">HEIGHT</th><th style="padding:4px 0;width:36px;padding-right:4px;vertical-align:middle;"><div style="display:flex;justify-content:flex-end;align-items:center;height:8px;"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th></tr></table>';
       $('demoHeader').innerHTML = headerHtml;
       
       let t3Html = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;">';
@@ -766,7 +766,25 @@ export { dR, inputHandler };
         
         let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
         let pt = '6px 0';
-        let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:32px;white-space:nowrap;overflow:hidden;padding-left:4px;vertical-align:middle;">${m}${i + 1}</td><td style="padding:${pt};text-align:center;width:75px;white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.n || r.lang || '---')}</td><td style="text-align:right;padding:${pt};white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};width:36px;color:#ffb;white-space:nowrap;overflow:hidden;padding-right:4px;vertical-align:middle;">${escapeHTML(r.coins || 0)}</td></tr>`;
+        
+        let nVal = r.n || '--- ??';
+        let lang = '---';
+        let name = '??';
+        if (nVal.includes(' ')) {
+          let parts = nVal.split(' ');
+          lang = parts[0] || '---';
+          name = parts[1] || '??';
+        } else if (nVal.length >= 3) {
+          lang = nVal.substring(0, 3);
+          name = nVal.substring(3) || '??';
+        }
+        if (lang === '???' || lang === '---') {
+          if (r.lang && r.lang !== '---') lang = r.lang;
+        }
+        if (lang.length > 3) lang = lang.substring(0, 3);
+        if (name.length > 2) name = name.substring(0, 2);
+
+        let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:24px;white-space:nowrap;overflow:hidden;padding-left:4px;vertical-align:middle;">${m}${i + 1}</td><td style="padding:${pt};text-align:center;width:34px;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(lang)}</td><td style="width:2px;padding:0;"></td><td style="padding:${pt};text-align:center;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(name)}</td><td style="text-align:right;padding:${pt};white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};width:36px;color:#ffb;white-space:nowrap;overflow:hidden;padding-right:4px;vertical-align:middle;">${escapeHTML(r.coins || 0)}</td></tr>`;
         
         if (i < 3) t3Html += row;
         else otHtml += row;
@@ -864,36 +882,231 @@ export { dR, inputHandler };
 
     setupInputListeners();
 
-    // Hook up editable name input UI events
-    const pauseNameInput = $('pausePlayerNameInput');
-    if (pauseNameInput) {
-      pauseNameInput.addEventListener('input', (e) => {
-        let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        e.target.value = val;
-        
-        if (val.length === 2) {
-          let lang = getLang();
-          let newFullName = `${lang} ${val}`;
-          localStorage.setItem('JUMP_PLAYER_NAME', newFullName);
-          
-          // Submit name to LootLocker
-          LootLockerAPI.setPlayerName(newFullName);
-          
-          // Sync existing display elements if present
-          const tn = document.getElementById('gamePlayerName');
-          if (tn) tn.innerText = 'ID: ' + newFullName;
-        }
+    // Hook up editable name input UI events and virtual keyboard modal
+    let tempNameVal = '';
+    let originalNameVal = '';
+    
+    function initVirtualKeyboard() {
+      const lettersContainer = $('kbLetters');
+      const numbersContainer = $('kbNumbers');
+      const symbolsContainer = $('kbSymbols');
+      
+      if (!lettersContainer || !numbersContainer || !symbolsContainer) return;
+      
+      lettersContainer.innerHTML = '';
+      numbersContainer.innerHTML = '';
+      symbolsContainer.innerHTML = '';
+      
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      const numbers = '1234567890'.split('');
+      const symbols = '-_!?./#*+=$@'.split('');
+      
+      // A-Z
+      letters.forEach(char => {
+        const btn = document.createElement('button');
+        btn.className = 'dbg-btn';
+        btn.style.cssText = 'padding:14px 0; font-size:14px; font-family:"Press Start 2P", sans-serif; background:#222; color:#fff; border:2px solid #555; border-radius:4px; cursor:pointer; text-align:center;';
+        btn.innerText = char;
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (tempNameVal.length === 2) {
+            tempNameVal = tempNameVal[1] + char;
+          } else {
+            tempNameVal += char;
+          }
+          $('nameEditVal').innerText = tempNameVal.padEnd(2, '_');
+        });
+        lettersContainer.appendChild(btn);
       });
       
-      pauseNameInput.addEventListener('blur', (e) => {
-        let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (val.length < 2) {
-          let currentName = getPlayerName();
-          let parts = currentName.split(' ');
-          let prevName = parts[1] || '??';
-          e.target.value = prevName;
-        }
+      // 0-9
+      numbers.forEach(char => {
+        const btn = document.createElement('button');
+        btn.className = 'dbg-btn';
+        btn.style.cssText = 'padding:14px 0; font-size:14px; font-family:"Press Start 2P", sans-serif; background:#222; color:#fff; border:2px solid #555; border-radius:4px; cursor:pointer; text-align:center;';
+        btn.innerText = char;
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (tempNameVal.length === 2) {
+            tempNameVal = tempNameVal[1] + char;
+          } else {
+            tempNameVal += char;
+          }
+          $('nameEditVal').innerText = tempNameVal.padEnd(2, '_');
+        });
+        numbersContainer.appendChild(btn);
       });
+      
+      // SYM
+      symbols.forEach(char => {
+        const btn = document.createElement('button');
+        btn.className = 'dbg-btn';
+        btn.style.cssText = 'padding:14px 0; font-size:14px; font-family:"Press Start 2P", sans-serif; background:#222; color:#fff; border:2px solid #555; border-radius:4px; cursor:pointer; text-align:center;';
+        btn.innerText = char;
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (tempNameVal.length === 2) {
+            tempNameVal = tempNameVal[1] + char;
+          } else {
+            tempNameVal += char;
+          }
+          $('nameEditVal').innerText = tempNameVal.padEnd(2, '_');
+        });
+        symbolsContainer.appendChild(btn);
+      });
+    }
+
+    const tabLetters = $('tabLetters');
+    const tabNumbers = $('tabNumbers');
+    const tabSymbols = $('tabSymbols');
+    
+    if (tabLetters && tabNumbers && tabSymbols) {
+      tabLetters.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        $('kbLetters').style.display = 'grid';
+        $('kbNumbers').style.display = 'none';
+        $('kbSymbols').style.display = 'none';
+        tabLetters.style.borderBottom = '2px solid #fff';
+        tabLetters.style.color = '#fff';
+        tabNumbers.style.borderBottom = 'none';
+        tabNumbers.style.color = '#888';
+        tabSymbols.style.borderBottom = 'none';
+        tabSymbols.style.color = '#888';
+      });
+      tabNumbers.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        $('kbLetters').style.display = 'none';
+        $('kbNumbers').style.display = 'grid';
+        $('kbSymbols').style.display = 'none';
+        tabLetters.style.borderBottom = 'none';
+        tabLetters.style.color = '#888';
+        tabNumbers.style.borderBottom = '2px solid #fff';
+        tabNumbers.style.color = '#fff';
+        tabSymbols.style.borderBottom = 'none';
+        tabSymbols.style.color = '#888';
+      });
+      tabSymbols.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        $('kbLetters').style.display = 'none';
+        $('kbNumbers').style.display = 'none';
+        $('kbSymbols').style.display = 'grid';
+        tabLetters.style.borderBottom = 'none';
+        tabLetters.style.color = '#888';
+        tabNumbers.style.borderBottom = 'none';
+        tabNumbers.style.color = '#888';
+        tabSymbols.style.borderBottom = '2px solid #fff';
+        tabSymbols.style.color = '#fff';
+      });
+    }
+
+    initVirtualKeyboard();
+
+    function openNameEditModal() {
+      let fullName = getPlayerName();
+      let parts = fullName.split(' ');
+      let lang = parts[0] || '---';
+      let name = parts[1] || '??';
+      
+      originalNameVal = name;
+      tempNameVal = name;
+      
+      const langEl = $('nameEditLang');
+      if (langEl) langEl.innerText = lang;
+      
+      $('nameEditVal').innerText = tempNameVal.padEnd(2, '_');
+      
+      if (tabLetters) tabLetters.click();
+      $('nameEditModal').style.display = 'flex';
+    }
+
+    // RESET
+    const btnNameReset = $('btnNameReset');
+    if (btnNameReset) {
+      btnNameReset.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        tempNameVal = originalNameVal;
+        $('nameEditVal').innerText = tempNameVal.padEnd(2, '_');
+      });
+    }
+    
+    // RANDOM
+    const btnNameRandom = $('btnNameRandom');
+    if (btnNameRandom) {
+      btnNameRandom.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        tempNameVal = chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
+        $('nameEditVal').innerText = tempNameVal;
+      });
+    }
+    
+    // CANCEL
+    const btnNameCancel = $('btnNameCancel');
+    if (btnNameCancel) {
+      btnNameCancel.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        $('nameEditModal').style.display = 'none';
+      });
+    }
+    
+    // OK
+    const btnNameConfirm = $('btnNameConfirm');
+    if (btnNameConfirm) {
+      btnNameConfirm.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (tempNameVal.length < 2) {
+          if (tempNameVal.length === 1) {
+            tempNameVal += 'A';
+          } else {
+            tempNameVal = '??';
+          }
+        }
+        
+        let fullName = getPlayerName();
+        let parts = fullName.split(' ');
+        let lang = parts[0] || '---';
+        let newFullName = `${lang} ${tempNameVal}`;
+        
+        localStorage.setItem('JUMP_PLAYER_NAME', newFullName);
+        
+        LootLockerAPI.setPlayerName(newFullName);
+        
+        const tn = document.getElementById('gamePlayerName');
+        if (tn) tn.innerText = 'ID: ' + newFullName;
+        
+        const pNameInput = document.getElementById('pausePlayerNameInput');
+        if (pNameInput) pNameInput.value = tempNameVal;
+        
+        $('nameEditModal').style.display = 'none';
+      });
+    }
+
+    const pauseNameInput = $('pausePlayerNameInput');
+    if (pauseNameInput) {
+      pauseNameInput.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openNameEditModal();
+      });
+      
+      const pauseEditIcon = $('pauseEditIcon');
+      if (pauseEditIcon) {
+        pauseEditIcon.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openNameEditModal();
+        });
+      }
     }
 
     if (isDev) {
