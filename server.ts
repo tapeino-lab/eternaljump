@@ -38,17 +38,38 @@ async function startServer() {
   app.post('/api/assign-name', (req, res) => {
     const { lang, pid } = req.body;
     if (!pid || !lang) return res.json({ name: '???' });
-    if (playerMappings[pid]) return res.json({ name: playerMappings[pid] });
     
-    if (!langCounters[lang]) langCounters[lang] = 0;
-    langCounters[lang]++;
-    const name = `${lang}${String(langCounters[lang]).padStart(3, '0')}`;
-    playerMappings[pid] = name;
-    saveDB();
+    // LootLockerのPlayer ID（pid）の下5桁をサフィックスとして使用し、サーバー再起動に強いステートレスで重複のない一意のIDを生成
+    const suffix = String(pid).substring(Math.max(0, String(pid).length - 5));
+    const name = `${lang}${suffix}`;
     res.json({ name });
   });
 
   // Proxy routes for LootLocker
+  // Proxy routes for fetching a specific member's score from LootLocker Leaderboard
+  app.get("/api/lootlocker/leaderboards/member", async (req, res) => {
+    const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
+    const leaderboardId = process.env.LOOTLOCKER_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2';
+    const memberId = req.query.member_id as string;
+    const sessionToken = req.query.session_token as string;
+
+    try {
+      const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/leaderboards/${leaderboardId}/member/${memberId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-token': sessionToken
+        }
+      });
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (error) {
+      console.error('Server proxy member fetch fail:', error);
+      res.status(500).json({ error: 'Failed to proxy member score request' });
+    }
+  });
+
+  // Proxy routes for LootLocker Guest Session
   // Proxy routes for LootLocker Guest Session
   app.post("/api/lootlocker/session/guest", async (req, res) => {
     const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || 'YOUR_API_KEY_HERE';

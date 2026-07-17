@@ -826,8 +826,16 @@ export { dR, inputHandler };
       $('pauseScreen').style.display = game.isPaused ? 'flex' : 'none';
       $('pauseBtn').innerText = game.isPaused ? '▶' : 'II';
       if (game.isPaused) {
-        const ppn = document.getElementById('pausePlayerName');
-        if (ppn) ppn.innerText = 'ID: ' + getPlayerName();
+        const pLang = document.getElementById('pausePlayerLang');
+        const pNameInput = document.getElementById('pausePlayerNameInput');
+        if (pLang && pNameInput) {
+          let fullName = getPlayerName();
+          let parts = fullName.split(' ');
+          let lang = parts[0] || '---';
+          let name = parts[1] || '??';
+          pLang.innerText = lang;
+          pNameInput.value = name;
+        }
         const pb = document.getElementById('pauseBest');
         if (pb) {
             let pbData = localStorage.getItem(RankingAPI.pbKey);
@@ -846,10 +854,47 @@ export { dR, inputHandler };
                 pb.innerHTML = '';
             }
         }
+      } else {
+        const pNameInput = document.getElementById('pausePlayerNameInput');
+        if (pNameInput) {
+          pNameInput.blur();
+        }
       }
     }
 
     setupInputListeners();
+
+    // Hook up editable name input UI events
+    const pauseNameInput = $('pausePlayerNameInput');
+    if (pauseNameInput) {
+      pauseNameInput.addEventListener('input', (e) => {
+        let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        e.target.value = val;
+        
+        if (val.length === 2) {
+          let lang = getLang();
+          let newFullName = `${lang} ${val}`;
+          localStorage.setItem('JUMP_PLAYER_NAME', newFullName);
+          
+          // Submit name to LootLocker
+          LootLockerAPI.setPlayerName(newFullName);
+          
+          // Sync existing display elements if present
+          const tn = document.getElementById('gamePlayerName');
+          if (tn) tn.innerText = 'ID: ' + newFullName;
+        }
+      });
+      
+      pauseNameInput.addEventListener('blur', (e) => {
+        let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (val.length < 2) {
+          let currentName = getPlayerName();
+          let parts = currentName.split(' ');
+          let prevName = parts[1] || '??';
+          e.target.value = prevName;
+        }
+      });
+    }
 
     if (isDev) {
       $('debugModal').style.display = 'flex';

@@ -29,6 +29,13 @@ export const escapeHTML = str => {
 
 export const getPlayerName = () => {
   let n = localStorage.getItem('JUMP_PLAYER_NAME');
-  return n || getLang() + '???';
+  if (!n) {
+    let lang = getLang();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randName = chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
+    n = `${lang} ${randName}`;
+    localStorage.setItem('JUMP_PLAYER_NAME', n);
+  }
+  return n;
 };
 

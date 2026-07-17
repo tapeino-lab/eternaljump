@@ -79,7 +79,10 @@
         <div style="background:#111;padding:20px;padding-bottom:30px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;box-sizing:border-box;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8); position:relative;">
           <div style="margin-bottom:15px; font-size:12px; color:#aaa; font-family:'Press Start 2P', sans-serif;">YOUR BEST</div>
           <div id="pauseBest" style="font-size:10px; color:#aaa; font-family:'Press Start 2P', sans-serif; text-align:center; display:flex; justify-content:center;"></div>
-          <div id="pausePlayerName" style="position:absolute; bottom:10px; right:10px; font-size:8px; color:#aaa; font-family:'Press Start 2P', sans-serif;"></div>
+          <div id="pausePlayerName" style="position:absolute; bottom:10px; right:10px; font-size:8px; color:#aaa; font-family:'Press Start 2P', sans-serif; display:flex; align-items:center; gap:4px;">
+            <span id="pausePlayerLang">---</span>
+            <input id="pausePlayerNameInput" type="text" maxlength="2" style="width:24px; background:#222; color:#fff; border:1px solid #555; text-align:center; font-size:8px; font-family:'Press Start 2P', sans-serif; padding:2px; text-transform:uppercase; outline:none;" />
+          </div>
         </div>
         <div id="pauseConfirmModal" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:200; display:none; flex-direction:column; justify-content:center; align-items:center;">
             <div style="background:#111;padding:20px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8);">

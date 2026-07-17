@@ -22,7 +22,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.37.51',
+  version: 'v1.37.53',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -202,25 +202,16 @@ export const LootLockerAPI = {
         localStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
         this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
         
-        // Fetch assigned simple name
-        let l = (navigator.language || navigator.userLanguage || '').split('-')[0].toLowerCase();
-        let m = { ja: 'JPN', en: 'ENG', zh: 'CHN', ko: 'KOR', es: 'SPA', fr: 'FRA', de: 'GER', ru: 'RUS', it: 'ITA', pt: 'POR' };
-        let langStr = m[l] || (l.length >= 3 ? l.substring(0, 3).toUpperCase() : '---');
-        
+        // Use client-generated or loaded customizable player name (e.g., "JPN XY")
         try {
-          fetch('/api/assign-name', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lang: langStr, pid: this.playerId })
-          }).then(res => res.json()).then(data => {
-            if (data && data.name) {
-               localStorage.setItem('JUMP_PLAYER_NAME', data.name);
-               let tn = document.getElementById('gamePlayerName');
-               if (tn) tn.innerText = data.name;
-               this.setPlayerName(data.name);
-            }
-          }).catch(e => {});
+          let localName = getPlayerName();
+          let tn = document.getElementById('gamePlayerName');
+          if (tn) tn.innerText = 'ID: ' + localName;
+          this.setPlayerName(localName);
         } catch(e) {}
+
+        // 同期処理: オンラインハイスコアをローカルパーソナルベストに復元・同期
+        this.syncOnlinePB();
 
         return true;
       }
@@ -230,6 +221,70 @@ export const LootLockerAPI = {
       this.log(`Session guest login failed: ${e.message}`, 'error');
       return false;
     }
+  },
+
+  getMemberScore: async function() {
+    try {
+      let r;
+      if (this.isDirectMode) {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/member/${this.playerId}`;
+        r = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-token': this.sessionToken
+          }
+        });
+      } else {
+        r = await fetch(`/api/lootlocker/leaderboards/member?member_id=${this.playerId}&session_token=${encodeURIComponent(this.sessionToken)}`);
+      }
+      if (r.ok) {
+        let d = await r.json();
+        if (d && d.score) {
+          let score = d.score;
+          let alt = Math.floor(score / 1000);
+          let coins = score % 1000;
+          let time = 0;
+          try {
+            if (d.metadata) {
+              let m = JSON.parse(d.metadata);
+              time = m.t ? m.t * 1000 : 0;
+            }
+          } catch(e) {}
+          return { alt, coins, time };
+        }
+      }
+    } catch(e) {
+      this.log(`Failed to fetch member score: ${e.message}`, 'error');
+    }
+    return null;
+  },
+
+  syncOnlinePB: async function() {
+    try {
+      let onlinePB = await this.getMemberScore();
+      if (onlinePB) {
+        let pbKey = 'EternalJumper_PB';
+        let storedPB = localStorage.getItem(pbKey);
+        let updateNeeded = false;
+        if (storedPB) {
+          try {
+            let pb = JSON.parse(storedPB);
+            // オンライン側の記録のほうが進んでいる場合、ローカルに書き戻す
+            if (onlinePB.alt > pb.alt || (onlinePB.alt === pb.alt && onlinePB.coins > pb.coins)) {
+              updateNeeded = true;
+            }
+          } catch(e) {
+            updateNeeded = true;
+          }
+        } else {
+          updateNeeded = true;
+        }
+        if (updateNeeded) {
+          localStorage.setItem(pbKey, JSON.stringify(onlinePB));
+          this.log(`Synced personal best with online record: ${onlinePB.alt}m`, 'success');
+        }
+      }
+    } catch(e) {}
   },
 
   setPlayerName: async function(name) {

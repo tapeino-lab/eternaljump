@@ -6,7 +6,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.37.51 - 2026/07/16 20:30',
+      version: 'v1.37.53 - 2026/07/16 22:25',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -61,9 +61,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         }
         if (game.isNewRecord) {
           const isConfigured = await LootLockerAPI.checkConfig();
-          if (isConfigured) {
-            await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l, game.lastScoreObj.time);
-          } else {
+          if (!isConfigured) {
             try {
               let s = await this.getScores();
               let ex = s.findIndex(x => x.id === pid);
@@ -79,6 +77,12 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
               localStorage.setItem(this.key, JSON.stringify(s));
             } catch (e) {}
           }
+        }
+
+        // オンラインLootLockerにはプレイ毎に毎回送信し、LootLocker側の「Keep Best」仕様に判断を委ねることで、端末間の同期不一致を完全に防ぐ
+        const isConfigured = await LootLockerAPI.checkConfig();
+        if (isConfigured) {
+          await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l, game.lastScoreObj.time);
         }
 
         // Start background prefetch of scores immediately for latest values
