@@ -6,7 +6,7 @@ import { getLevelConfig } from './level.js';
 import { Particle, Bird, Meteor, Player, NPC, Platform, Item, Coin, BackgroundCloud, getPt, getPl, getCn, getBd, getMt, getIt, spawnParticles, spawnDebris, trySpawnBirdsOnPlatform, P_PT, P_PL, P_CN, P_BD, P_MT, P_IT } from './entities.js';
 import { LootLockerAPI } from "./lootlocker.js";
 import { RankingAPI } from "./ranking.js";
-import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang, $, escapeHTML } from "./utils.js";
+import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang, $, escapeHTML, getPlayerName } from "./utils.js";
 import { initSpawner, spawnGuideCoins, spawnCoins, spawnPlatform } from './spawner.js';
 import { render, resetBGScore, dR } from './renderer.js';
 import { inputHandler, setupInputListeners } from './input.js';
@@ -195,6 +195,11 @@ export { dR, inputHandler };
 
     export function startAttractCycle() {
       clearTimeout(attractTimer);
+      const tn = document.getElementById('gamePlayerName');
+      if (tn) {
+        tn.innerText = 'ID: ' + getPlayerName();
+        tn.style.display = 'block';
+      }
       isAttractMode = true;
       demoState.active = false;
       $('rankingModal').style.display = 'none';
@@ -218,12 +223,16 @@ export { dR, inputHandler };
       game.demoMode = true;
       $('prodControls').style.display = 'flex';
       $('btnToDev').style.display = 'flex';
+      let tnDisplay = $('titleNameDisplay');
+      if(tnDisplay) tnDisplay.style.display = 'flex';
       $('demoRankingContainer').style.display = 'none';
       demoState.active = false;
       initGame(false);
       attractTimer = setTimeout(() => {
         if (!isAttractMode) return;
         $('btnToDev').style.display = 'none';
+        let tn = document.getElementById('gamePlayerName');
+        if (tn) tn.style.display = 'none';
         setAuto(true);
         startDemoRankingScroll();
       }, 3000);
@@ -240,6 +249,8 @@ export { dR, inputHandler };
       $('rankingModal').style.display = 'none';
       $('demoRankingContainer').style.display = 'none';
       $('tapToStartMsg').style.display = 'none';
+      const tn = document.getElementById('gamePlayerName');
+      if (tn) tn.style.display = 'none';
       
       let fo = $('fadeOverlay');
       if (fo) {
@@ -378,6 +389,7 @@ export { dR, inputHandler };
       game.isConsecutive = isConsecutive;
       game.state = 'intro';
       game.isPaused = false;
+      document.body.classList.remove('game-paused');
       game.playTime = 0;
       game.timerStarted = isConsecutive;
       pScreen.style.display = 'none';
@@ -735,7 +747,7 @@ export { dR, inputHandler };
       let curLen = s.length;
       for (let i = 0; i < 100 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2500, coins: 0, lang: '---' });
       
-      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:20%;">RANK</th><th style="padding:4px 0;text-align:center;width:20%;">LANG</th><th style="padding:4px 0;text-align:center;width:40%;">HEIGHT</th><th style="padding:4px 0;text-align:right;width:20%;">COIN</th></tr></table>';
+      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:35px;">RANK</th><th style="padding:4px 0;text-align:center;">ID</th><th style="padding:4px 0;text-align:right;width:28%;">HEIGHT</th><th style="padding:4px 0;text-align:right;width:30px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></th></tr></table>';
       $('demoHeader').innerHTML = headerHtml;
       
       let t3Html = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;">';
@@ -754,7 +766,7 @@ export { dR, inputHandler };
         
         let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
         let pt = '6px 0';
-        let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;padding:${pt};width:20%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.lang || '---')}</td><td style="text-align:center;padding:${pt};width:40%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+        let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:35px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;padding:${pt};white-space:nowrap;overflow:hidden;">${escapeHTML(r.n || r.lang || '---')}</td><td style="text-align:right;padding:${pt};width:28%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};width:30px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
         
         if (i < 3) t3Html += row;
         else otHtml += row;
@@ -810,8 +822,28 @@ export { dR, inputHandler };
       }
       if (game.state === 'gameover' || game.state === 'clear' || game.isBenchmarking) return;
       game.isPaused = !game.isPaused;
+      document.body.classList.toggle('game-paused', game.isPaused);
       $('pauseScreen').style.display = game.isPaused ? 'flex' : 'none';
       $('pauseBtn').innerText = game.isPaused ? '▶' : 'II';
+      if (game.isPaused) {
+        const ppn = document.getElementById('pausePlayerName');
+        if (ppn) ppn.innerText = 'ID: ' + getPlayerName();
+        const pb = document.getElementById('pauseBest');
+        if (pb) {
+            let pbData = localStorage.getItem(RankingAPI.pbKey);
+            if (pbData) {
+                try {
+                    let d = JSON.parse(pbData);
+                    pb.innerHTML = `<table style="width:100%; font-size:10px; color:#aaa; border-spacing:0; line-height:1.8;">
+                      <tr><td style="text-align:right; padding-right:8px; width:45%;">HEIGHT</td><td style="text-align:center; width:10%;">:</td><td style="text-align:left; padding-left:8px; width:45%; color:#ddd;">${d.alt}m</td></tr>
+                      <tr><td style="text-align:right; padding-right:8px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;transform:translateY(-2px);"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></td><td style="text-align:center;">&times;</td><td style="text-align:left; padding-left:8px; color:#dd8;">${d.coins || 0}</td></tr>
+                    </table>`;
+                } catch(e) {}
+            } else {
+                pb.innerHTML = '';
+            }
+        }
+      }
     }
 
     setupInputListeners();

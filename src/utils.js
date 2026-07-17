@@ -26,3 +26,9 @@ export const escapeHTML = str => {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 };
+
+export const getPlayerName = () => {
+  let n = localStorage.getItem('JUMP_PLAYER_NAME');
+  return n || getLang() + '???';
+};
+

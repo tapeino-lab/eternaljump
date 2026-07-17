@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fsSync from "fs";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 
@@ -16,6 +17,38 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+
+  const DB_FILE = path.join(process.cwd(), 'players.json');
+  let playerMappings = {};
+  let langCounters = {};
+  try {
+    if (fsSync.existsSync(DB_FILE)) {
+      const data = JSON.parse(fsSync.readFileSync(DB_FILE, 'utf-8'));
+      playerMappings = data.playerMappings || {};
+      langCounters = data.langCounters || {};
+    }
+  } catch(e) {}
+
+  const saveDB = () => {
+    try {
+      fsSync.writeFileSync(DB_FILE, JSON.stringify({ playerMappings, langCounters }));
+    } catch(e) {}
+  };
+
+  app.post('/api/assign-name', (req, res) => {
+    const { lang, pid } = req.body;
+    if (!pid || !lang) return res.json({ name: '???' });
+    if (playerMappings[pid]) return res.json({ name: playerMappings[pid] });
+    
+    if (!langCounters[lang]) langCounters[lang] = 0;
+    langCounters[lang]++;
+    const name = `${lang}${String(langCounters[lang]).padStart(3, '0')}`;
+    playerMappings[pid] = name;
+    saveDB();
+    res.json({ name });
+  });
+
+  // Proxy routes for LootLocker
   // Proxy routes for LootLocker Guest Session
   app.post("/api/lootlocker/session/guest", async (req, res) => {
     const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || 'YOUR_API_KEY_HERE';
@@ -88,6 +121,27 @@ async function startServer() {
     } catch (error) {
       console.error('Server proxy list fail:', error);
       res.status(500).json({ error: 'Failed to proxy list request' });
+    }
+  });
+
+  // Proxy routes for setting LootLocker Player Name
+  app.patch("/api/lootlocker/player/name", async (req, res) => {
+    const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
+    const { name, session_token } = req.body;
+
+    try {
+      const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/player/name`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-token': session_token
+        },
+        body: JSON.stringify({ name })
+      });
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to proxy player name request' });
     }
   });
 

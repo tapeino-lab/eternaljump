@@ -35,6 +35,31 @@ export function setupInputListeners() {
   const tOv = $('touchOverlay');
   const tOrgs = new Map();
 
+  // Intercept all touch/mousedown events globally when ranking modal is open
+  ['touchstart', 'mousedown'].forEach(ev => {
+    document.addEventListener(ev, e => {
+      if ($('rankingModal').style.display === 'flex') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (ignoreNextTap) return;
+        
+        if (RankingAPI.isShowingResult) {
+          RankingAPI.showRanking(game.state);
+        } else {
+          $('rankingModal').style.display = 'none';
+          $('tapToStartMsg').style.display = 'none';
+          if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
+            if (isAttractMode) {
+              startRealGame();
+            } else {
+              initGame(true);
+            }
+          }
+        }
+      }
+    }, { capture: true, passive: false });
+  });
+
   ['touchstart', 'mousedown'].forEach(function(ev) {
     pBtn.addEventListener(ev, togglePause, { passive: false });
     autoBtn.addEventListener(ev, function(e) {
@@ -43,14 +68,30 @@ export function setupInputListeners() {
       setAuto(!game.aiActive);
     }, { passive: false });
     $('pauseScreen').addEventListener(ev, e => {
-      if (e.target.id === 'btnTitlePause') {
+      if (e.target.id === 'btnRankingPause') {
         e.preventDefault();
         e.stopPropagation();
+        RankingAPI.showRanking('pause');
+      } else if (e.target.id === 'btnTitlePause') {
+        e.preventDefault();
+        e.stopPropagation();
+        $('pauseConfirmModal').style.display = 'flex';
+      } else if (e.target.id === 'btnConfirmYes') {
+        e.preventDefault();
+        e.stopPropagation();
+        $('pauseConfirmModal').style.display = 'none';
         game.isPaused = false;
         $('pauseScreen').style.display = 'none';
         setIgnoreNextTap(true);
         setTimeout(() => setIgnoreNextTap(false), 500);
         startAttractCycle();
+      } else if (e.target.id === 'btnConfirmNo') {
+        e.preventDefault();
+        e.stopPropagation();
+        $('pauseConfirmModal').style.display = 'none';
+      } else if (e.target.closest('#pauseConfirmModal')) {
+        e.preventDefault();
+        e.stopPropagation();
       } else {
         e.preventDefault();
         e.stopPropagation();
@@ -61,6 +102,11 @@ export function setupInputListeners() {
 
   window.addEventListener('keydown', e => {
     if (e.repeat) return;
+    if ($('rankingModal').style.display === 'flex') {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if (e.code === 'KeyP') togglePause(e);
     if (game.isPaused && (e.code === 'ArrowLeft' || e.code === 'KeyA' || e.code === 'ArrowRight' || e.code === 'KeyD')) {
       e.stopPropagation();
@@ -91,18 +137,6 @@ export function setupInputListeners() {
         return;
       }
 
-      if ($('rankingModal').style.display === 'flex' && (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo')) {
-        if (ignoreNextTap) return;
-        e.preventDefault();
-        $('rankingModal').style.display = 'none';
-        if (isAttractMode) {
-          startRealGame();
-        } else {
-          initGame(true);
-          $('tapToStartMsg').style.display = 'none';
-        }
-        return;
-      }
 
       if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('.thm-btn')) return;
       
@@ -291,6 +325,7 @@ export function setupInputListeners() {
         e.stopPropagation();
         return;
       }
+
       if (e.target.closest('#btnToDev')) {
         e.stopPropagation();
         clearTimeout(game.attractTimer); // wait, in game.js attractTimer is exported as let attractTimer.

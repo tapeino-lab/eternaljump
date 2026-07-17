@@ -219,11 +219,19 @@
     
     body.attract-mode .dir-btn::after,
     body.game-ended .dir-btn::after,
+    body.game-paused .dir-btn::after,
     body.attract-mode .dir-btn .s-wrap,
     body.game-ended .dir-btn .s-wrap,
+    body.game-paused .dir-btn .s-wrap,
     body.attract-mode .dir-btn .tri,
-    body.game-ended .dir-btn .tri {
+    body.game-ended .dir-btn .tri,
+    body.game-paused .dir-btn .tri {
       opacity: 0.2;
+    }
+    
+    body.game-paused #controlArea {
+      filter: brightness(0.5);
+      transition: filter 0.2s;
     }
     
     #gameCanvas {

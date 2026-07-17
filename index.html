@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,touch-action=none">
-  <title>ETERNAL JUMPER - v1.37.29 - 2026/07/16 11:54</title>
+  <title>ETERNAL JUMPER - v1.37.42 - 2026/07/16 16:21</title>
   <link rel="stylesheet" href="/src/game.css">
 </head>
 <body>
   <div id="debugModal">
     <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
       <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.37.29 - 2026/07/16 11:54</p>
+      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.37.42 - 2026/07/16 16:21</p>
       
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
         <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
@@ -73,9 +73,24 @@
     <div id="canvasWrapper">
       <div id="ui"></div>
       <div id="pauseScreen">
-        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">TITLE</button>
-        <h1>PAUSED</h1>
-      </div>
+        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">BACK TO TITLE</button>
+        <button id="btnRankingPause" class="dbg-btn" style="position:absolute; bottom:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">RANKING</button>
+        <h1 style="margin-bottom:15px; text-shadow: 2px 2px 0 #000;">PAUSED</h1>
+        <div style="background:#111;padding:20px;padding-bottom:30px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;box-sizing:border-box;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8); position:relative;">
+          <div style="margin-bottom:15px; font-size:12px; color:#aaa; font-family:'Press Start 2P', sans-serif;">YOUR BEST</div>
+          <div id="pauseBest" style="font-size:10px; color:#aaa; font-family:'Press Start 2P', sans-serif; text-align:center; display:flex; justify-content:center;"></div>
+          <div id="pausePlayerName" style="position:absolute; bottom:10px; right:10px; font-size:8px; color:#aaa; font-family:'Press Start 2P', sans-serif;"></div>
+        </div>
+        <div id="pauseConfirmModal" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:200; display:none; flex-direction:column; justify-content:center; align-items:center;">
+            <div style="background:#111;padding:20px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
+              <div style="font-size:10px; color:#fff; font-family:'Press Start 2P', sans-serif; line-height:1.5; margin-bottom:20px;">RETURN TO TITLE?</div>
+              <div style="display:flex; justify-content:space-around;">
+                <button id="btnConfirmYes" class="dbg-btn" style="padding:10px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#e60012; color:#fff; border:2px solid #faa; width:40%;">YES</button>
+                <button id="btnConfirmNo" class="dbg-btn" style="padding:10px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #aaa; width:40%;">NO</button>
+              </div>
+            </div>
+          </div>
+        </div>
       <div id="autoBtn">🤖 ON</div>
       <div id="pauseBtn">II</div>
       <canvas id="gameCanvas"></canvas>
@@ -91,6 +106,7 @@
       </div>
       
       <div id="prodControls" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; flex-direction:column; align-items:center; justify-content:center; z-index:50; cursor:pointer; pointer-events:auto;">
+        
         <div id="btnToDev" style="position:absolute; top:10px; right:10px; font-size:24px; cursor:pointer; z-index:100; background:rgba(255,255,255,0.2); border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center;">⚙️</div>
       </div>
       

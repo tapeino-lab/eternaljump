@@ -1,12 +1,12 @@
 import { game, setIgnoreNextTap } from './game.js';
 import { $ } from './utils.js';
 import { LootLockerAPI } from './lootlocker.js';
-import { getLang, MIN, escapeHTML } from './utils.js';
+import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
 
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.37.29 - 2026/07/16 11:54',
+      version: 'v1.37.42 - 2026/07/16 16:21',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -114,25 +114,32 @@ import { getLang, MIN, escapeHTML } from './utils.js';
         if (game.lastScoreObj) {
           let pbHTML = (game.isNewRecord && state === 'clear') ? '<div style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;">NEW RECORD!</div>' : '';
           
-          h += '<div style="background:#222;padding:10px;margin-bottom:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">' + pbHTML + '<h2 style="color:#ff0;margin:0 0 8px 0;font-size:12px;">RESULT</h2>';
-          h += '<div style="display:flex;flex-direction:column;gap:12px;font-size:10px;color:#ddd;margin-top:10px;">';
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #444;padding-bottom:4px;"><span>HEIGHT</span><span style="color:#fff;font-size:12px;">' + game.lastScoreObj.alt + 'm</span></div>';
-          h += '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:4px;"><span>COINS</span><span style="color:#ffb;font-size:12px;">' + (game.lastScoreObj.coins || 0) + '</span></div>';
-          h += '</div>';
+          h += '<div style="background:#222;padding:10px;margin-bottom:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">' + pbHTML;
+
+          h += '<h2 style="color:#ff0;margin:0 0 8px 0;font-size:12px;">RESULT</h2>';
+          h += '<table style="width:100%; font-size:10px; color:#ddd; margin-top:10px; border-spacing:0; line-height:1.8;">';
+          h += '<tr><td style="text-align:right; padding-right:8px; width:45%;">HEIGHT</td><td style="text-align:center; width:10%;">:</td><td style="text-align:left; padding-left:8px; color:#fff; font-size:12px; width:45%;">' + game.lastScoreObj.alt + 'm</td></tr>';
+          h += '<tr><td style="text-align:right; padding-right:8px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;transform:translateY(-2px);"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></td><td style="text-align:center;">&times;</td><td style="text-align:left; padding-left:8px; color:#ffb; font-size:12px;">' + (game.lastScoreObj.coins || 0) + '</td></tr>';
+          h += '</table>';
 
           if (!game.isNewRecord && game.personalBest) {
             h += '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed #555;text-align:center;">';
             h += '<h2 style="color:#aaa;margin:0 0 8px 0;font-size:10px;">YOUR BEST</h2>';
-            h += '<div style="display:flex;flex-direction:column;gap:8px;font-size:9px;color:#aaa;">';
-            h += '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #444;padding-bottom:4px;"><span>HEIGHT</span><span style="color:#ddd;font-size:10px;">' + game.personalBest.alt + 'm</span></div>';
-            h += '<div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:4px;"><span>COINS</span><span style="color:#dd8;font-size:10px;">' + (game.personalBest.coins || 0) + '</span></div>';
-            h += '</div></div>';
+            h += '<table style="width:100%; font-size:9px; color:#aaa; margin-top:10px; border-spacing:0; line-height:1.8;">';
+            h += '<tr><td style="text-align:right; padding-right:8px; width:45%;">HEIGHT</td><td style="text-align:center; width:10%;">:</td><td style="text-align:left; padding-left:8px; color:#ddd; font-size:10px; width:45%;">' + game.personalBest.alt + 'm</td></tr>';
+            h += '<tr><td style="text-align:right; padding-right:8px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;transform:translateY(-2px);"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></td><td style="text-align:center;">&times;</td><td style="text-align:left; padding-left:8px; color:#dd8; font-size:10px;">' + (game.personalBest.coins || 0) + '</td></tr>';
+            h += '</table></div>';
           }
+          h += '<div style="margin-top:12px; font-size:8px; color:#888; text-align:right;">ID: ' + getPlayerName() + '</div>';
           h += '</div>';
         }
         
+
+        
         $('rankingModal').innerHTML = h;
         $('rankingModal').style.display = 'flex';
+        
+
         
         setTimeout(() => {
           setIgnoreNextTap(false);
@@ -142,7 +149,8 @@ import { getLang, MIN, escapeHTML } from './utils.js';
       },
       showRanking: async function(state) {
         this.isShowingResult = false;
-        $('rankingModal').innerHTML = '<h1 style="color:#fff;font-size:12px;text-align:center;">LOADING RANKING...</h1>';
+        $('rankingModal').innerHTML = '<h1 style="color:#fff;font-size:12px;text-align:center;">LOADING...</h1>';
+        $('rankingModal').style.display = 'flex';
         setIgnoreNextTap(true);
         let s = await this.getScores();
         let pid = LootLockerAPI.playerIdentifier;
@@ -153,12 +161,15 @@ import { getLang, MIN, escapeHTML } from './utils.js';
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
         let h = '<h1 style="color:#0f0;margin:0 0 10px 0;font-size:12px;text-align:center;">RANKING</h1>';
         
-        h += '<div style="background:#111;padding:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">';
-        h += '<h2 style="color:#0f0;margin:0 0 8px 0;font-size:12px;">TOP 10</h2>';
-        h += '<table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="color:#fff;"><th style="text-align:left;padding-bottom:4px;width:20%;">RANK</th><th style="text-align:center;padding-bottom:4px;width:20%;">LANG</th><th style="text-align:center;padding-bottom:4px;width:40%;">HEIGHT</th><th style="text-align:right;padding-bottom:4px;width:20%;">COIN</th></tr>';
+        h += '<div style="width:90%;max-width:400px;box-sizing:border-box;text-align:center;">';
+        
+        let cI = '<div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div>';
+        
+        h += '<div style="border:1px solid #fff;border-radius:4px;padding:8px 0;background:rgba(0,0,0,0.5);margin-bottom:10px;">';
+        h += '<table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="color:#fff;"><th style="padding-bottom:4px;text-align:left;width:35px;padding-left:4px;">RANK</th><th style="padding-bottom:4px;text-align:center;">ID</th><th style="padding-bottom:4px;text-align:right;width:28%;">HEIGHT</th><th style="padding-bottom:4px;text-align:right;width:30px;padding-right:2px;">' + cI + '</th></tr>';
         
         let curLen = s.length;
-        for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2500, coins: 0, lang: '---' });
+        for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: '---', n: '??' });
 
         let top10 = s.slice(0, 10);
         let hl = false;
@@ -170,33 +181,27 @@ import { getLang, MIN, escapeHTML } from './utils.js';
             if (i === 0) m = '<span class="mdl mdl-1"></span>';
             else if (i === 1) m = '<span class="mdl mdl-2"></span>';
             else if (i === 2) m = '<span class="mdl mdl-3"></span>';
-            h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.lang || '---')}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
-          });
-          if (!hl && pRank && pRank.rank > 10) {
-            h += `<tr><td colspan="4" style="text-align:center;padding:5px 0;color:#888;">...</td></tr>`;
+            h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:35px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(r.n || r.lang || '???')}</td><td style="text-align:right;width:28%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;width:30px;padding-right:2px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+        });
+        h += '</table></div>';
+        
+        if (!hl && pRank && pRank.rank > 10) {
             let r = pRank;
             let rRank = pRank.rank;
-            let m = '';
-            if (rRank === 1) m = '<span class="mdl mdl-1"></span>';
-            else if (rRank === 2) m = '<span class="mdl mdl-2"></span>';
-            else if (rRank === 3) m = '<span class="mdl mdl-3"></span>';
-            h += `<tr style="animation:rowBlink 1s infinite;font-weight:bold;border-top:1px solid #fff;"><td style="padding:4px 0;text-align:left;width:20%;white-space:nowrap;overflow:hidden;">${m}${rRank}</td><td style="text-align:center;width:20%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.lang || '---')}</td><td style="text-align:center;width:40%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;width:20%;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
-          }
-          h += '</table>';
-        h += '</div>';
-        if (!isEnd) {
-          h += '<button id="closeRankBtn" class="dbg-btn" style="margin-top:10px;width:90%;max-width:400px;padding:6px;font-size:10px;pointer-events:auto;display:none;">CLOSE</button>';
+            h += `<div style="padding:4px 0;margin-top:4px;"><table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="animation:rowBlink 1s infinite;font-weight:bold;color:#fff;"><td style="padding:0 0 0 4px;text-align:left;width:35px;white-space:nowrap;overflow:hidden;">${rRank}</td><td style="padding:0;text-align:center;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(r.n || r.lang || '???')}</td><td style="padding:0;text-align:right;width:28%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:0 2px 0 0;text-align:right;width:30px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr></table></div>`;
         }
+        
+        h += '</div>';
         $('rankingModal').innerHTML = h;
+
         setTimeout(() => {
           setIgnoreNextTap(false);
           if (isEnd) {
             $('tapToStartMsg').innerText = 'TAP TO START';
-            $('tapToStartMsg').style.display = 'block';
           } else {
-            let cb = $('closeRankBtn');
-            if (cb) cb.style.display = 'block';
+            $('tapToStartMsg').innerText = 'TAP TO CLOSE';
           }
+          $('tapToStartMsg').style.display = 'block';
         }, 500);
       },
       reset: function() {

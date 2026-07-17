@@ -1,4 +1,4 @@
-import { FLR } from './utils.js';
+import { FLR, getPlayerName } from './utils.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -22,7 +22,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.37.29',
+  version: 'v1.37.42',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -199,7 +199,29 @@ export const LootLockerAPI = {
       if (d.session_token) {
         this.sessionToken = d.session_token;
         this.playerId = d.player_id;
+        localStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
         this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
+        
+        // Fetch assigned simple name
+        let l = (navigator.language || navigator.userLanguage || '').split('-')[0].toLowerCase();
+        let m = { ja: 'JPN', en: 'ENG', zh: 'CHN', ko: 'KOR', es: 'SPA', fr: 'FRA', de: 'GER', ru: 'RUS', it: 'ITA', pt: 'POR' };
+        let langStr = m[l] || (l.length >= 3 ? l.substring(0, 3).toUpperCase() : '---');
+        
+        try {
+          fetch('/api/assign-name', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lang: langStr, pid: this.playerId })
+          }).then(res => res.json()).then(data => {
+            if (data && data.name) {
+               localStorage.setItem('JUMP_PLAYER_NAME', data.name);
+               let tn = document.getElementById('gamePlayerName');
+               if (tn) tn.innerText = data.name;
+               this.setPlayerName(data.name);
+            }
+          }).catch(e => {});
+        } catch(e) {}
+
         return true;
       }
       this.log('No session token in response data.', 'error');
@@ -210,6 +232,30 @@ export const LootLockerAPI = {
     }
   },
 
+  setPlayerName: async function(name) {
+    if (!await this.init()) return;
+    try {
+      if (this.isDirectMode) {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/player/name`;
+        fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-token': this.sessionToken
+          },
+          body: JSON.stringify({ name: name })
+        });
+      } else {
+        fetch('/api/lootlocker/player/name', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name: name, session_token: this.sessionToken })
+        });
+      }
+    } catch(e) {}
+  },
   submitScore: async function(a, c, l, t) {
     c = Math.min(c || 0, 999);
     this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
@@ -307,8 +353,7 @@ export const LootLockerAPI = {
             let expectedSig = generateSignature(m.alt, m.coins, (m.t || 0) * 1000, m.lang);
             if (expectedSig !== m.sig) isValid = false;
         } else {
-            // For backward compatibility, allow old scores if they look reasonable
-            if (m.alt > 30000 && !m.t) isValid = false;
+            isValid = false;
         }
         
         // Impossible speed check (max theoretical speed is ~3600m/s)
@@ -317,7 +362,8 @@ export const LootLockerAPI = {
         }
         
         if (isValid) {
-           validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang });
+            let playerName = (i.player && i.player.name) ? i.player.name : '???';
+            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName });
         }
       });
       
@@ -337,6 +383,7 @@ export const LootLockerAPI = {
   resetPlayerSession: function() {
     this.log('Resetting player identifier and session...', 'warning');
     localStorage.removeItem('LL_PID');
+    localStorage.removeItem('LL_SYS_PLAYER_ID');
     this.playerIdentifier = null;
     this.sessionToken = null;
     this.playerId = null;
