@@ -375,3 +375,26 @@
     .mdl-1 { background: #FFD700; border: 1px solid #DAA520; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
     .mdl-2 { background: #E0E0E0; border: 1px solid #999; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
     .mdl-3 { background: #CD7F32; border: 1px solid #8B4513; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
+
+    /* Coin icon global pixel-art styles */
+    .coin-icon {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      position: relative;
+      flex-shrink: 0;
+      transform: translateY(-1px); /* 錯視とフォントのベースライン余白を考慮して1px上にシフト */
+    }
+    .coin-icon .c-p1 { position: absolute; left: 2px; top: 0; width: 4px; height: 8px; background: #fd0; }
+    .coin-icon .c-p2 { position: absolute; left: 0; top: 2px; width: 8px; height: 4px; background: #fd0; }
+    .coin-icon .c-p3 { position: absolute; left: 3px; top: 2px; width: 2px; height: 4px; background: #ff9; }
+
+    /* Centering layout for coin + text */
+    .coin-align {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      line-height: 1;
+    }
+

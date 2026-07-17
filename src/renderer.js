@@ -222,8 +222,8 @@ export function updateHUD(topColor) {
   
   let curState = game.scoreCoin + '_' + MIN(config.goalScore, game.score) + '_' + timeStr + '_' + aiStatus;
   if (game.lastUI !== curState) {
-    let cI = '<div style="display:inline-block;width:10px;height:10px;position:relative;margin-right:4px;"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div>';
-    let nUI = '<span style="flex:1;text-align:left;display:flex;align-items:center;">' + cI + game.scoreCoin + '</span><span style="flex:1;text-align:center;">' + MIN(config.goalScore, game.score) + 'm' + aiStatus + '</span><span style="flex:1;text-align:right;">TIME <span style="' + timeNumStyle + '">' + timeStr + '</span></span>';
+    let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
+    let nUI = '<span style="flex:1;text-align:left;display:flex;align-items:center;">' + cI + '<span>' + game.scoreCoin + '</span></span><span style="flex:1;text-align:center;">' + MIN(config.goalScore, game.score) + 'm' + aiStatus + '</span><span style="flex:1;text-align:right;">TIME <span style="' + timeNumStyle + '">' + timeStr + '</span></span>';
     ui.innerHTML = nUI;
     game.lastUI = curState;
   }

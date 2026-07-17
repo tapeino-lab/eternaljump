@@ -6,7 +6,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.37.42 - 2026/07/16 16:21',
+      version: 'v1.37.51 - 2026/07/16 20:30',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -117,18 +117,21 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           h += '<div style="background:#222;padding:10px;margin-bottom:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">' + pbHTML;
 
           h += '<h2 style="color:#ff0;margin:0 0 8px 0;font-size:12px;">RESULT</h2>';
-          h += '<table style="width:100%; font-size:10px; color:#ddd; margin-top:10px; border-spacing:0; line-height:1.8;">';
-          h += '<tr><td style="text-align:right; padding-right:8px; width:45%;">HEIGHT</td><td style="text-align:center; width:10%;">:</td><td style="text-align:left; padding-left:8px; color:#fff; font-size:12px; width:45%;">' + game.lastScoreObj.alt + 'm</td></tr>';
-          h += '<tr><td style="text-align:right; padding-right:8px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;transform:translateY(-2px);"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></td><td style="text-align:center;">&times;</td><td style="text-align:left; padding-left:8px; color:#ffb; font-size:12px;">' + (game.lastScoreObj.coins || 0) + '</td></tr>';
-          h += '</table>';
+          h += '<div style="color:#fff; font-size:16px; font-weight:bold; text-align:center; margin:8px 0 6px 0;">' + game.lastScoreObj.alt + 'm</div>';
+          h += '<div class="coin-align" style="font-size:11px; color:#ffb; margin-bottom:10px;">';
+          h += '<div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
+          h += '<span>&times; ' + (game.lastScoreObj.coins || 0) + '</span>';
+          h += '</div>';
 
           if (!game.isNewRecord && game.personalBest) {
             h += '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed #555;text-align:center;">';
-            h += '<h2 style="color:#aaa;margin:0 0 8px 0;font-size:10px;">YOUR BEST</h2>';
-            h += '<table style="width:100%; font-size:9px; color:#aaa; margin-top:10px; border-spacing:0; line-height:1.8;">';
-            h += '<tr><td style="text-align:right; padding-right:8px; width:45%;">HEIGHT</td><td style="text-align:center; width:10%;">:</td><td style="text-align:left; padding-left:8px; color:#ddd; font-size:10px; width:45%;">' + game.personalBest.alt + 'm</td></tr>';
-            h += '<tr><td style="text-align:right; padding-right:8px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;transform:translateY(-2px);"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></td><td style="text-align:center;">&times;</td><td style="text-align:left; padding-left:8px; color:#dd8; font-size:10px;">' + (game.personalBest.coins || 0) + '</td></tr>';
-            h += '</table></div>';
+            h += '<h2 style="color:#aaa;margin:0 0 6px 0;font-size:10px;">YOUR BEST</h2>';
+            h += '<div style="color:#ddd; font-size:13px; font-weight:bold; text-align:center; margin:4px 0 4px 0;">' + game.personalBest.alt + 'm</div>';
+            h += '<div class="coin-align" style="font-size:9px; color:#dd8;">';
+            h += '<div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
+            h += '<span>&times; ' + (game.personalBest.coins || 0) + '</span>';
+            h += '</div>';
+            h += '</div>';
           }
           h += '<div style="margin-top:12px; font-size:8px; color:#888; text-align:right;">ID: ' + getPlayerName() + '</div>';
           h += '</div>';
@@ -163,10 +166,10 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         
         h += '<div style="width:90%;max-width:400px;box-sizing:border-box;text-align:center;">';
         
-        let cI = '<div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div>';
+        let cI = '<div class="coin-icon" style="margin-top:0;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
         
         h += '<div style="border:1px solid #fff;border-radius:4px;padding:8px 0;background:rgba(0,0,0,0.5);margin-bottom:10px;">';
-        h += '<table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="color:#fff;"><th style="padding-bottom:4px;text-align:left;width:35px;padding-left:4px;">RANK</th><th style="padding-bottom:4px;text-align:center;">ID</th><th style="padding-bottom:4px;text-align:right;width:28%;">HEIGHT</th><th style="padding-bottom:4px;text-align:right;width:30px;padding-right:2px;">' + cI + '</th></tr>';
+        h += '<table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="color:#fff;"><th style="padding-bottom:4px;text-align:left;width:35px;padding-left:4px;vertical-align:middle;">RANK</th><th style="padding-bottom:4px;text-align:center;vertical-align:middle;">ID</th><th style="padding-bottom:4px;text-align:right;width:28%;vertical-align:middle;">HEIGHT</th><th style="padding-bottom:4px;width:30px;padding-right:2px;vertical-align:middle;"><div style="display:flex;justify-content:flex-end;align-items:center;height:8px;">' + cI + '</div></th></tr>';
         
         let curLen = s.length;
         for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: '---', n: '??' });

@@ -745,9 +745,9 @@ export { dR, inputHandler };
       if (!isAttractMode) return;
       
       let curLen = s.length;
-      for (let i = 0; i < 100 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2500, coins: 0, lang: '---' });
+      for (let i = 0; i < 100 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: '---' });
       
-      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:35px;">RANK</th><th style="padding:4px 0;text-align:center;">ID</th><th style="padding:4px 0;text-align:right;width:28%;">HEIGHT</th><th style="padding:4px 0;text-align:right;width:30px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></th></tr></table>';
+      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:32px;padding-left:4px;vertical-align:middle;">RANK</th><th style="padding:4px 0;text-align:center;width:75px;vertical-align:middle;">ID</th><th style="padding:4px 0;text-align:right;vertical-align:middle;">HEIGHT</th><th style="padding:4px 0;width:36px;padding-right:4px;vertical-align:middle;"><div style="display:flex;justify-content:flex-end;align-items:center;height:8px;"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th></tr></table>';
       $('demoHeader').innerHTML = headerHtml;
       
       let t3Html = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;">';
@@ -766,7 +766,7 @@ export { dR, inputHandler };
         
         let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
         let pt = '6px 0';
-        let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:35px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="text-align:center;padding:${pt};white-space:nowrap;overflow:hidden;">${escapeHTML(r.n || r.lang || '---')}</td><td style="text-align:right;padding:${pt};width:28%;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};width:30px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+        let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:32px;white-space:nowrap;overflow:hidden;padding-left:4px;vertical-align:middle;">${m}${i + 1}</td><td style="padding:${pt};text-align:center;width:75px;white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.n || r.lang || '---')}</td><td style="text-align:right;padding:${pt};white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};width:36px;color:#ffb;white-space:nowrap;overflow:hidden;padding-right:4px;vertical-align:middle;">${escapeHTML(r.coins || 0)}</td></tr>`;
         
         if (i < 3) t3Html += row;
         else otHtml += row;
@@ -834,10 +834,13 @@ export { dR, inputHandler };
             if (pbData) {
                 try {
                     let d = JSON.parse(pbData);
-                    pb.innerHTML = `<table style="width:100%; font-size:10px; color:#aaa; border-spacing:0; line-height:1.8;">
-                      <tr><td style="text-align:right; padding-right:8px; width:45%;">HEIGHT</td><td style="text-align:center; width:10%;">:</td><td style="text-align:left; padding-left:8px; width:45%; color:#ddd;">${d.alt}m</td></tr>
-                      <tr><td style="text-align:right; padding-right:8px;"><div style="display:inline-block;width:10px;height:10px;position:relative;vertical-align:middle;transform:translateY(-2px);"><div style="position:absolute;left:2px;top:0;width:6px;height:10px;background:#fd0;"></div><div style="position:absolute;left:0;top:2px;width:10px;height:6px;background:#fd0;"></div><div style="position:absolute;left:3px;top:2px;width:4px;height:6px;background:#ff9;"></div></div></td><td style="text-align:center;">&times;</td><td style="text-align:left; padding-left:8px; color:#dd8;">${d.coins || 0}</td></tr>
-                    </table>`;
+                    pb.innerHTML = `<div style="text-align:center; margin-top:4px;">
+                      <div style="color:#ddd; font-size:12px; font-weight:bold; margin-bottom:4px;">${d.alt}m</div>
+                      <div class="coin-align" style="font-size:9px; color:#dd8;">
+                        <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
+                        <span>&times; ${d.coins || 0}</span>
+                      </div>
+                    </div>`;
                 } catch(e) {}
             } else {
                 pb.innerHTML = '';
