@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.40.18 - 2026/07/18 15:50',
+      version: 'v1.41.0 - 2026/07/18 15:50',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -172,11 +172,6 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             }
           }
         } else {
-          if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins) || (cObj.alt === localPB.alt && cObj.coins === localPB.coins && cObj.time < localPB.time)) {
-            game.isNewRecord = true;
-            localStorage.setItem(pbKey, JSON.stringify(cObj));
-            game.personalBest = cObj;
-          }
           try {
             let s = await this.getScores();
             let ex = s.findIndex(x => x.id === pid);
