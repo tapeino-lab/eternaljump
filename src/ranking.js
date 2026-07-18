@@ -6,7 +6,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.38.2 - 2026/07/17 20:19',
+      version: 'v1.38.3 - 2026/07/17 22:23',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -167,7 +167,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           
           h += '<div style="background:#222;padding:10px;margin-bottom:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">' + pbHTML;
 
-          h += '<h2 style="color:#ff0;margin:0 0 8px 0;font-size:12px;">RESULT</h2>';
+          
           h += '<div style="color:#fff; font-size:16px; font-weight:bold; text-align:center; margin:8px 0 6px 0;">' + game.lastScoreObj.alt + 'm</div>';
           h += '<div class="coin-align" style="font-size:11px; color:#ffb; margin-bottom:10px;">';
           h += '<div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
