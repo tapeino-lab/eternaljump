@@ -8,16 +8,54 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.40.04 - 2026/07/18 04:24',
+      version: 'v1.40.14 - 2026/07/18 06:10',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
         return LootLockerAPI.hasLootLockerConfig === true;
       },
+      syncPersonalBestPromise: null,
+      syncPersonalBest: function() {
+        if (this.syncPersonalBestPromise) return this.syncPersonalBestPromise;
+        this.syncPersonalBestPromise = (async () => {
+          const isConfigured = await LootLockerAPI.checkConfig();
+          if (!isConfigured) return;
+          let onlinePB = await LootLockerAPI.getMemberScore();
+          let pbKey = this.pbKey;
+          
+          let pending = [];
+          try {
+            pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+          } catch(e) {}
+
+          if (onlinePB && typeof onlinePB.alt === 'number') {
+            let storedPB = localStorage.getItem(pbKey);
+            let localPB = storedPB ? JSON.parse(storedPB) : null;
+            
+            let onlineIsBetter = false;
+            if (!localPB || 
+                onlinePB.alt > localPB.alt || 
+                (onlinePB.alt === localPB.alt && onlinePB.coins > localPB.coins) || 
+                (onlinePB.alt === localPB.alt && onlinePB.coins === localPB.coins && onlinePB.time < localPB.time)) {
+              onlineIsBetter = true;
+            }
+
+            if (onlineIsBetter || pending.length === 0) {
+              localStorage.setItem(pbKey, JSON.stringify(onlinePB));
+            }
+          } else if (onlinePB && onlinePB.notFound) {
+            if (pending.length === 0) {
+              localStorage.removeItem(pbKey);
+            }
+          }
+        })();
+        return this.syncPersonalBestPromise;
+      },
       prefetchScores: function(forceNetwork = false) {
         this.prefetchedScoresPromise = (async () => {
           const isConfigured = await LootLockerAPI.checkConfig();
           if (isConfigured) {
+            await this.syncPersonalBest();
             let scores = null;
             let now = Date.now();
             let lastFetch = parseInt(localStorage.getItem('LL_LAST_FETCH') || '0');
@@ -100,39 +138,50 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         game.isNewRecord = false;
         game.personalBest = null;
         let cObj = { alt: game.lastScoreObj.alt, coins: game.lastScoreObj.coins, time: game.lastScoreObj.time };
+        
+        let localPB = null;
         if (storedPB) {
-          let pb = JSON.parse(storedPB);
-          game.personalBest = pb;
-          if (cObj.alt > pb.alt || (cObj.alt === pb.alt && cObj.coins > pb.coins) || (cObj.alt === pb.alt && cObj.coins === pb.coins && cObj.time < pb.time)) {
-            game.isNewRecord = true;
-            localStorage.setItem(pbKey, JSON.stringify(cObj));
-          }
-        } else {
+          localPB = JSON.parse(storedPB);
+          game.personalBest = localPB;
+        }
+
+        let isNewRecordLocal = false;
+        if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins) || (cObj.alt === localPB.alt && cObj.coins === localPB.coins && cObj.time < localPB.time)) {
+          isNewRecordLocal = true;
           game.isNewRecord = true;
           localStorage.setItem(pbKey, JSON.stringify(cObj));
+          game.personalBest = cObj;
         }
-        if (game.isNewRecord) {
-          const isConfigured = await LootLockerAPI.checkConfig();
-          if (isConfigured) {
-            let res = await LootLockerAPI.submitScore(a, c, l, t);
-            if (res) localStorage.setItem('LL_LAST_FETCH', '0'); // Force fetch next time
+
+        const isConfigured = await LootLockerAPI.checkConfig();
+        
+        if (isConfigured) {
+          if (isNewRecordLocal) {
+            let res = await LootLockerAPI.submitScore(a, c, t, l);
+            if (res) {
+              localStorage.setItem('LL_LAST_FETCH', '0'); // Force fetch next time
+            }
           }
-          if (!isConfigured) {
-            try {
-              let s = await this.getScores();
-              let ex = s.findIndex(x => x.id === pid);
-              if (ex !== -1) {
-                let ca = s[ex].alt, cc = s[ex].coins;
-                if (a > ca || (a === ca && c > cc)) s[ex] = game.lastScoreObj;
-              } else {
-                s.push(game.lastScoreObj);
-              }
-              s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
-              game.lastRank = s.findIndex(x => x.id === pid) + 1;
-              s = s.slice(0, 100);
-              localStorage.setItem(this.key, JSON.stringify(s));
-            } catch (e) {}
+        } else {
+          if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins) || (cObj.alt === localPB.alt && cObj.coins === localPB.coins && cObj.time < localPB.time)) {
+            game.isNewRecord = true;
+            localStorage.setItem(pbKey, JSON.stringify(cObj));
+            game.personalBest = cObj;
           }
+          try {
+            let s = await this.getScores();
+            let ex = s.findIndex(x => x.id === pid);
+            if (ex !== -1) {
+              let ca = s[ex].alt, cc = s[ex].coins;
+              if (a > ca || (a === ca && c > cc)) s[ex] = game.lastScoreObj;
+            } else {
+              s.push(game.lastScoreObj);
+            }
+            s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
+            game.lastRank = s.findIndex(x => x.id === pid) + 1;
+            s = s.slice(0, 100);
+            localStorage.setItem(this.key, JSON.stringify(s));
+          } catch (e) {}
         }
         // Start background prefetch of scores immediately for latest values
         this.prefetchScores(game.isNewRecord);

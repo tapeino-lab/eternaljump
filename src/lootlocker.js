@@ -22,7 +22,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.40.04',
+  version: 'v1.40.09',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -113,7 +113,7 @@ export const LootLockerAPI = {
             this.hasLootLockerConfig = true;
             this.isDirectMode = false;
             this.log('Server proxy active (hasLootLocker = true)', 'success');
-            return true;
+            return d;
           } else {
             this.log('Server proxy reported that LOOTLOCKER_API_KEY is not set on server side.', 'warning');
           }
@@ -147,7 +147,7 @@ export const LootLockerAPI = {
         this.log(`Found ${pending.length} pending scores, attempting to submit...`, 'info');
         let remaining = [];
         for (let s of pending) {
-           let success = await this.submitScore(s.alt, s.coins, s.t, s.lang);
+           let success = await this.submitScore(s.alt, s.coins, s.t, s.lang, true);
            if (!success) remaining.push(s);
         }
         localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(remaining));
@@ -228,7 +228,7 @@ export const LootLockerAPI = {
         // 同期処理: オンラインハイスコアをローカルパーソナルベストに復元・同期
         this.syncOnlinePB();
 
-        return true;
+        return d;
       }
       this.log('No session token in response data.', 'error');
       return false;
@@ -267,6 +267,8 @@ export const LootLockerAPI = {
           } catch(e) {}
           return { alt, coins, time };
         }
+      } else if (r.status === 404 || r.status === 400) {
+        return { notFound: true };
       }
     } catch(e) {
       this.log(`Failed to fetch member score: ${e.message}`, 'error');
@@ -326,7 +328,7 @@ export const LootLockerAPI = {
       }
     } catch(e) {}
   },
-  submitScore: async function(a, c, l, t) {
+  submitScore: async function(a, c, t, l, isRetry = false) {
     c = Math.min(c || 0, 999);
     this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
     if (!await this.init()) {
@@ -370,15 +372,17 @@ export const LootLockerAPI = {
         return false;
       }
       this.log('Score successfully registered on LootLocker!', 'success');
-      return true;
+      return d;
     } catch (e) {
       this.log(`Score submission failed (offline?): ${e.message}`, 'error');
-      try {
-        let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
-        pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
-        localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
-        this.log('Score saved locally for offline queue.', 'warning');
-      } catch (err) {}
+      if (!isRetry) {
+        try {
+          let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+          pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
+          localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
+          this.log('Score saved locally for offline queue.', 'warning');
+        } catch (err) {}
+      }
       return false;
     }
   },

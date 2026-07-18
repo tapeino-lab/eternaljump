@@ -646,13 +646,13 @@ import { runAI } from './ai.js';
             let vy = RND() * 1.5 + 0.5;
             let size = 3 + RND() * 6;
             let life = 60 + RND() * 40;
-            let pt = getPt(px, py, vx, vy, '#cb4f0f', size, life);
+            let pt = getPt(px, py, vx, vy, '#A0522D', size, life);
             pt.g = 0.05 + RND() * 0.05;
             game.particles.push(pt);
           }
           
           let numDust = Math.floor(2 + weight * 6 + RND() * 4);
-          let dC = ['#cb4f0f', '#ff9b3b', '#cb4f0f', '#7a2800'];
+          let dC = ['#A0522D', '#D2B48C', '#DEB887', '#aaa'];
           for (let j = 0; j < numDust; j++) {
             let px = this.x + RND() * this.w;
             let py = prevY + RND() * crumbleAmount;
@@ -712,7 +712,7 @@ import { runAI } from './ai.js';
           if (groundCached) {
             ctx.drawImage(groundCache, this.x, 0, this.w, this.h, this.x, this.y, this.w, this.h);
           } else {
-            dR(this.x, this.y, this.w, this.h, '#8B4513');
+            dR(this.x, this.y, this.w, this.h, '#A0522D');
           }
           if (this.isIntroCover && this.blink) ctx.globalAlpha = 1.0;
           return;
@@ -728,7 +728,7 @@ import { runAI } from './ai.js';
             dY += (this.h - dH);
           }
           if (cImg.complete && cImg.naturalWidth > 0) ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
-          else dR(px, dY, config.platformW, dH, '#8B4513');
+          else dR(px, dY, config.platformW, dH, '#A0522D');
         }
         if (isDev && game.demoMode && this.blacklisted) {
           ctx.strokeStyle = 'rgba(255,0,0,0.8)';
