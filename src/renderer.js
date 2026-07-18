@@ -1,4 +1,6 @@
-import { game, ctx, isDev, isAttractMode, demoState, IMG, runAttractUICycle, setIgnoreNextTap } from './game.js';
+import { game, demoState } from './state.js';
+import { ctx, isDev, isAttractMode, IMG, runAttractUICycle, setIgnoreNextTap } from './game.js';
+
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
 import { RND, FLR, MIN, MAX, SIN, ABS, PI, $ } from './utils.js';

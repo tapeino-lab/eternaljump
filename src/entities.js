@@ -2,7 +2,9 @@ import { config } from './config.js';
 import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI } from "./utils.js";
 
 // We will import game, ctx, IMG from game.js later.
-import { game, ctx, IMG, logAIEvent, groundCache, groundCached, isDev } from './game.js';
+import { game } from './state.js';
+import { ctx, IMG, logAIEvent, groundCache, groundCached, isDev } from './game.js';
+
 import { dR } from './renderer.js';
 import { runAI } from './ai.js';
 

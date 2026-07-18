@@ -1,4 +1,6 @@
-import { game, isDev, isAttractMode, demoState, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto, selMode, selHgt, startWithSettings, startBenchmark } from './game.js';
+import { game, demoState } from './state.js';
+import { isDev, isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto, selMode, selHgt, startWithSettings, startBenchmark } from './game.js';
+
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
 import { FLR, MAX, MIN, $ } from './utils.js';
@@ -30,6 +32,7 @@ function getCtrlDir(cx) {
 
 export function setupInputListeners() {
   const pBtn = $('pauseBtn');
+  const settingsBtn = $('settingsBtn');
   const autoBtn = $('autoBtn');
   const ctrlArea = $('controlArea');
   const tOv = $('touchOverlay');
@@ -119,6 +122,7 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(function(ev) {
     pBtn.addEventListener(ev, togglePause, { passive: false });
+    settingsBtn.addEventListener(ev, togglePause, { passive: false });
     autoBtn.addEventListener(ev, function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -201,7 +205,7 @@ export function setupInputListeners() {
       }
 
 
-      if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('#nameEditModal') || e.target.closest('.thm-btn')) return;
+      if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#settingsBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('#nameEditModal') || e.target.closest('.thm-btn')) return;
       
       if (isAttractMode) {
         if (ignoreNextTap) return;

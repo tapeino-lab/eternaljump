@@ -16,7 +16,7 @@
   <div id="debugModal">
     <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
       <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.37.96 - 2026/07/17 19:54</p>
+      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.38.13 - 2026/07/17 23:45</p>
       
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
         <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
@@ -82,14 +82,14 @@
         <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">QUIT</button>
         <button id="btnRankingPause" class="dbg-btn" style="position:absolute; bottom:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">RANKING</button>
         <button id="btnResumePause" class="dbg-btn" style="position:absolute; bottom:10px; right:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff; display:flex; align-items:center; justify-content:center; width:34px; height:34px; box-sizing:border-box;" title="RESUME">
-          <svg viewBox="0 0 8 8" width="16" height="16" style="fill:#fff; shape-rendering:crispEdges; display:block;">
+          <svg viewBox="0 0 9 9" width="18" height="18" style="fill:#fff; shape-rendering:crispEdges; display:block;">
             <rect x="2" y="1" width="1" height="7" />
             <rect x="3" y="2" width="1" height="5" />
             <rect x="4" y="3" width="1" height="3" />
             <rect x="5" y="4" width="1" height="1" />
           </svg>
         </button>
-        <h2 style="margin-bottom:15px; font-size:16px;">PAUSED</h2>
+        <h2 id="pauseTitle" style="margin-bottom:15px; font-size:16px;">PAUSED</h2>
         <div style="background:#111;padding:20px;padding-bottom:25px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;box-sizing:border-box;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8); position:relative;">
           <div style="margin-bottom:15px; font-size:12px; color:#aaa; font-family:'Press Start 2P', sans-serif;">YOUR BEST</div>
           <div id="pauseBest" style="font-size:10px; color:#aaa; font-family:'Press Start 2P', sans-serif; text-align:center; display:flex; justify-content:center; margin-bottom:20px;"></div>
@@ -128,6 +128,30 @@
         </div>
       <div id="autoBtn">🤖 ON</div>
       <div id="pauseBtn">II</div>
+      <div id="settingsBtn">
+        <svg viewBox="0 0 12 12" width="24" height="24" style="shape-rendering:crispEdges; display:block;" class="gear-icon">
+          <rect x="5" y="0" width="2" height="1" />
+          <rect x="1" y="1" width="2" height="1" />
+          <rect x="5" y="1" width="2" height="1" />
+          <rect x="9" y="1" width="2" height="1" />
+          <rect x="1" y="2" width="10" height="1" />
+          <rect x="2" y="3" width="8" height="1" />
+          <rect x="2" y="4" width="2" height="1" />
+          <rect x="8" y="4" width="2" height="1" />
+          <rect x="0" y="5" width="4" height="1" />
+          <rect x="8" y="5" width="4" height="1" />
+          <rect x="0" y="6" width="4" height="1" />
+          <rect x="8" y="6" width="4" height="1" />
+          <rect x="2" y="7" width="2" height="1" />
+          <rect x="8" y="7" width="2" height="1" />
+          <rect x="2" y="8" width="8" height="1" />
+          <rect x="1" y="9" width="10" height="1" />
+          <rect x="1" y="10" width="2" height="1" />
+          <rect x="5" y="10" width="2" height="1" />
+          <rect x="9" y="10" width="2" height="1" />
+          <rect x="5" y="11" width="2" height="1" />
+        </svg>
+      </div>
       <canvas id="gameCanvas"></canvas>
       <div id="touchOverlay"></div>
       <div id="fadeOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:250; opacity:0; pointer-events:none; transition:opacity 1s; display:none;"></div>

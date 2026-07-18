@@ -1,5 +1,6 @@
 import { config } from './config.js';
-import { game } from './game.js';
+import { game } from './state.js';
+
 import { ABS, FLR, MIN } from './utils.js';
 
 

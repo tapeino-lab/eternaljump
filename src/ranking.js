@@ -1,4 +1,6 @@
-import { game, setIgnoreNextTap } from './game.js';
+import { game } from './state.js';
+import { setIgnoreNextTap } from './game.js';
+
 import { $ } from './utils.js';
 import { LootLockerAPI } from './lootlocker.js';
 import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
@@ -6,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.38.3 - 2026/07/17 22:23',
+      version: 'v1.38.13 - 2026/07/17 23:45',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -164,27 +166,26 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         let h = title;
         if (game.lastScoreObj) {
           let pbHTML = (game.isNewRecord && state === 'clear') ? '<div style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;">NEW RECORD!</div>' : '';
+          let showBest = (!game.isNewRecord && game.personalBest);
           
-          h += '<div style="background:#222;padding:10px;margin-bottom:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;">' + pbHTML;
-
-          
-          h += '<div style="color:#fff; font-size:16px; font-weight:bold; text-align:center; margin:8px 0 6px 0;">' + game.lastScoreObj.alt + 'm</div>';
-          h += '<div class="coin-align" style="font-size:11px; color:#ffb; margin-bottom:10px;">';
+          h += '<div style="background:#222;padding:15px;margin-bottom:15px;border:2px solid #fff;border-radius:8px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.8);">' + pbHTML;
+          h += '<h2 style="color:#0f0;margin:0 0 16px 0;font-size:11px;letter-spacing:1px;">SCORE</h2>';
+          h += '<div style="color:#fff; font-size:18px; font-weight:bold; text-align:center; margin:0 0 4px 0;">' + game.lastScoreObj.alt + 'm</div>';
+          h += '<div class="coin-align" style="font-size:11px; color:#ffb; justify-content:center; margin-bottom:0;">';
           h += '<div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
           h += '<span>&times; ' + (game.lastScoreObj.coins || 0) + '</span>';
           h += '</div>';
 
-          if (!game.isNewRecord && game.personalBest) {
-            h += '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed #555;text-align:center;">';
-            h += '<h2 style="color:#aaa;margin:0 0 6px 0;font-size:10px;">YOUR BEST</h2>';
-            h += '<div style="color:#ddd; font-size:13px; font-weight:bold; text-align:center; margin:4px 0 4px 0;">' + game.personalBest.alt + 'm</div>';
-            h += '<div class="coin-align" style="font-size:9px; color:#dd8;">';
+          if (showBest) {
+            h += '<div style="margin-top:12px;padding-top:12px;border-top:2px dashed #444;text-align:center;">';
+            h += '<h2 style="color:#aaa;margin:0 0 12px 0;font-size:10px;letter-spacing:1px;">YOUR BEST</h2>';
+            h += '<div style="color:#ddd; font-size:14px; font-weight:bold; text-align:center; margin:0 0 4px 0;">' + game.personalBest.alt + 'm</div>';
+            h += '<div class="coin-align" style="font-size:10px; color:#dd8; justify-content:center;">';
             h += '<div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
             h += '<span>&times; ' + (game.personalBest.coins || 0) + '</span>';
             h += '</div>';
             h += '</div>';
           }
-          h += '<div style="margin-top:12px; font-size:8px; color:#888; text-align:right;">ID: ' + getPlayerName() + '</div>';
           h += '</div>';
         }
         

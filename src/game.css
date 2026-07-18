@@ -439,3 +439,39 @@
       line-height: 1;
     }
 
+
+    #settingsBtn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      z-index: 20;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: all 0.05s ease;
+      display: none;
+      background: transparent;
+      border: none;
+      padding: 0;
+      box-shadow: none;
+      width: 24px;
+      height: 24px;
+      align-items: center;
+      justify-content: center;
+    }
+    .gear-icon {
+      fill: #f3f4f6;
+      transition: fill 0.1s ease;
+    }
+    #settingsBtn:hover .gear-icon {
+      fill: #ffffff;
+    }
+    #settingsBtn:hover {
+      transform: scale(1.1);
+    }
+    #settingsBtn:active .gear-icon {
+      fill: #ffffff;
+    }
+    #settingsBtn:active {
+      transform: scale(0.9);
+    }
+    
