@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator) {
     onNeedRefresh() {
       console.log('SW: New version available, pending update...');
       updatePending = true;
-      checkUpdateAndReload('pending', false);
+      document.dispatchEvent(new Event('pwa-update-available'));
     },
     onRegistered(swRegistration) {
       if (swRegistration) {
@@ -23,8 +23,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-export function checkUpdateAndReload(gameState, isDemo) {
-  if (updatePending && reloadSW && (gameState === 'intro' || isDemo)) {
+export function checkUpdateAndReload() {
+  if (updatePending && reloadSW) {
     console.log('Update found, applying and reloading...');
     updatePending = false;
     reloadSW(true);

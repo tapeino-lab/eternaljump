@@ -34,6 +34,12 @@ export { dR, inputHandler };
     export const autoBtn = $('autoBtn');
     const pScreen = $('pauseScreen');
     
+    document.addEventListener('pwa-update-available', () => {
+      if (game.state === 'intro' || demoState.active) {
+        checkUpdateAndReload();
+      }
+    });
+    
     [btnL, btnR].forEach(b => {
       for (let i = 0; i < 4; i++) {
         let w = document.createElement('div');
@@ -526,6 +532,7 @@ export { dR, inputHandler };
       acc = 0;
       
       if (isAttractMode && !demoState.active) $('tapToStartMsg').style.display = 'block';
+      checkUpdateAndReload();
     }
 
 
@@ -777,7 +784,6 @@ export { dR, inputHandler };
     }
 
     function loop(ts) {
-      checkUpdateAndReload(game.state, demoState.active);
       let dT = ts - lastTime;
       lastTime = ts;
       if (dT > 250) dT = 250;
