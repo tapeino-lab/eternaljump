@@ -386,42 +386,7 @@ export function setupInputListeners() {
   });
 
   ['touchstart', 'mousedown'].forEach(ev => {
-    $('prodControls').addEventListener(ev, e => {
-      if (ignoreNextTap) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-
-      if (e.target.closest('#btnToDev')) {
-        e.stopPropagation();
-        clearTimeout(game.attractTimer); // wait, in game.js attractTimer is exported as let attractTimer.
-        // We can clear it via the exported/imported attractTimer or we can clear attractTimer from game.js
-        // Wait, since we import attractTimer or clear it inside startRealGame, let's make sure it clears perfectly.
-        // Actually, we can export a function or setter, but since we imported attractTimer we can also clear it directly!
-        // But wait, the browser lets us do: clearTimeout(attractTimer) if we import attractTimer! No, wait, in ES Modules, imported bindings are read-only.
-        // Ah! That is a very important detail! Imported bindings are read-only (constant references). So we CANNOT mutate `attractTimer` or assign to it inside `input.js`.
-        // To clear or mutate attractTimer, let's export a function `clearAttractTimer` or `setAttractTimer` in `game.js`.
-        // Let's check how we handle attractTimer:
-        // We can export `clearAttractTimer` and call it! Let's do that.
-        // Yes, that is incredibly robust.
-        clearAttractTimer();
-        game.isAttractMode = false;
-        demoState.active = false;
-        document.body.classList.remove('attract-mode');
-        $('prodControls').style.display = 'none';
-        $('tapToStartMsg').style.display = 'none';
-        $('demoRankingContainer').style.display = 'none';
-        $('devControls').style.display = 'flex';
-        $('debugModal').style.display = 'flex';
-        $('debugModal').style.background = 'rgba(0,0,0,0.85)';
-        return;
-      }
-      if (isAttractMode) {
-        e.preventDefault();
-        startRealGame();
-      }
-    }, { passive: false });
+    
   });
 
   // Also bind dev control buttons

@@ -10,6 +10,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang, $, escapeHTML, getPlaye
 import { initSpawner, spawnGuideCoins, spawnCoins, spawnPlatform } from './spawner.js';
 import { render, resetBGScore, dR } from './renderer.js';
 import { inputHandler, setupInputListeners } from './input.js';
+import { checkUpdateAndReload } from './pwa.js';
 export { dR, inputHandler };
     
         
@@ -221,8 +222,8 @@ export { dR, inputHandler };
       config.scoreMultiplier = tM;
       game.startScore = tS;
       game.demoMode = true;
-      $('prodControls').style.display = 'flex';
-      $('btnToDev').style.display = 'flex';
+      
+      
       let tnDisplay = $('titleNameDisplay');
       if(tnDisplay) tnDisplay.style.display = 'flex';
       $('demoRankingContainer').style.display = 'none';
@@ -230,7 +231,7 @@ export { dR, inputHandler };
       initGame(false);
       attractTimer = setTimeout(() => {
         if (!isAttractMode) return;
-        $('btnToDev').style.display = 'none';
+        
         let tn = document.getElementById('gamePlayerName');
         if (tn) tn.style.display = 'none';
         setAuto(true);
@@ -245,7 +246,7 @@ export { dR, inputHandler };
       isAttractMode = false;
       demoState.active = false;
       document.body.classList.remove('attract-mode');
-      $('prodControls').style.display = 'none';
+      
       $('rankingModal').style.display = 'none';
       $('demoRankingContainer').style.display = 'none';
       $('tapToStartMsg').style.display = 'none';
@@ -823,6 +824,7 @@ export { dR, inputHandler };
     }
 
     function loop(ts) {
+      checkUpdateAndReload(game.state, demoState.active);
       let dT = ts - lastTime;
       lastTime = ts;
       if (dT > 250) dT = 250;
@@ -1126,7 +1128,7 @@ export { dR, inputHandler };
     if (isDev) {
       $('debugModal').style.display = 'flex';
       $('devControls').style.display = 'flex';
-      $('prodControls').style.display = 'none';
+      
     } else {
       $('debugModal').style.display = 'none';
       startAttractCycle();

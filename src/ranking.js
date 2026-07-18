@@ -6,24 +6,38 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.37.94 - 2026/07/17 19:46',
+      version: 'v1.38.1 - 2026/07/17 20:07',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
         return LootLockerAPI.hasLootLockerConfig === true;
       },
-      prefetchScores: function() {
+      prefetchScores: function(forceNetwork = false) {
         this.prefetchedScoresPromise = (async () => {
           const isConfigured = await LootLockerAPI.checkConfig();
           if (isConfigured) {
-            let scores = await LootLockerAPI.getScores(100);
-            if (scores && scores.length > 0) {
-              localStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
-            } else {
+            let scores = null;
+            let now = Date.now();
+            let lastFetch = parseInt(localStorage.getItem('LL_LAST_FETCH') || '0');
+            
+            if (!forceNetwork && (now - lastFetch) < 60000) {
               try {
                 let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
                 if (cached) scores = JSON.parse(cached);
               } catch(e) {}
+            }
+            
+            if (!scores) {
+              scores = await LootLockerAPI.getScores(100);
+              if (scores && scores.length > 0) {
+                localStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
+                localStorage.setItem('LL_LAST_FETCH', now.toString());
+              } else {
+                try {
+                  let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
+                  if (cached) scores = JSON.parse(cached);
+                } catch(e) {}
+              }
             }
             
             // Merge pending offline scores
@@ -68,7 +82,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
       },
       getScores: async function(bypassCache = false) {
         if (bypassCache || !this.prefetchedScoresPromise) {
-          this.prefetchScores();
+          this.prefetchScores(bypassCache);
         }
         const s = await this.prefetchedScoresPromise;
         this.prefetchedScoresPromise = null;
@@ -97,6 +111,10 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         }
         if (game.isNewRecord) {
           const isConfigured = await LootLockerAPI.checkConfig();
+          if (isConfigured) {
+            let res = await LootLockerAPI.submitScore(a, c, l, t);
+            if (res) localStorage.setItem('LL_LAST_FETCH', '0'); // Force fetch next time
+          }
           if (!isConfigured) {
             try {
               let s = await this.getScores();
@@ -114,15 +132,8 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             } catch (e) {}
           }
         }
-
-        // オンラインLootLockerにはプレイ毎に毎回送信し、LootLocker側の「Keep Best」仕様に判断を委ねることで、端末間の同期不一致を完全に防ぐ
-        const isConfigured = await LootLockerAPI.checkConfig();
-        if (isConfigured) {
-          await LootLockerAPI.submitScore(game.lastScoreObj.alt, c, l, game.lastScoreObj.time);
-        }
-
         // Start background prefetch of scores immediately for latest values
-        this.prefetchScores();
+        this.prefetchScores(game.isNewRecord);
       },
       show: async function(state) {
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
