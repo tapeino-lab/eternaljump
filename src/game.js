@@ -3,7 +3,7 @@ import { B64 } from './assets.js';
 import { config } from './config.js';
 import { runAI } from './ai.js';
 import { getLevelConfig } from './level.js';
-import { Particle, Bird, Meteor, Player, NPC, Platform, Item, Coin, BackgroundCloud, getPt, getPl, getCn, getBd, getMt, getIt, spawnParticles, spawnDebris, trySpawnBirdsOnPlatform, P_PT, P_PL, P_CN, P_BD, P_MT, P_IT } from './entities.js';
+import { Particle, Bird, Meteor, Player, NPC, Platform, Item, Coin, BackgroundCloud, getPt, getPl, getCn, getBd, getMt, getIt, getCl, spawnParticles, spawnDebris, trySpawnBirdsOnPlatform, P_PT, P_PL, P_CN, P_BD, P_MT, P_IT, P_CL } from './entities.js';
 import { LootLockerAPI } from "./lootlocker.js";
 import { RankingAPI } from "./ranking.js";
 import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang, $, escapeHTML, getPlayerName } from "./utils.js";
@@ -379,6 +379,9 @@ export { dR, inputHandler };
       game.platforms = [];
       game.items = [];
       game.coins = [];
+      if (game.clouds && game.clouds.length > 0) {
+        game.clouds.forEach(c => P_CL.push(c));
+      }
       game.clouds = [];
       game.stars = [];
       game.loopCount = 0;
@@ -478,7 +481,7 @@ export { dR, inputHandler };
       for (let i = 0; i < cCount; i++) {
         let ts = 1000 + RND() * 49000;
         let cy = game.baseScoreY - (ts / config.scoreMultiplier);
-        game.clouds.push(new BackgroundCloud(RND() * config.gameWidth, cy));
+        game.clouds.push(getCl(RND() * config.gameWidth, cy));
       }
       
       let bC = 8 + FLR(RND() * 7);

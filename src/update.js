@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN } from './entities.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL } from './entities.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
 import { logAIEvent, initGame } from './game.js';
 import { RankingAPI } from './ranking.js';
@@ -424,6 +424,14 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
     if (c.y >= dL || c.dead) {
       P_CN.push(c);
       game.coins.splice(i, 1);
+    }
+  }
+  let cloudThresh = game.cameraY + config.gameHeight * 2.0;
+  for (let i = game.clouds.length - 1; i >= 0; i--) {
+    let c = game.clouds[i];
+    if (c.y > cloudThresh) {
+      P_CL.push(c);
+      game.clouds.splice(i, 1);
     }
   }
   
