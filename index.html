@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,touch-action=none">
   <title>ETERNAL JUMPER</title>
@@ -14,61 +12,61 @@
 </head>
 <body>
   <div id="debugModal">
-    <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
-      <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.42.2 - 2026/07/18 17:20</p>
+    <div id="devControls">
+      <h2 class="ext-style-2">DEBUG SETTINGS</h2>
+      <p class="ext-style-3">ETERNAL JUMPER - v1.44.0 - 2026/07/18 17:58</p>
       
-      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
-        <button id="db_m" class="dbg-btn mode-btn" style="border-color:#0f0">MANUAL</button>
+      <div class="ext-style-4">
+        <div class="ext-style-5">CONTROL MODE</div>
+        <button id="db_m" class="dbg-btn mode-btn">MANUAL</button>
         <button id="db_a" class="dbg-btn mode-btn">AUTO</button>
         
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">AUTO RANK ENTRY</div>
-        <button id="db_ar" class="dbg-btn" style="width:100%; margin-top:5px; padding:8px; border-color:#555; font-size:12px;">ENTRY: OFF</button>
+        <div class="ext-style-7">AUTO RANK ENTRY</div>
+        <button id="db_ar" class="dbg-btn">ENTRY: OFF</button>
         
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">START HEIGHT</div>
-        <button id="db_h0" class="dbg-btn hgt-btn" style="border-color:#0f0">0m<br><span style="font-size:10px; font-weight:normal">GROUND</span></button>
-        <button id="db_h35" class="dbg-btn hgt-btn">35K<br><span style="font-size:10px; font-weight:normal">EVENING</span></button>
-        <button id="db_h75" class="dbg-btn hgt-btn">75K<br><span style="font-size:10px; font-weight:normal">ICE/METEOR</span></button>
-        <button id="db_h115" class="dbg-btn hgt-btn">115K<br><span style="font-size:10px; font-weight:normal">RUSH</span></button>
-        <button id="db_h130" class="dbg-btn hgt-btn">130K<br><span style="font-size:10px; font-weight:normal">PRE-HEAVEN</span></button>
+        <div class="ext-style-9">START HEIGHT</div>
+        <button id="db_h0" class="dbg-btn hgt-btn">0m<br><span class="ext-style-11">GROUND</span></button>
+        <button id="db_h35" class="dbg-btn hgt-btn">35K<br><span class="ext-style-12">EVENING</span></button>
+        <button id="db_h75" class="dbg-btn hgt-btn">75K<br><span class="ext-style-13">ICE/METEOR</span></button>
+        <button id="db_h115" class="dbg-btn hgt-btn">115K<br><span class="ext-style-14">RUSH</span></button>
+        <button id="db_h130" class="dbg-btn hgt-btn">130K<br><span class="ext-style-15">PRE-HEAVEN</span></button>
         
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">BUTTON THEME</div>
-        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:100%;">
-          <button id="th_neo" class="dbg-btn thm-btn" style="border-color:#0f0; flex:1; font-size:10px; padding:6px; min-width:30%;">NEO-CLS</button>
-          <button id="th_cls" class="dbg-btn thm-btn" style="flex:1; font-size:10px; padding:6px; min-width:30%;">CLASSIC</button>
-          <button id="th_vin" class="dbg-btn thm-btn" style="flex:1; font-size:10px; padding:6px; min-width:30%;">VINTAGE</button>
+        <div class="ext-style-16">BUTTON THEME</div>
+        <div class="ext-style-17">
+          <button id="th_neo" class="dbg-btn thm-btn">NEO-CLS</button>
+          <button id="th_cls" class="dbg-btn thm-btn">CLASSIC</button>
+          <button id="th_vin" class="dbg-btn thm-btn">VINTAGE</button>
         </div>
         
-        <button id="db_start" class="dbg-btn" style="width:100%; margin-top:20px; padding:12px; background:#e60012; border-color:#faa; font-size:18px;">NORMAL START</button>
-        <button id="db_rank_reset" class="dbg-btn" style="width:100%; margin-top:5px; padding:8px; background:#555; border-color:#aaa; font-size:12px;">RESET RANKING</button>
-        <button id="db_title" class="dbg-btn" style="width:100%; margin-top:10px; padding:12px; background:#444; border-color:#888; font-size:14px; font-family:'Press Start 2P', sans-serif;">RETURN TO TITLE</button>
+        <button id="db_start" class="dbg-btn">NORMAL START</button>
+        <button id="db_rank_reset" class="dbg-btn">RESET RANKING</button>
+        <button id="db_title" class="dbg-btn">RETURN TO TITLE</button>
         
-        <div style="display:flex; width:100%; margin-top:10px; gap:5px;">
-          <button id="db_b10" class="dbg-btn" style="flex:1; padding:12px; background:#0055ff; border-color:#aaf; font-size:14px;">🤖 10 RUNS</button>
-          <button id="db_b50" class="dbg-btn" style="flex:1; padding:12px; background:#0033cc; border-color:#aaf; font-size:14px;">🤖 50 RUNS</button>
-          <button id="db_b100" class="dbg-btn" style="flex:1; padding:12px; background:#c0c; border-color:#faa; font-size:14px;">🤖 100 RUNS</button>
+        <div class="ext-style-24">
+          <button id="db_b10" class="dbg-btn">🤖 10 RUNS</button>
+          <button id="db_b50" class="dbg-btn">🤖 50 RUNS</button>
+          <button id="db_b100" class="dbg-btn">🤖 100 RUNS</button>
         </div>
 
-        <div style="width:100%; text-align:center; color:#ff0; font-size:11px; margin-top:15px; border-top:1px dashed #555; padding-top:12px; font-family:'Press Start 2P', sans-serif;">LOOTLOCKER DIAGNOSTICS</div>
-        <div style="background:#111; border:2px solid #555; border-radius:6px; width:100%; margin-top:8px; padding:10px; box-sizing:border-box; font-family:monospace; text-align:left; font-size:10px; color:#fff; display:flex; flex-direction:column; gap:5px;">
-          <div style="display:flex; justify-content:space-between;"><span>Status:</span><span id="ll-status" style="color:#ff5555;font-weight:bold;">UNINITIALIZED</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Mode:</span><span id="ll-mode" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>API Key:</span><span id="ll-key" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Domain:</span><span id="ll-domain" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Ldrboard:</span><span id="ll-lbid" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Player ID:</span><span id="ll-pid" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid #444; padding-bottom:5px;"><span>Session Token:</span><span id="ll-token" style="color:#aaa;">-</span></div>
+        <div class="ext-style-28">LOOTLOCKER DIAGNOSTICS</div>
+        <div class="ext-style-29">
+          <div class="ext-style-30"><span>Status:</span><span id="ll-status">UNINITIALIZED</span></div>
+          <div class="ext-style-32"><span>Mode:</span><span id="ll-mode">-</span></div>
+          <div class="ext-style-34"><span>API Key:</span><span id="ll-key">-</span></div>
+          <div class="ext-style-36"><span>Domain:</span><span id="ll-domain">-</span></div>
+          <div class="ext-style-38"><span>Ldrboard:</span><span id="ll-lbid">-</span></div>
+          <div class="ext-style-40"><span>Player ID:</span><span id="ll-pid">-</span></div>
+          <div class="ext-style-42"><span>Session Token:</span><span id="ll-token">-</span></div>
           
-          <div style="color:#ffb; margin-top:4px; font-weight:bold; font-size:9px; font-family:'Press Start 2P', sans-serif;">LIVE DEBUG LOGS:</div>
-          <div id="llDebugLogArea" style="background:#050505; border:1px solid #333; height:120px; overflow-y:auto; padding:6px; border-radius:4px; font-size:9px; color:#0f0; word-break:break-all; white-space:pre-wrap; font-family:monospace; line-height:1.2;"></div>
+          <div class="ext-style-44">LIVE DEBUG LOGS:</div>
+          <div id="llDebugLogArea"></div>
           
-          <div style="display:flex; flex-direction:column; gap:6px; margin-top:5px; width:100%;">
-            <div style="display:flex; gap:5px; width:100%;">
-              <button id="ll_btn_test" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#0f0; color:#0f0; margin:0;">TEST CON</button>
-              <button id="ll_btn_copy" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#ff0; color:#ff0; margin:0;">COPY INFO</button>
+          <div class="ext-style-46">
+            <div class="ext-style-47">
+              <button id="ll_btn_test" class="dbg-btn">TEST CON</button>
+              <button id="ll_btn_copy" class="dbg-btn">COPY INFO</button>
             </div>
-            <button id="ll_btn_clear" class="dbg-btn" style="width:100%; padding:8px; font-size:9px; background:#222; border-color:#f55; color:#f55; margin:0;">RESET ID & SESSION</button>
+            <button id="ll_btn_clear" class="dbg-btn">RESET ID &amp; SESSION</button>
           </div>
         </div>
       </div>
@@ -79,145 +77,145 @@
     <div id="canvasWrapper">
       <div id="ui"></div>
       <div id="pauseScreen">
-        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">QUIT</button>
-        <button id="btnRankingPause" class="dbg-btn" style="position:absolute; bottom:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">RANKING</button>
-        <button id="btnResumePause" class="dbg-btn" style="position:absolute; bottom:10px; right:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff; display:flex; align-items:center; justify-content:center; width:34px; height:34px; box-sizing:border-box;" title="RESUME">
-          <svg viewBox="0 0 9 9" width="18" height="18" style="fill:#fff; shape-rendering:crispEdges; display:block;">
-            <rect x="2" y="1" width="1" height="7" />
-            <rect x="3" y="2" width="1" height="5" />
-            <rect x="4" y="3" width="1" height="3" />
-            <rect x="5" y="4" width="1" height="1" />
+        <button id="btnTitlePause" class="dbg-btn">QUIT</button>
+        <button id="btnRankingPause" class="dbg-btn">RANKING</button>
+        <button id="btnResumePause" class="dbg-btn" title="RESUME">
+          <svg viewBox="0 0 9 9" width="18" height="18" class="ext-style-54">
+            <rect x="2" y="1" width="1" height="7"></rect>
+            <rect x="3" y="2" width="1" height="5"></rect>
+            <rect x="4" y="3" width="1" height="3"></rect>
+            <rect x="5" y="4" width="1" height="1"></rect>
           </svg>
         </button>
-        <h2 id="pauseTitle" style="margin-bottom:15px; font-size:16px;">PAUSED</h2>
-        <div style="background:#111;padding:20px;padding-bottom:25px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;box-sizing:border-box;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8); position:relative;">
-          <div style="margin-bottom:15px; font-size:12px; color:#aaa; font-family:'Press Start 2P', sans-serif;">YOUR BEST</div>
-          <div id="pauseBest" style="font-size:10px; color:#aaa; font-family:'Press Start 2P', sans-serif; text-align:center; display:flex; justify-content:center; margin-bottom:20px;"></div>
+        <h2 id="pauseTitle">PAUSED</h2>
+        <div class="ext-style-56">
+          <div class="ext-style-57">YOUR BEST</div>
+          <div id="pauseBest"></div>
           
-          <div style="border-top:1px dashed #555; padding-top:15px;">
-            <div style="margin-bottom:12px; font-size:12px; color:#aaa; font-family:'Press Start 2P', sans-serif;">YOUR NAME</div>
-            <div style="display:flex; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif; position: relative; width: 100%;">
-              <input id="pausePlayerNameInput" type="text" maxlength="2" readonly style="width:100%; background:transparent; color:#fff; border:none; text-align:center; font-size:12px; font-family:'Press Start 2P', sans-serif; padding:0; text-transform:uppercase; outline:none; box-sizing:border-box; margin:0; cursor:pointer; text-shadow:2px 2px 0 #000;" />
-              <span id="pauseEditIcon" style="position: absolute; right: calc(50% - 50px); width:24px; height:24px; cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:4px; background:#222; box-sizing:border-box;" title="EDIT">
-                <svg viewBox="0 0 8 8" width="14" height="14" style="fill:#fff; shape-rendering:crispEdges; display:block;">
-                  <rect x="5" y="1" width="1" height="1" />
-                  <rect x="6" y="2" width="1" height="1" />
-                  <rect x="4" y="2" width="1" height="1" />
-                  <rect x="5" y="3" width="1" height="1" />
-                  <rect x="3" y="3" width="1" height="1" />
-                  <rect x="4" y="4" width="1" height="1" />
-                  <rect x="2" y="4" width="1" height="1" />
-                  <rect x="3" y="5" width="1" height="1" />
-                  <rect x="1" y="5" width="1" height="1" />
-                  <rect x="2" y="6" width="1" height="1" />
-                  <rect x="0" y="6" width="2" height="2" />
+          <div class="ext-style-59">
+            <div class="ext-style-60">YOUR NAME</div>
+            <div class="ext-style-61">
+              <input id="pausePlayerNameInput" type="text" maxlength="2" readonly="">
+              <span id="pauseEditIcon" title="EDIT">
+                <svg viewBox="0 0 8 8" width="14" height="14" class="ext-style-64">
+                  <rect x="5" y="1" width="1" height="1"></rect>
+                  <rect x="6" y="2" width="1" height="1"></rect>
+                  <rect x="4" y="2" width="1" height="1"></rect>
+                  <rect x="5" y="3" width="1" height="1"></rect>
+                  <rect x="3" y="3" width="1" height="1"></rect>
+                  <rect x="4" y="4" width="1" height="1"></rect>
+                  <rect x="2" y="4" width="1" height="1"></rect>
+                  <rect x="3" y="5" width="1" height="1"></rect>
+                  <rect x="1" y="5" width="1" height="1"></rect>
+                  <rect x="2" y="6" width="1" height="1"></rect>
+                  <rect x="0" y="6" width="2" height="2"></rect>
                 </svg>
               </span>
             </div>
           </div>
         </div>
-        <div id="pauseConfirmModal" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:200; display:none; flex-direction:column; justify-content:center; align-items:center;">
-            <div style="background:#111;padding:20px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
-              <div style="font-size:10px; color:#fff; font-family:'Press Start 2P', sans-serif; line-height:1.5; margin-bottom:20px;">RETURN TO TITLE?</div>
-              <div style="display:flex; justify-content:space-around;">
-                <button id="btnConfirmYes" class="dbg-btn" style="padding:10px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#e60012; color:#fff; border:2px solid #faa; width:40%;">YES</button>
-                <button id="btnConfirmNo" class="dbg-btn" style="padding:10px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #aaa; width:40%;">NO</button>
+        <div id="pauseConfirmModal">
+            <div class="ext-style-66">
+              <div class="ext-style-67">RETURN TO TITLE?</div>
+              <div class="ext-style-68">
+                <button id="btnConfirmYes" class="dbg-btn">YES</button>
+                <button id="btnConfirmNo" class="dbg-btn">NO</button>
               </div>
             </div>
           </div>
         </div>
-      <div id="titleVersion" style="position:absolute; left:12px; bottom:12px; font-family:'Press Start 2P', monospace; font-size:9px; color:rgba(255,255,255,0.72); z-index:20; pointer-events:none; display:none; letter-spacing:0.5px;">v1.42.2</div>
+      <div id="titleVersion">v1.44.0</div>
       <div id="autoBtn">🤖 ON</div>
       <div id="pauseBtn">II</div>
       <div id="settingsBtn">
-        <svg viewBox="0 0 12 12" width="24" height="24" style="fill:#eee; shape-rendering:crispEdges; display:block;" class="gear-icon">
-          <rect x="5" y="0" width="2" height="1" />
-          <rect x="1" y="1" width="2" height="1" />
-          <rect x="5" y="1" width="2" height="1" />
-          <rect x="9" y="1" width="2" height="1" />
-          <rect x="1" y="2" width="10" height="1" />
-          <rect x="2" y="3" width="8" height="1" />
-          <rect x="2" y="4" width="2" height="1" />
-          <rect x="8" y="4" width="2" height="1" />
-          <rect x="0" y="5" width="4" height="1" />
-          <rect x="8" y="5" width="4" height="1" />
-          <rect x="0" y="6" width="4" height="1" />
-          <rect x="8" y="6" width="4" height="1" />
-          <rect x="2" y="7" width="2" height="1" />
-          <rect x="8" y="7" width="2" height="1" />
-          <rect x="2" y="8" width="8" height="1" />
-          <rect x="1" y="9" width="10" height="1" />
-          <rect x="1" y="10" width="2" height="1" />
-          <rect x="5" y="10" width="2" height="1" />
-          <rect x="9" y="10" width="2" height="1" />
-          <rect x="5" y="11" width="2" height="1" />
+        <svg viewBox="0 0 12 12" width="24" height="24" class="gear-icon ext-style-72">
+          <rect x="5" y="0" width="2" height="1"></rect>
+          <rect x="1" y="1" width="2" height="1"></rect>
+          <rect x="5" y="1" width="2" height="1"></rect>
+          <rect x="9" y="1" width="2" height="1"></rect>
+          <rect x="1" y="2" width="10" height="1"></rect>
+          <rect x="2" y="3" width="8" height="1"></rect>
+          <rect x="2" y="4" width="2" height="1"></rect>
+          <rect x="8" y="4" width="2" height="1"></rect>
+          <rect x="0" y="5" width="4" height="1"></rect>
+          <rect x="8" y="5" width="4" height="1"></rect>
+          <rect x="0" y="6" width="4" height="1"></rect>
+          <rect x="8" y="6" width="4" height="1"></rect>
+          <rect x="2" y="7" width="2" height="1"></rect>
+          <rect x="8" y="7" width="2" height="1"></rect>
+          <rect x="2" y="8" width="8" height="1"></rect>
+          <rect x="1" y="9" width="10" height="1"></rect>
+          <rect x="1" y="10" width="2" height="1"></rect>
+          <rect x="5" y="10" width="2" height="1"></rect>
+          <rect x="9" y="10" width="2" height="1"></rect>
+          <rect x="5" y="11" width="2" height="1"></rect>
         </svg>
       </div>
       <canvas id="gameCanvas"></canvas>
       <div id="touchOverlay"></div>
-      <div id="fadeOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:250; opacity:0; pointer-events:none; transition:opacity 1s; display:none;"></div>
+      <div id="fadeOverlay"></div>
       
-      <div id="demoRankingContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:30; display:none; pointer-events:none; overflow:hidden; font-family:'Press Start 2P', sans-serif;">
-        <div id="demoHeader" style="position:absolute; left:5%; width:90%; z-index:3; top:0;"></div>
-        <div id="demoTop3" style="position:absolute; left:5%; width:90%; z-index:2; background:rgba(255,255,255,0.15); border-radius:8px; top:0;"></div>
-        <div id="demoOthersWrapper" style="position:absolute; left:5%; width:90%; z-index:1; overflow:hidden; -webkit-mask-image:linear-gradient(to bottom, transparent 0%, black 10%, black 100%); mask-image:linear-gradient(to bottom, transparent 0%, black 10%, black 100%); top:0;">
-          <div id="demoOthers" style="position:absolute; width:100%; top:0;"></div>
+      <div id="demoRankingContainer">
+        <div id="demoHeader"></div>
+        <div id="demoTop3"></div>
+        <div id="demoOthersWrapper">
+          <div id="demoOthers"></div>
         </div>
       </div>
       
       
       
-      <div id="rankingModal" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:200; display:none; flex-direction:column; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif;">
-        <h1 id="rankingLoading" style="color:#fff;font-size:12px;text-align:center;display:none;">LOADING...</h1>
+      <div id="rankingModal">
+        <h1 id="rankingLoading">LOADING...</h1>
         
-        <div id="resultContainer" style="display:none; flex-direction:column; align-items:center; width:100%;">
-          <div style="background:#222;padding:15px;margin-bottom:15px;border:2px solid #fff;border-radius:8px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.8);">
-            <div id="newRecordBadge" style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;display:none;">NEW RECORD!</div>
-            <h2 style="color:#0f0;margin:0 0 16px 0;font-size:11px;letter-spacing:1px;">SCORE</h2>
-            <div id="resultScoreAlt" style="color:#fff; font-size:18px; font-weight:bold; text-align:center; margin:0 0 4px 0;">0m</div>
-            <div class="coin-align" style="font-size:11px; color:#ffb; justify-content:center; margin-bottom:0;">
+        <div id="resultContainer">
+          <div class="ext-style-82">
+            <div id="newRecordBadge">NEW RECORD!</div>
+            <h2 class="ext-style-84">SCORE</h2>
+            <div id="resultScoreAlt">0m</div>
+            <div class="coin-align ext-style-86">
               <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
-              <span id="resultScoreCoins">&times; 0</span>
+              <span id="resultScoreCoins">× 0</span>
             </div>
-            <div id="bestScoreContainer" style="margin-top:12px;padding-top:12px;border-top:2px dashed #444;text-align:center;display:none;">
-              <h2 style="color:#aaa;margin:0 0 12px 0;font-size:10px;letter-spacing:1px;">YOUR BEST</h2>
-              <div id="bestScoreAlt" style="color:#ddd; font-size:14px; font-weight:bold; text-align:center; margin:0 0 4px 0;">0m</div>
-              <div class="coin-align" style="font-size:10px; color:#dd8; justify-content:center;">
+            <div id="bestScoreContainer">
+              <h2 class="ext-style-88">YOUR BEST</h2>
+              <div id="bestScoreAlt">0m</div>
+              <div class="coin-align ext-style-90">
                 <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
-                <span id="bestScoreCoins">&times; 0</span>
+                <span id="bestScoreCoins">× 0</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div id="rankingContainer" style="display:none; flex-direction:column; align-items:center; width:100%;">
-          <h1 style="color:#0f0;margin:0 0 10px 0;font-size:12px;text-align:center;">RANKING</h1>
-          <div style="width:90%;max-width:400px;box-sizing:border-box;text-align:center;">
-            <div id="rankingTableWrapper" style="border:1px solid #fff;border-radius:4px;background:rgba(0,0,0,0.5);margin-bottom:10px; max-height: 250px; overflow-y: auto; overflow-x: hidden;">
-              <table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;">
-                <thead style="position: sticky; top: 0; background: rgba(0,0,0,0.95); z-index: 10;">
-                  <tr style="color:#fff;font-size:7px;">
-                    <th style="padding-bottom:4px;padding-top:8px;text-align:left;width:24px;padding-left:4px;vertical-align:middle;">#</th>
-                    <th style="padding-bottom:4px;padding-top:8px;text-align:center;width:32px;vertical-align:middle;">LANG</th>
-                    <th style="padding-bottom:4px;padding-top:8px;width:4px;padding:0;vertical-align:middle;"></th>
-                    <th style="padding-bottom:4px;padding-top:8px;text-align:center;width:32px;vertical-align:middle;">NAME</th>
-                    <th style="padding-bottom:4px;padding-top:8px;text-align:center;vertical-align:middle;">HEIGHT</th>
-                    <th style="padding-bottom:4px;padding-top:8px;width:32px;padding-right:4px;vertical-align:middle;"><div style="display:flex;justify-content:center;align-items:center;height:8px;"><div class="coin-icon" style="margin-top:0;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th>
+        <div id="rankingContainer">
+          <h1 class="ext-style-92">RANKING</h1>
+          <div class="ext-style-93">
+            <div id="rankingTableWrapper">
+              <table class="ext-style-95">
+                <thead class="ext-style-96">
+                  <tr class="ext-style-97">
+                    <th class="ext-style-98">#</th>
+                    <th class="ext-style-99">LANG</th>
+                    <th class="ext-style-100"></th>
+                    <th class="ext-style-101">NAME</th>
+                    <th class="ext-style-102">HEIGHT</th>
+                    <th class="ext-style-103"><div class="ext-style-104"><div class="coin-icon ext-style-105"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th>
                   </tr>
                 </thead>
                 <tbody id="rankingTableBody"></tbody>
               </table>
             </div>
-            <div id="playerRankContainer" style="padding:4px 0;margin-top:4px;display:none;">
-              <table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;">
+            <div id="playerRankContainer">
+              <table class="ext-style-107">
                 <tbody id="playerRankBody">
-                  <tr style="animation:rowBlink 1s infinite;font-weight:bold;color:#fff;">
-                    <td id="pRankNum" style="padding:0 0 0 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;"></td>
-                    <td id="pRankLang" style="padding:0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;"></td>
-                    <td style="width:4px;padding:0;"></td>
-                    <td id="pRankName" style="padding:0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;"></td>
-                    <td id="pRankAlt" style="padding:0;text-align:right;white-space:nowrap;overflow:hidden;"></td>
-                    <td id="pRankCoins" style="padding:0 4px 0 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;"></td>
+                  <tr class="ext-style-108">
+                    <td id="pRankNum"></td>
+                    <td id="pRankLang"></td>
+                    <td class="ext-style-111"></td>
+                    <td id="pRankName"></td>
+                    <td id="pRankAlt"></td>
+                    <td id="pRankCoins"></td>
                   </tr>
                 </tbody>
               </table>
@@ -231,54 +229,55 @@
   <div id="controlArea">
     <div id="btnLeft" class="dir-btn"><span class="tri">◀</span></div>
     <div id="btnRight" class="dir-btn"><span class="tri">▶</span></div>
-    <div id="tapToStartMsg" style="position:absolute; width:100%; top:50%; transform:translateY(-50%); text-align:center; font-family:'Press Start 2P', sans-serif; color:#fff; font-size:10px; pointer-events:none; animation:blinkLong 1.2s infinite; z-index:10; display:none;">TAP TO START</div>
+    <div id="tapToStartMsg">TAP TO START</div>
   </div>
 
   <!-- 名前編集用バーチャルキーボードモーダル (ゲーム画面＋操作エリアの最前面に表示) -->
-  <div id="nameEditModal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:rgba(0,0,0,0.9); z-index:9999; display:none; flex-direction:column; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif; box-sizing:border-box; padding:10px;">
-    <div style="background:#0a0a0a; border:2px solid #333; border-radius:8px; padding:20px; width:100%; max-width:340px; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
-      <div style="font-size:14px; color:#fff; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-shadow:1px 1px 0 #000;">EDIT NAME</div>
+  <div id="nameEditModal">
+    <div class="ext-style-117">
+      <div class="ext-style-118">EDIT NAME</div>
       
-      <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:20px; box-sizing:border-box;">
+      <div class="ext-style-119">
         <!-- 左に 元に戻す -->
-        <button id="btnNameReset" class="dbg-btn" style="padding:0; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#222; color:#fff; border:2px solid #555; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; width:44px; height:44px; box-sizing:border-box;" title="RESET">UNDO</button>
+        <button id="btnNameReset" class="dbg-btn" title="RESET">UNDO</button>
         
         <!-- 中央: 名前表示 -->
-        <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
-          <span id="nameEditVal" style="font-size:36px; color:#fff; border-bottom:3px solid #fff; min-width:80px; text-align:center; letter-spacing:3px; display:inline-block; padding-bottom:4px; line-height:1;">AB</span>
+        <div class="ext-style-121">
+          <span id="nameEditVal">AB</span>
         </div>
         
         <!-- 右に サイコロ -->
-        <button id="btnNameRandom" class="dbg-btn" style="padding:0; font-size:16px; background:#222; color:#fff; border:2px solid #555; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; width:44px; height:44px; box-sizing:border-box;" title="RANDOM">🎲</button>
+        <button id="btnNameRandom" class="dbg-btn" title="RANDOM">🎲</button>
       </div>
       
       <!-- 中央: キーボード -->
-      <div id="virtualKeyboard" style="width:100%; background:#151515; border:2px solid #444; border-radius:6px; padding:12px; box-sizing:border-box; margin-bottom:20px;">
+      <div id="virtualKeyboard">
         <!-- コンテナの高さを 340px に固定し、各ブロックは通常フロー。 -->
-        <div style="height: 340px; width: 100%;">
+        <div class="ext-style-125">
           <!-- A-Z Block -->
-          <div id="kbLetters" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px 4px; align-content:start;"></div>
+          <div id="kbLetters"></div>
           <!-- 0-9 Block -->
-          <div id="kbNumbers" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px 4px; align-content:start; display:none;"></div>
+          <div id="kbNumbers"></div>
           <!-- Symbols Block -->
-          <div id="kbSymbols" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px 4px; align-content:start; display:none;"></div>
+          <div id="kbSymbols"></div>
         </div>
 
-        <div style="display:flex; justify-content:space-around; gap:4px; margin-top:12px; border-top:1px dashed #333; padding-top:12px;">
-          <span id="tabLetters" style="font-size:14px; color:#fff; cursor:pointer; border-bottom:2px solid #fff; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">A-Z</span>
-          <span id="tabNumbers" style="font-size:14px; color:#888; cursor:pointer; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">0-9</span>
-          <span id="tabSymbols" style="font-size:14px; color:#888; cursor:pointer; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">SYM</span>
+        <div class="ext-style-129">
+          <span id="tabLetters">A-Z</span>
+          <span id="tabNumbers">0-9</span>
+          <span id="tabSymbols">SYM</span>
         </div>
       </div>
       
       <!-- 下部: 確定 & キャンセル -->
-      <div style="display:flex; justify-content:space-between; width:100%; gap:12px; box-sizing:border-box;">
-        <button id="btnNameCancel" class="dbg-btn" style="padding:16px 0; font-size:14px; font-family:'Press Start 2P', sans-serif; background:#222; color:#ccc; border:2px solid #555; border-radius:4px; width:48%; cursor:pointer;">CANCEL</button>
-        <button id="btnNameConfirm" class="dbg-btn" style="padding:16px 0; font-size:14px; font-family:'Press Start 2P', sans-serif; background:#008800; color:#fff; border:2px solid #0a0; border-radius:4px; width:48%; cursor:pointer;">OK</button>
+      <div class="ext-style-133">
+        <button id="btnNameCancel" class="dbg-btn">CANCEL</button>
+        <button id="btnNameConfirm" class="dbg-btn">OK</button>
       </div>
     </div>
   </div>
 
   <script type="module" src="/src/game.js"></script>
-</body>
-</html>
+
+
+</body></html>

@@ -1,7 +1,8 @@
 import { config } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL } from './entities.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
-import { logAIEvent, initGame } from './game.js';
+import { logAIEvent } from './game.js';
+import { initGame } from './setup.js';
 import { RankingAPI } from './ranking.js';
 
 export function updateBirds(game) {
