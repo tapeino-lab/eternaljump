@@ -628,6 +628,17 @@ export { dR, inputHandler };
           if (cover) {
             cover.isCrumbling = true;
           }
+          if (game.npcs && game.npcs.length > 0) {
+            if (!window.hasShownFirstExclamation) {
+              game.npcs[0].balloonText = '!';
+              game.npcs[0].balloonTimer = 60;
+              window.hasShownFirstExclamation = true;
+            } else if (Math.random() < 0.2) {
+              let rndIdx = Math.floor(Math.random() * game.npcs.length);
+              game.npcs[rndIdx].balloonText = '!';
+              game.npcs[rndIdx].balloonTimer = 60;
+            }
+          }
           game.shakeAmount = 0;
           game.state = 'intro';
         }
@@ -842,7 +853,13 @@ export { dR, inputHandler };
       game.isPaused = !game.isPaused;
       document.body.classList.toggle('game-paused', game.isPaused);
       $('pauseScreen').style.display = game.isPaused ? 'flex' : 'none';
-      $('pauseBtn').innerText = game.isPaused ? '▶' : 'II';
+      $('pauseBtn').style.display = game.isPaused ? 'none' : 'block';
+      if (game.isPaused) {
+        $('tapToStartMsg').innerText = 'TAP TO RESUME';
+        $('tapToStartMsg').style.display = 'block';
+      } else {
+        $('tapToStartMsg').style.display = 'none';
+      }
       if (game.isPaused) {
         const pNameInput = document.getElementById('pausePlayerNameInput');
         if (pNameInput) {

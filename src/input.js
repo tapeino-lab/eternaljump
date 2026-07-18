@@ -59,6 +59,9 @@ export function setupInputListeners() {
             if (!game.demoMode) {
               initGame(true);
             }
+          } else if (game.isPaused) {
+            $('tapToStartMsg').innerText = 'TAP TO RESUME';
+            $('tapToStartMsg').style.display = 'block';
           }
         }
         return;
@@ -105,6 +108,9 @@ export function setupInputListeners() {
             } else {
               initGame(true);
             }
+          } else if (game.isPaused) {
+            $('tapToStartMsg').innerText = 'TAP TO RESUME';
+            $('tapToStartMsg').style.display = 'block';
           }
         }
       }
@@ -123,6 +129,10 @@ export function setupInputListeners() {
         e.preventDefault();
         e.stopPropagation();
         RankingAPI.showRanking('pause');
+      } else if (e.target.id === 'btnResumePause') {
+        e.preventDefault();
+        e.stopPropagation();
+        togglePause();
       } else if (e.target.id === 'btnTitlePause') {
         e.preventDefault();
         e.stopPropagation();

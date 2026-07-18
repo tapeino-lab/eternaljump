@@ -99,6 +99,17 @@ export function updateParticles(game) {
 
 
 export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode) {
+  if (game.state === 'playing' && game.npcs.length > 0 && Math.random() < 0.00003) {
+    let anyBalloon = game.npcs.some(n => n.balloonTimer > 0);
+    if (!anyBalloon) {
+      let activeNpcs = game.npcs.filter(n => n.active && n.y < game.cameraY + config.gameHeight + 300);
+      if (activeNpcs.length > 0) {
+        let rndIdx = Math.floor(Math.random() * activeNpcs.length);
+        activeNpcs[rndIdx].balloonText = 'Load!';
+        activeNpcs[rndIdx].balloonTimer = 90;
+      }
+    }
+  }
   for (let i = game.npcs.length - 1; i >= 0; i--) {
     let npc = game.npcs[i];
     npc.update();
@@ -167,20 +178,18 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode)
               setIgnoreNextTap(true);
               spawnParticles(npc.x + npc.w / 2, p.y, '#f00', 5);
               let fA = MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier));
-              (async () => {
-                await RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'NPC_CLEAR');
-                if (!game.isBenchmarking) {
-                  setTimeout(() => {
-                    if (game.state === 'gameover') {
-                      if (!isAttractMode) RankingAPI.show('gameover');
-                      else {
-                        setIgnoreNextTap(false);
-                        $('tapToStartMsg').style.display = 'block';
-                      }
+              RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'NPC_CLEAR');
+              if (!game.isBenchmarking) {
+                setTimeout(() => {
+                  if (game.state === 'gameover') {
+                    if (!isAttractMode) RankingAPI.show('gameover');
+                    else {
+                      setIgnoreNextTap(false);
+                      $('tapToStartMsg').style.display = 'block';
                     }
-                  }, 500);
-                }
-              })();
+                  }
+                }, 800);
+              }
               if (game.demoMode && !game.isBenchmarking && !isAttractMode) {
                 setTimeout(function() {
                   if (game.state === 'gameover') initGame(false);
@@ -303,20 +312,18 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttr
           spawnParticles(game.player.x + game.player.w / 2, p.y, '#ccc', 5);
           
           let fA = MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier));
-          (async () => {
-            await RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'CLEAR');
-            if (!game.isBenchmarking) {
-              setTimeout(() => {
-                if (game.state === 'clear') {
-                  if (!isAttractMode) RankingAPI.show('clear');
-                  else {
-                    setIgnoreNextTap(false);
-                    $('tapToStartMsg').style.display = 'block';
-                  }
+          RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'CLEAR');
+          if (!game.isBenchmarking) {
+            setTimeout(() => {
+              if (game.state === 'clear') {
+                if (!isAttractMode) RankingAPI.show('clear');
+                else {
+                  setIgnoreNextTap(false);
+                  $('tapToStartMsg').style.display = 'block';
                 }
-              }, 500);
-            }
-          })();
+              }
+            }, 800);
+          }
           
           if (game.demoMode && !game.isBenchmarking) {
             setTimeout(function() {
@@ -452,20 +459,18 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
         setIgnoreNextTap(true);
         
         let fA = MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier));
-        (async () => {
-          await RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'DEATH_FALL');
-          if (!game.isBenchmarking) {
-            setTimeout(() => {
-              if (game.state === 'gameover') {
-                if (!isAttractMode) RankingAPI.show('gameover');
-                else {
-                  setIgnoreNextTap(false);
-                  $('tapToStartMsg').style.display = 'block';
-                }
+        RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'DEATH_FALL');
+        if (!game.isBenchmarking) {
+          setTimeout(() => {
+            if (game.state === 'gameover') {
+              if (!isAttractMode) RankingAPI.show('gameover');
+              else {
+                setIgnoreNextTap(false);
+                $('tapToStartMsg').style.display = 'block';
               }
-            }, 500);
-          }
-        })();
+            }
+          }, 800);
+        }
         
         if (game.demoMode && !game.isBenchmarking) {
           setTimeout(function() {
@@ -490,20 +495,18 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
     setIgnoreNextTap(true);
     
     let fA = MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier));
-    (async () => {
-      await RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'TIME_UP');
-      if (!game.isBenchmarking) {
-        setTimeout(() => {
-          if (game.state === 'gameover') {
-            if (!isAttractMode) RankingAPI.show('gameover');
-            else {
-              setIgnoreNextTap(false);
-              $('tapToStartMsg').style.display = 'block';
-            }
+    RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'TIME_UP');
+    if (!game.isBenchmarking) {
+      setTimeout(() => {
+        if (game.state === 'gameover') {
+          if (!isAttractMode) RankingAPI.show('gameover');
+          else {
+            setIgnoreNextTap(false);
+            $('tapToStartMsg').style.display = 'block';
           }
-        }, 500);
-      }
-    })();
+        }
+      }, 800);
+    }
     
     if (game.demoMode && !game.isBenchmarking) {
       setTimeout(function() {

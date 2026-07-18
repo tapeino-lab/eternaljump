@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,touch-action=none">
-  <title>ETERNAL JUMPER - v1.37.80 - 2026/07/17 05:20</title>
+  <title>ETERNAL JUMPER - v1.37.93 - 2026/07/17 19:24</title>
   <link rel="stylesheet" href="/src/game.css">
 </head>
 <body>
   <div id="debugModal">
     <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
       <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.37.80 - 2026/07/17 05:20</p>
+      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.37.93 - 2026/07/17 19:24</p>
       
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
         <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
@@ -73,8 +73,16 @@
     <div id="canvasWrapper">
       <div id="ui"></div>
       <div id="pauseScreen">
-        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">BACK TO TITLE</button>
+        <button id="btnTitlePause" class="dbg-btn" style="position:absolute; top:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">QUIT</button>
         <button id="btnRankingPause" class="dbg-btn" style="position:absolute; bottom:10px; left:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff;">RANKING</button>
+        <button id="btnResumePause" class="dbg-btn" style="position:absolute; bottom:10px; right:10px; z-index:100; padding:8px; font-size:10px; font-family:'Press Start 2P', sans-serif; background:#333; color:#fff; border:2px solid #fff; display:flex; align-items:center; justify-content:center; width:34px; height:34px; box-sizing:border-box;" title="RESUME">
+          <svg viewBox="0 0 8 8" width="16" height="16" style="fill:#fff; shape-rendering:crispEdges; display:block;">
+            <rect x="2" y="1" width="1" height="7" />
+            <rect x="3" y="2" width="1" height="5" />
+            <rect x="4" y="3" width="1" height="3" />
+            <rect x="5" y="4" width="1" height="1" />
+          </svg>
+        </button>
         <h1 style="margin-bottom:15px; text-shadow: 2px 2px 0 #000;">PAUSED</h1>
         <div style="background:#111;padding:20px;padding-bottom:25px;border:2px solid #fff;border-radius:6px;width:80%;max-width:300px;box-sizing:border-box;text-align:center;box-shadow: 0 4px 10px rgba(0,0,0,0.8); position:relative;">
           <div style="margin-bottom:15px; font-size:12px; color:#aaa; font-family:'Press Start 2P', sans-serif;">YOUR BEST</div>
@@ -82,25 +90,23 @@
           
           <div style="border-top:1px dashed #555; padding-top:15px;">
             <div style="margin-bottom:12px; font-size:12px; color:#aaa; font-family:'Press Start 2P', sans-serif;">YOUR NAME</div>
-            <div style="display:flex; justify-content:center; align-items:center; gap:8px; font-family:'Press Start 2P', sans-serif;">
-              <div style="display:flex; align-items:center; position:relative;">
-                <input id="pausePlayerNameInput" type="text" maxlength="2" readonly style="width:50px; background:transparent; color:#fff; border:none; text-align:center; font-size:12px; font-family:'Press Start 2P', sans-serif; padding:0; text-transform:uppercase; outline:none; box-sizing:border-box; margin:0; cursor:pointer; text-shadow:2px 2px 0 #000;" />
-                <span id="pauseEditIcon" style="width:24px; height:24px; margin-left:8px; cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:4px; background:#222; box-sizing:border-box;" title="EDIT">
-                  <svg viewBox="0 0 8 8" width="14" height="14" style="fill:#fff; shape-rendering:crispEdges; display:block;">
-                    <rect x="5" y="1" width="1" height="1" />
-                    <rect x="6" y="2" width="1" height="1" />
-                    <rect x="4" y="2" width="1" height="1" />
-                    <rect x="5" y="3" width="1" height="1" />
-                    <rect x="3" y="3" width="1" height="1" />
-                    <rect x="4" y="4" width="1" height="1" />
-                    <rect x="2" y="4" width="1" height="1" />
-                    <rect x="3" y="5" width="1" height="1" />
-                    <rect x="1" y="5" width="1" height="1" />
-                    <rect x="2" y="6" width="1" height="1" />
-                    <rect x="0" y="6" width="2" height="2" />
-                  </svg>
-                </span>
-              </div>
+            <div style="display:flex; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif; position: relative; width: 100%;">
+              <input id="pausePlayerNameInput" type="text" maxlength="2" readonly style="width:100%; background:transparent; color:#fff; border:none; text-align:center; font-size:12px; font-family:'Press Start 2P', sans-serif; padding:0; text-transform:uppercase; outline:none; box-sizing:border-box; margin:0; cursor:pointer; text-shadow:2px 2px 0 #000;" />
+              <span id="pauseEditIcon" style="position: absolute; right: calc(50% - 50px); width:24px; height:24px; cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:center; border:2px solid #fff; border-radius:4px; background:#222; box-sizing:border-box;" title="EDIT">
+                <svg viewBox="0 0 8 8" width="14" height="14" style="fill:#fff; shape-rendering:crispEdges; display:block;">
+                  <rect x="5" y="1" width="1" height="1" />
+                  <rect x="6" y="2" width="1" height="1" />
+                  <rect x="4" y="2" width="1" height="1" />
+                  <rect x="5" y="3" width="1" height="1" />
+                  <rect x="3" y="3" width="1" height="1" />
+                  <rect x="4" y="4" width="1" height="1" />
+                  <rect x="2" y="4" width="1" height="1" />
+                  <rect x="3" y="5" width="1" height="1" />
+                  <rect x="1" y="5" width="1" height="1" />
+                  <rect x="2" y="6" width="1" height="1" />
+                  <rect x="0" y="6" width="2" height="2" />
+                </svg>
+              </span>
             </div>
           </div>
         </div>
@@ -163,12 +169,6 @@
       
       <!-- 中央: キーボード -->
       <div id="virtualKeyboard" style="width:100%; background:#151515; border:2px solid #444; border-radius:6px; padding:12px; box-sizing:border-box; margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-around; gap:4px; margin-bottom:12px; border-bottom:1px dashed #333; padding-bottom:10px;">
-          <span id="tabLetters" style="font-size:14px; color:#fff; cursor:pointer; border-bottom:2px solid #fff; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">A-Z</span>
-          <span id="tabNumbers" style="font-size:14px; color:#888; cursor:pointer; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">0-9</span>
-          <span id="tabSymbols" style="font-size:14px; color:#888; cursor:pointer; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">SYM</span>
-        </div>
-        
         <!-- コンテナの高さを 340px に固定し、各ブロックは通常フロー。 -->
         <div style="height: 340px; width: 100%;">
           <!-- A-Z Block -->
@@ -177,6 +177,12 @@
           <div id="kbNumbers" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px 4px; align-content:start; display:none;"></div>
           <!-- Symbols Block -->
           <div id="kbSymbols" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:6px 4px; align-content:start; display:none;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-around; gap:4px; margin-top:12px; border-top:1px dashed #333; padding-top:12px;">
+          <span id="tabLetters" style="font-size:14px; color:#fff; cursor:pointer; border-bottom:2px solid #fff; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">A-Z</span>
+          <span id="tabNumbers" style="font-size:14px; color:#888; cursor:pointer; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">0-9</span>
+          <span id="tabSymbols" style="font-size:14px; color:#888; cursor:pointer; padding-bottom:4px; font-weight:bold; letter-spacing:1px;">SYM</span>
         </div>
       </div>
       

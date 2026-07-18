@@ -185,13 +185,53 @@ export function drawOffscreenIndicators() {
       else if (sy < 0) ang = -Math.PI / 2;
       ctx.save();
       ctx.translate(indX, indY);
-      ctx.rotate(ang);
-      ctx.fillStyle = n.active ? 'rgba(100,150,255,0.8)' : 'rgba(100,100,100,0.5)';
-      ctx.beginPath();
-      ctx.moveTo(6, 0);
-      ctx.lineTo(-5, 5);
-      ctx.lineTo(-5, -5);
-      ctx.fill();
+      
+      if (n.balloonTimer > 0) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        let tw = n.balloonText.length * 8 + 8;
+        
+        if (sy < 0) {
+          ctx.beginPath();
+          ctx.roundRect(-tw/2, 4, tw, 14, 4);
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.moveTo(-2, 4);
+          ctx.lineTo(2, 4);
+          ctx.lineTo(0, 0);
+          ctx.fill();
+          
+          ctx.fillStyle = '#000';
+          ctx.font = '8px "Press Start 2P", monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(n.balloonText, 0, 11);
+        } else {
+          ctx.beginPath();
+          ctx.roundRect(-tw/2, -14, tw, 14, 4);
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.moveTo(-2, 0);
+          ctx.lineTo(2, 0);
+          ctx.lineTo(0, 4);
+          ctx.fill();
+          
+          ctx.fillStyle = '#000';
+          ctx.font = '8px "Press Start 2P", monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(n.balloonText, 0, -7);
+        }
+      } else {
+        ctx.rotate(ang);
+        ctx.fillStyle = n.active ? 'rgba(255,255,255,0.3)' : 'rgba(150,150,150,0.2)';
+        ctx.beginPath();
+        ctx.moveTo(6, 0);
+        ctx.lineTo(-5, 5);
+        ctx.lineTo(-5, -5);
+        ctx.fill();
+      }
       ctx.restore();
     }
   });

@@ -10,7 +10,9 @@ export function initSpawner(gameInstance) {
 }
 
 export function spawnGuideCoins(sX, sY) {
-  sX = MAX(35, MIN(config.gameWidth - 35, sX));
+  let clampedX = MAX(35, MIN(config.gameWidth - 35, sX));
+  let shift = clampedX - sX;
+  sX = clampedX;
   let tp = FLR(RND() * 3), top = sY;
   if (tp === 0) {
     for (let i = 0; i < 10; i++) game.coins.push(getCn(sX, sY - i * 72));
@@ -30,6 +32,7 @@ export function spawnGuideCoins(sX, sY) {
     }
   }
   game.lastCoinY = top;
+  return shift;
 }
 
 export function spawnCoins(y) {
@@ -132,10 +135,15 @@ export function spawnPlatform() {
   let sc = false, cD = (game.score >= 120000 && game.score <= 135000) ? 0.3 : config.coinMinDistance;
   if (y - 300 < game.lastCoinY - config.gameHeight * cD) {
     if (t === 'super' && RND() < 0.5) {
-      spawnGuideCoins(np.x + np.w / 2 - 6, y - 60);
+      let shift = spawnGuideCoins(np.x + np.w / 2 - 6, y - 60);
+      np.x += shift;
+      np.startX = np.x;
       sc = true;
     } else if (hasM && RND() < 0.5) {
-      spawnGuideCoins(mx + 2, my - 60);
+      let shift = spawnGuideCoins(mx + 2, my - 60);
+      if (game.items.length > 0) {
+        game.items[game.items.length - 1].x += shift;
+      }
       sc = true;
     }
     if (!sc) spawnCoins(y);
