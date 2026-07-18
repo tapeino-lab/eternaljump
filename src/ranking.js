@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.40.14 - 2026/07/18 06:10',
+      version: 'v1.40.18 - 2026/07/18 15:50',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -46,6 +46,9 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           } else if (onlinePB && onlinePB.notFound) {
             if (pending.length === 0) {
               localStorage.removeItem(pbKey);
+              if (game.personalBest) {
+                game.personalBest = null;
+              }
             }
           }
         })();
@@ -141,8 +144,14 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         
         let localPB = null;
         if (storedPB) {
-          localPB = JSON.parse(storedPB);
-          game.personalBest = localPB;
+          try {
+            localPB = JSON.parse(storedPB);
+            if (typeof localPB.alt !== 'number') {
+              localPB = null; // Ignore malformed PB
+            } else {
+              game.personalBest = localPB;
+            }
+          } catch(e) {}
         }
 
         let isNewRecordLocal = false;

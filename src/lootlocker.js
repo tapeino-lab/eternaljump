@@ -225,9 +225,6 @@ export const LootLockerAPI = {
           this.setPlayerName(localName);
         } catch(e) {}
 
-        // 同期処理: オンラインハイスコアをローカルパーソナルベストに復元・同期
-        this.syncOnlinePB();
-
         return d;
       }
       this.log('No session token in response data.', 'error');
@@ -239,6 +236,7 @@ export const LootLockerAPI = {
   },
 
   getMemberScore: async function() {
+    if (!await this.init()) return null;
     try {
       let r;
       if (this.isDirectMode) {
@@ -254,7 +252,7 @@ export const LootLockerAPI = {
       }
       if (r.ok) {
         let d = await r.json();
-        if (d && d.score) {
+        if (d && typeof d.score === 'number') {
           let score = d.score;
           let alt = Math.floor(score / 1000);
           let coins = score % 1000;
@@ -266,6 +264,8 @@ export const LootLockerAPI = {
             }
           } catch(e) {}
           return { alt, coins, time };
+        } else {
+          return { notFound: true };
         }
       } else if (r.status === 404 || r.status === 400) {
         return { notFound: true };
@@ -274,34 +274,6 @@ export const LootLockerAPI = {
       this.log(`Failed to fetch member score: ${e.message}`, 'error');
     }
     return null;
-  },
-
-  syncOnlinePB: async function() {
-    try {
-      let onlinePB = await this.getMemberScore();
-      if (onlinePB) {
-        let pbKey = 'EternalJumper_PB';
-        let storedPB = localStorage.getItem(pbKey);
-        let updateNeeded = false;
-        if (storedPB) {
-          try {
-            let pb = JSON.parse(storedPB);
-            // オンライン側の記録のほうが進んでいる場合、ローカルに書き戻す
-            if (onlinePB.alt > pb.alt || (onlinePB.alt === pb.alt && onlinePB.coins > pb.coins)) {
-              updateNeeded = true;
-            }
-          } catch(e) {
-            updateNeeded = true;
-          }
-        } else {
-          updateNeeded = true;
-        }
-        if (updateNeeded) {
-          localStorage.setItem(pbKey, JSON.stringify(onlinePB));
-          this.log(`Synced personal best with online record: ${onlinePB.alt}m`, 'success');
-        }
-      }
-    } catch(e) {}
   },
 
   setPlayerName: async function(name) {
@@ -369,6 +341,10 @@ export const LootLockerAPI = {
       let d = await r.json();
       if (!r.ok) {
         this.log(`Score submission error: ${JSON.stringify(d)}`, 'error');
+        if (isRetry && r.status >= 400 && r.status < 500 && r.status !== 429) {
+           this.log('Permanent error during retry. Dropping score from pending queue.', 'error');
+           return true; 
+        }
         return false;
       }
       this.log('Score successfully registered on LootLocker!', 'success');
