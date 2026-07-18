@@ -646,13 +646,13 @@ import { runAI } from './ai.js';
             let vy = RND() * 1.5 + 0.5;
             let size = 3 + RND() * 6;
             let life = 60 + RND() * 40;
-            let pt = getPt(px, py, vx, vy, '#8B4513', size, life);
+            let pt = getPt(px, py, vx, vy, '#b22222', size, life);
             pt.g = 0.05 + RND() * 0.05;
             game.particles.push(pt);
           }
           
           let numDust = Math.floor(2 + weight * 6 + RND() * 4);
-          let dC = ['#A0522D', '#D2B48C', '#DEB887', '#aaa'];
+          let dC = ['#b22222', '#c23b22', '#962d22', '#d9534f'];
           for (let j = 0; j < numDust; j++) {
             let px = this.x + RND() * this.w;
             let py = prevY + RND() * crumbleAmount;

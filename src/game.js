@@ -795,6 +795,12 @@ export { dR, inputHandler };
         }
       }
       
+      // アトラクトモード(タイトル画面)かつデモプレイ中ではなく一時停止もされていない時だけバージョン表示
+      const tVer = $('titleVersion');
+      if (tVer) {
+        tVer.style.display = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
+      }
+      
       if (!game.isBenchmarking) render(ts);
       if (loopRunning) requestAnimationFrame(loop);
     }
