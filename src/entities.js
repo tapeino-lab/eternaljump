@@ -392,7 +392,7 @@ import { runAI } from './ai.js';
       draw() {
         let c = this.isFalling ? '#f99' : '#f00', dH = this.h, dY = this.y;
         let isPwr = this.isPoweredUp;
-        if (game.state === 'powerup_anim' || game.state === 'powerdown_anim') {
+        if (!this.isNPC && (game.state === 'powerup_anim' || game.state === 'powerdown_anim')) {
           let s = FLR(this.animTimer / 6);
           let b = game.state === 'powerup_anim' ? (s % 2 === 0) : (s % 2 !== 0);
           dH = b ? config.playerSize * 2 : config.playerSize;

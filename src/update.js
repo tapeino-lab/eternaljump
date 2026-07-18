@@ -113,6 +113,7 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode)
   for (let i = game.npcs.length - 1; i >= 0; i--) {
     let npc = game.npcs[i];
     npc.update();
+
     if (npc.y > 1500) {
       game.npcs.splice(i, 1);
       continue;
