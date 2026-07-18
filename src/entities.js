@@ -73,7 +73,7 @@ import { runAI } from './ai.js';
           dR(this.x - s, this.y - 1, s * 2, 2, c);
           if (b) dR(this.x, this.y, 2, 2, '#fff');
         } else {
-          ctx.globalAlpha = MAX(0, this.life / this.maxLife);
+          ctx.globalAlpha = MAX(0, MIN(1.0, (this.life / this.maxLife) * 2.0));
           dR(this.x, this.y, this.size, this.size, this.color);
         }
         ctx.globalAlpha = 1.0;
@@ -646,13 +646,13 @@ import { runAI } from './ai.js';
             let vy = RND() * 1.5 + 0.5;
             let size = 3 + RND() * 6;
             let life = 60 + RND() * 40;
-            let pt = getPt(px, py, vx, vy, '#b22222', size, life);
+            let pt = getPt(px, py, vx, vy, '#cb4f0f', size, life);
             pt.g = 0.05 + RND() * 0.05;
             game.particles.push(pt);
           }
           
           let numDust = Math.floor(2 + weight * 6 + RND() * 4);
-          let dC = ['#b22222', '#c23b22', '#962d22', '#d9534f'];
+          let dC = ['#cb4f0f', '#ff9b3b', '#cb4f0f', '#7a2800'];
           for (let j = 0; j < numDust; j++) {
             let px = this.x + RND() * this.w;
             let py = prevY + RND() * crumbleAmount;
