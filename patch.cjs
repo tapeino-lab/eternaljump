@@ -27,7 +27,12 @@ code = code.replace(resultRe, `showResult: async function(state) {
             titleColor = '#fff';
             titleAnim = '';
           }
+        } else if (state === 'demo') {
+          title = 'DEMO RESULT';
+          titleColor = '#fff';
         }
+        if (game.isBenchmarking) title = 'BENCHMARK';
+        
         $('resultTitle').innerText = title;
         $('resultTitle').style.color = titleColor;
         $('resultTitle').style.animation = titleAnim;

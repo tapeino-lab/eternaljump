@@ -63,7 +63,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             let now = Date.now();
             let lastFetch = parseInt(localStorage.getItem('LL_LAST_FETCH') || '0');
             
-            if (!forceNetwork && (now - lastFetch) < 60000) {
+            if (!forceNetwork && (now - lastFetch) < 1000) {
               try {
                 let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
                 if (cached) scores = JSON.parse(cached);
@@ -200,64 +200,71 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
       },
       showResult: async function(state) {
         this.isShowingResult = true;
-        $('rankingModal').innerHTML = '<h1 style="color:#fff;font-size:12px;text-align:center;">LOADING...</h1>';
+        $('rankingLoading').style.display = 'none';
+        $('rankingContainer').style.display = 'none';
+        $('resultContainer').style.display = 'flex';
         $('rankingModal').style.display = 'flex';
         $('tapToStartMsg').style.display = 'none';
         setIgnoreNextTap(true);
         
         let title = '';
+        let titleColor = '#fff';
+        let titleAnim = '';
         if (state === 'clear') {
-          title = '<h1 style="animation:superBlink 0.1s steps(1) infinite;margin:0 0 10px 0;font-size:12px;text-align:center;">CONGRATULATIONS!</h1>';
+          title = 'CONGRATULATIONS!';
+          titleColor = '#fff';
+          titleAnim = 'superBlink 0.1s steps(1) infinite';
         } else if (state === 'gameover') {
           if (game.isNewRecord) {
-            title = '<h1 style="color:#f0f;margin:0 0 10px 0;font-size:12px;text-align:center;animation:superBlink 0.3s steps(1) infinite;">NEW RECORD!</h1>';
+            title = 'NEW RECORD!';
+            titleColor = '#f0f';
+            titleAnim = 'superBlink 0.3s steps(1) infinite';
           } else {
-            title = '<h1 style="color:#fff;margin:0 0 10px 0;font-size:12px;text-align:center;">TRY AGAIN!</h1>';
+            title = 'TRY AGAIN!';
+            titleColor = '#fff';
+            titleAnim = '';
           }
+        } else if (state === 'demo') {
+          title = 'DEMO RESULT';
+          titleColor = '#fff';
         }
+        if (game.isBenchmarking) title = 'BENCHMARK';
         
-        let h = title;
+        $('resultTitle').innerText = title;
+        $('resultTitle').style.color = titleColor;
+        $('resultTitle').style.animation = titleAnim;
+        
         if (game.lastScoreObj) {
-          let pbHTML = (game.isNewRecord && state === 'clear') ? '<div style="color:#f0f;font-size:10px;margin-bottom:6px;animation:superBlink 0.3s steps(1) infinite;">NEW RECORD!</div>' : '';
-          let showBest = (!game.isNewRecord && game.personalBest);
-          
-          h += '<div style="background:#222;padding:15px;margin-bottom:15px;border:2px solid #fff;border-radius:8px;width:90%;max-width:400px;box-sizing:border-box;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.8);">' + pbHTML;
-          h += '<h2 style="color:#0f0;margin:0 0 16px 0;font-size:11px;letter-spacing:1px;">SCORE</h2>';
-          h += '<div style="color:#fff; font-size:18px; font-weight:bold; text-align:center; margin:0 0 4px 0;">' + game.lastScoreObj.alt + 'm</div>';
-          h += '<div class="coin-align" style="font-size:11px; color:#ffb; justify-content:center; margin-bottom:0;">';
-          h += '<div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
-          h += '<span>&times; ' + (game.lastScoreObj.coins || 0) + '</span>';
-          h += '</div>';
-
-          if (showBest) {
-            h += '<div style="margin-top:12px;padding-top:12px;border-top:2px dashed #444;text-align:center;">';
-            h += '<h2 style="color:#aaa;margin:0 0 12px 0;font-size:10px;letter-spacing:1px;">YOUR BEST</h2>';
-            h += '<div style="color:#ddd; font-size:14px; font-weight:bold; text-align:center; margin:0 0 4px 0;">' + game.personalBest.alt + 'm</div>';
-            h += '<div class="coin-align" style="font-size:10px; color:#dd8; justify-content:center;">';
-            h += '<div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
-            h += '<span>&times; ' + (game.personalBest.coins || 0) + '</span>';
-            h += '</div>';
-            h += '</div>';
+          if (game.isNewRecord && state === 'clear') {
+            $('newRecordBadge').style.display = 'block';
+          } else {
+            $('newRecordBadge').style.display = 'none';
           }
-          h += '</div>';
+          
+          $('resultScoreAlt').innerText = game.lastScoreObj.alt + 'm';
+          $('resultScoreCoins').innerHTML = '&times; ' + (game.lastScoreObj.coins || 0);
+          
+          let showBest = (!game.isNewRecord && game.personalBest);
+          if (showBest) {
+            $('bestScoreContainer').style.display = 'block';
+            $('bestScoreAlt').innerText = game.personalBest.alt + 'm';
+            $('bestScoreCoins').innerHTML = '&times; ' + (game.personalBest.coins || 0);
+          } else {
+            $('bestScoreContainer').style.display = 'none';
+          }
         }
-        
-
-        
-        $('rankingModal').innerHTML = h;
-        $('rankingModal').style.display = 'flex';
-        
-
         
         setTimeout(() => {
           setIgnoreNextTap(false);
           $('tapToStartMsg').innerText = 'TAP TO RANKING';
           $('tapToStartMsg').style.display = 'block';
-        }, 500);
+        }, 50);
       },
       showRanking: async function(state) {
         this.isShowingResult = false;
-        $('rankingModal').innerHTML = '<h1 style="color:#fff;font-size:12px;text-align:center;">LOADING...</h1>';
+        $('resultContainer').style.display = 'none';
+        $('rankingContainer').style.display = 'none';
+        $('rankingLoading').style.display = 'block';
         $('rankingModal').style.display = 'flex';
         setIgnoreNextTap(true);
         let s = await this.getScores();
@@ -267,20 +274,13 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         if (pRank) game.lastRank = pRank.rank;
         
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
-        let h = '<h1 style="color:#0f0;margin:0 0 10px 0;font-size:12px;text-align:center;">RANKING</h1>';
-        
-        h += '<div style="width:90%;max-width:400px;box-sizing:border-box;text-align:center;">';
-        
-        let cI = '<div class="coin-icon" style="margin-top:0;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
-        
-        h += '<div style="border:1px solid #fff;border-radius:4px;padding:8px 0;background:rgba(0,0,0,0.5);margin-bottom:10px;">';
-        h += '<table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="color:#fff;font-size:7px;"><th style="padding-bottom:4px;text-align:left;width:24px;padding-left:4px;vertical-align:middle;">#</th><th style="padding-bottom:4px;text-align:center;width:32px;vertical-align:middle;">LANG</th><th style="padding-bottom:4px;width:4px;padding:0;vertical-align:middle;"></th><th style="padding-bottom:4px;text-align:center;width:32px;vertical-align:middle;">NAME</th><th style="padding-bottom:4px;text-align:center;vertical-align:middle;">HEIGHT</th><th style="padding-bottom:4px;width:32px;padding-right:4px;vertical-align:middle;"><div style="display:flex;justify-content:center;align-items:center;height:8px;">' + cI + '</div></th></tr>';
         
         let curLen = s.length;
         for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });
-
-        let top10 = s.slice(0, 10);
+        let top10 = s.slice(0, 100);
         let hl = false;
+        
+        let tbodyHTML = '';
         top10.forEach((r, i) => {
             let isC = (r.id === pid || (pIdVal && r.id === pIdVal));
             if (isC) hl = true;
@@ -306,12 +306,12 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             }
             if (lang.length > 3) lang = lang.substring(0, 3);
             if (name.length > 2) name = name.substring(0, 2);
-
-            h += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+            tbodyHTML += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
         });
-        h += '</table></div>';
         
-        if (!hl && pRank && pRank.rank > 10) {
+        $('rankingTableBody').innerHTML = tbodyHTML;
+        
+        if (!hl && pRank && pRank.rank > 100) {
             let r = pRank;
             let rRank = pRank.rank;
             let rLang = '---';
@@ -330,13 +330,20 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             }
             if (rLang.length > 3) rLang = rLang.substring(0, 3);
             if (rName.length > 2) rName = rName.substring(0, 2);
-
-            h += `<div style="padding:4px 0;margin-top:4px;"><table style="width:100%;table-layout:fixed;font-size:9px;border-collapse:collapse;"><tr style="animation:rowBlink 1s infinite;font-weight:bold;color:#fff;"><td style="padding:0 0 0 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${rRank}</td><td style="padding:0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(rLang)}</td><td style="width:4px;padding:0;"></td><td style="padding:0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(rName)}</td><td style="padding:0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:0 4px 0 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr></table></div>`;
+            
+            $('pRankNum').innerText = rRank;
+            $('pRankLang').innerText = escapeHTML(rLang);
+            $('pRankName').innerText = escapeHTML(rName);
+            $('pRankAlt').innerText = escapeHTML(r.alt) + 'm';
+            $('pRankCoins').innerText = escapeHTML(r.coins || 0);
+            $('playerRankContainer').style.display = 'block';
+        } else {
+            $('playerRankContainer').style.display = 'none';
         }
         
-        h += '</div>';
-        $('rankingModal').innerHTML = h;
-
+        $('rankingLoading').style.display = 'none';
+        $('rankingContainer').style.display = 'flex';
+        
         setTimeout(() => {
           setIgnoreNextTap(false);
           if (isEnd) {
@@ -345,7 +352,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             $('tapToStartMsg').innerText = 'TAP TO CLOSE';
           }
           $('tapToStartMsg').style.display = 'block';
-        }, 500);
+        }, 50);
       },
       reset: function() {
         try {

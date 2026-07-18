@@ -138,12 +138,22 @@ async function startServer() {
         }
       });
       const data = await response.json();
+      
+      const crypto = await import('crypto');
+      const eTag = crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
+      
+      if (req.headers['if-none-match'] === eTag) {
+        return res.status(304).end();
+      }
+
+      res.setHeader('ETag', eTag);
       res.status(response.status).json(data);
     } catch (error) {
       console.error('Server proxy list fail:', error);
       res.status(500).json({ error: 'Failed to proxy list request' });
     }
   });
+
 
   // Proxy routes for setting LootLocker Player Name
   app.patch("/api/lootlocker/player/name", async (req, res) => {
