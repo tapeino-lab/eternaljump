@@ -30,3 +30,8 @@ export function checkUpdateAndReload(gameState, isDemo) {
     reloadSW(true);
   }
 }
+
+// Prevent the "Install PWA" prompt from appearing
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+});

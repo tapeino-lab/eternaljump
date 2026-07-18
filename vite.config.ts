@@ -15,9 +15,9 @@ export default defineConfig(() => {
         injectRegister: 'auto',
         includeAssets: ['icon.svg'],
         manifest: {
-          name: 'Lunar Lander',
-          short_name: 'LunarLander',
-          description: 'A 2D space landing game',
+          name: 'Eternal Jumper',
+          short_name: 'Eternal Jumper',
+          description: 'An endless jumping game',
           theme_color: '#000000',
           background_color: '#000000',
           display: 'standalone',
