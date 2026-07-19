@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.45.02 - 2026/07/19 01:20',
+      version: 'v1.45.03 - 2026/07/19 17:30 (JST)',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -66,7 +66,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             let now = Date.now();
             let lastFetch = parseInt(localStorage.getItem('LL_LAST_FETCH') || '0');
             
-            if (!forceNetwork && (now - lastFetch) < 1000) {
+            if (!forceNetwork && (now - lastFetch) < 30000) {
               try {
                 let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
                 if (cached) scores = JSON.parse(cached);

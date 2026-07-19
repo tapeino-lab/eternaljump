@@ -1,4 +1,4 @@
-import { FLR, getPlayerName } from './utils.js';
+import { FLR, getPlayerName, escapeHTML } from './utils.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -22,7 +22,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.45.02',
+  version: 'v1.45.03',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -34,7 +34,7 @@ export const LootLockerAPI = {
       const logArea = document.getElementById('llDebugLogArea');
       if (logArea) {
         const color = type === 'error' ? '#ff5555' : (type === 'success' ? '#00ff00' : '#ffffff');
-        logArea.innerHTML += `<div style="color:${color};margin-bottom:4px;">[${timestamp}] [${type.toUpperCase()}] ${msg}</div>`;
+        logArea.innerHTML += `<div style="color:${color};margin-bottom:4px;">[${timestamp}] [${type.toUpperCase()}] ${escapeHTML(msg)}</div>`;
         logArea.scrollTop = logArea.scrollHeight;
       }
     } catch (e) {}
