@@ -1,6 +1,5 @@
 import { game, demoState } from './state.js';
-import { initGame } from './setup.js';
-import { isDev, isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, togglePause, setAuto, selMode, selHgt, startWithSettings, startBenchmark } from './game.js';
+import { isDev, isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto, selMode, selHgt, startWithSettings, startBenchmark } from './game.js';
 
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';

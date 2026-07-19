@@ -1,6 +1,6 @@
 import { config } from './config.js';
 import { getLevelConfig } from './level.js';
-import { getPl, getCn, getIt, trySpawnBirdsOnPlatform, P_PL } from './entities/index.js';
+import { getPl, getCn, getIt, trySpawnBirdsOnPlatform, P_PL } from './entities.js';
 import { RND, FLR, MAX, MIN, SIN, PI } from './utils.js';
 
 let game;
