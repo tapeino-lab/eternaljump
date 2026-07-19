@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.45.04 - 2026/07/19 18:03 (JST)',
+      version: 'v1.45.07 - 2026/07/19 18:03 (JST)',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -289,20 +289,27 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         
         let curLen = s.length;
         for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });
-        let top10 = s.slice(0, 100);
-        let hl = false;
         
-        let tbodyHTML = '';
-        top10.forEach((r, i) => {
+        let hl = false;
+        let isPlayerInList = false;
+
+        let renderRow = (r, i) => {
             let isC = (r.id === pid || (pIdVal && r.id === pIdVal));
-            if (isC) hl = true;
-            let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
+            if (isC) {
+                hl = true;
+                isPlayerInList = true;
+            }
+            let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;color:#fff;' : '';
+            let idAttr = isC ? ' id="myRankRow"' : '';
             let m = '';
-            if (i === 0) m = '<span class="mdl mdl-1"></span>';
-            else if (i === 1) m = '<span class="mdl mdl-2"></span>';
-            else if (i === 2) m = '<span class="mdl mdl-3"></span>';
+            let rNum = r.rank || (i + 1);
+            if (rNum === 1) m = '<span class="mdl mdl-1"></span>';
+            else if (rNum === 2) m = '<span class="mdl mdl-2"></span>';
+            else if (rNum === 3) m = '<span class="mdl mdl-3"></span>';
             
             let nVal = r.n || '--- ??';
+            if (isC && (!r.n || r.n === '--- ??')) nVal = getPlayerName();
+            
             let lang = '---';
             let name = '??';
             if (nVal.includes(' ')) {
@@ -318,43 +325,46 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             }
             if (lang.length > 3) lang = lang.substring(0, 3);
             if (name.length > 2) name = name.substring(0, 2);
-            tbodyHTML += `<tr style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${m}${i + 1}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+            return `<tr${idAttr} style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;">${m}${rNum}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+        };
+
+        let top3HTML = '';
+        let othersHTML = '';
+        let top100 = s.slice(0, 100);
+        
+        top100.forEach((r, i) => {
+            if (i < 3) {
+                top3HTML += renderRow(r, i);
+            } else {
+                othersHTML += renderRow(r, i);
+            }
         });
         
-        $('rankingTableBody').innerHTML = tbodyHTML;
-        
-        if (!hl && (pRank || game.personalBest)) {
+        if (!isPlayerInList && (pRank || game.personalBest)) {
             let r = pRank || game.personalBest;
-            let rRank = r.rank || '???';
-            let rLang = '---';
-            let rName = '??';
-            let rnVal = r.n || getPlayerName();
-            if (rnVal.includes(' ')) {
-                let parts = rnVal.split(' ');
-                rLang = parts[0] || '---';
-                rName = parts[1] || '??';
-            } else if (rnVal.length >= 3) {
-                rLang = rnVal.substring(0, 3);
-                rName = rnVal.substring(3) || '??';
-            }
-            if (rLang === '???' || rLang === '---') {
-                if (r.lang && r.lang !== '---') rLang = r.lang;
-            }
-            if (rLang.length > 3) rLang = rLang.substring(0, 3);
-            if (rName.length > 2) rName = rName.substring(0, 2);
-            
-            $('pRankNum').innerText = rRank;
-            $('pRankLang').innerText = escapeHTML(rLang);
-            $('pRankName').innerText = escapeHTML(rName);
-            $('pRankAlt').innerText = escapeHTML(r.alt) + 'm';
-            $('pRankCoins').innerText = escapeHTML(r.coins || 0);
-            $('playerRankContainer').style.display = 'block';
-        } else {
-            $('playerRankContainer').style.display = 'none';
+            r.rank = r.rank || '???';
+            r.id = pid;
+            othersHTML += `<tr><td colspan="6" style="text-align:center;color:#555;font-size:8px;padding:4px 0;">...</td></tr>`;
+            othersHTML += renderRow(r, top100.length);
         }
+
+        $('rankingTop3Body').innerHTML = top3HTML;
+        $('rankingTableBody').innerHTML = othersHTML;
+        $('playerRankContainer').style.display = 'none';
         
         $('rankingLoading').style.display = 'none';
         $('rankingContainer').style.display = 'flex';
+        
+        setTimeout(() => {
+          let myRow = document.getElementById('myRankRow');
+          if (myRow) {
+              let wrap = $('rankingTableWrapper');
+              if (wrap.contains(myRow)) {
+                  let scrollPos = myRow.offsetTop - (wrap.clientHeight / 2) + (myRow.clientHeight / 2);
+                  wrap.scrollTop = scrollPos;
+              }
+          }
+        }, 10);
         
         setTimeout(() => {
           setIgnoreNextTap(false);

@@ -96,24 +96,34 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, e => {
       if ($('rankingModal').style.display === 'flex') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (ignoreNextTap) return;
+        if (ignoreNextTap) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         
         if (RankingAPI.isShowingResult) {
+          e.preventDefault();
+          e.stopPropagation();
           RankingAPI.showRanking(game.state);
+          return;
         } else {
-          $('rankingModal').style.display = 'none';
-          $('tapToStartMsg').style.display = 'none';
-          if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
-            if (isAttractMode) {
-              startRealGame();
-            } else {
-              initGame(true);
+          // If viewing ranking list, only allow closing when tapping control area
+          if (e.target.closest('#controlArea')) {
+            e.preventDefault();
+            e.stopPropagation();
+            $('rankingModal').style.display = 'none';
+            $('tapToStartMsg').style.display = 'none';
+            if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
+              if (isAttractMode) {
+                startRealGame();
+              } else {
+                initGame(true);
+              }
+            } else if (game.isPaused) {
+              $('tapToStartMsg').innerText = 'TAP TO RESUME';
+              $('tapToStartMsg').style.display = 'block';
             }
-          } else if (game.isPaused) {
-            $('tapToStartMsg').innerText = 'TAP TO RESUME';
-            $('tapToStartMsg').style.display = 'block';
           }
         }
       }
@@ -194,7 +204,7 @@ export function setupInputListeners() {
     document.addEventListener(ev, e => {
       if (game.isPaused) {
         e.stopPropagation();
-        if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen') && !e.target.closest('#nameEditModal')) togglePause();
+        if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen') && !e.target.closest('#nameEditModal') && !e.target.closest('#rankingModal')) togglePause();
         return;
       }
       if (RankingAPI.isShowingResult) {
