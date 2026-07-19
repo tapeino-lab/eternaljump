@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.45.00 - 2026/07/18 18:25',
+      version: 'v1.45.02 - 2026/07/19 01:20',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -26,11 +26,14 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           let pending = [];
           try {
             pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
-          } catch(e) {}
+          } catch(e) {
+            localStorage.removeItem('LL_PENDING_SCORES');
+          }
 
           if (onlinePB && typeof onlinePB.alt === 'number') {
             let storedPB = localStorage.getItem(pbKey);
-            let localPB = storedPB ? JSON.parse(storedPB) : null;
+            let localPB = null;
+            try { if (storedPB) localPB = JSON.parse(storedPB); } catch(e) { localStorage.removeItem(pbKey); }
             
             let onlineIsBetter = false;
             if (!localPB || 
@@ -67,7 +70,9 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
               try {
                 let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
                 if (cached) scores = JSON.parse(cached);
-              } catch(e) {}
+              } catch(e) {
+                localStorage.removeItem('LL_CACHED_LEADERBOARD');
+              }
             }
             
             if (!scores) {
@@ -79,7 +84,9 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
                 try {
                   let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
                   if (cached) scores = JSON.parse(cached);
-                } catch(e) {}
+                } catch(e) {
+                  localStorage.removeItem('LL_CACHED_LEADERBOARD');
+                }
               }
             }
             
@@ -107,7 +114,9 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
                 scores = uniqueScores.slice(0, 100);
                 scores.forEach((s, i) => s.rank = i + 1);
               }
-            } catch(e) {}
+            } catch(e) {
+              localStorage.removeItem('LL_PENDING_SCORES');
+            }
             
             return scores;
           } else {
@@ -118,6 +127,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
               s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
               return s.map((r, i) => ({ ...r, rank: i + 1 }));
             } catch (e) {
+              localStorage.removeItem(this.key);
               return [];
             }
           }
@@ -151,7 +161,9 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             } else {
               game.personalBest = localPB;
             }
-          } catch(e) {}
+          } catch(e) {
+            localStorage.removeItem(pbKey);
+          }
         }
 
         let isNewRecordLocal = false;

@@ -875,7 +875,9 @@ export { dR, inputHandler };
                         <span>&times; ${d.coins || 0}</span>
                       </div>
                     </div>`;
-                } catch(e) {}
+                } catch(e) {
+                    localStorage.removeItem(RankingAPI.pbKey);
+                }
             } else {
                 pb.innerHTML = '';
             }

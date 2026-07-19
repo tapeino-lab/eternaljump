@@ -22,7 +22,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.40.09',
+  version: 'v1.45.02',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -152,7 +152,9 @@ export const LootLockerAPI = {
         }
         localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(remaining));
       }
-    } catch(e) {}
+    } catch(e) {
+      localStorage.removeItem('LL_PENDING_SCORES');
+    }
   },
   init: async function() {
     const isConfigured = await this.checkConfig();
@@ -355,9 +357,13 @@ export const LootLockerAPI = {
         try {
           let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
           pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
+          pending.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.t - B.t);
+          pending = pending.slice(0, 1);
           localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
-          this.log('Score saved locally for offline queue.', 'warning');
-        } catch (err) {}
+          this.log('Score saved locally for offline queue (PB only).', 'warning');
+        } catch (err) {
+          localStorage.removeItem('LL_PENDING_SCORES');
+        }
       }
       return false;
     }
