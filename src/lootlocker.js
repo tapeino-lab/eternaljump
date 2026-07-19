@@ -22,7 +22,7 @@ export const LootLockerAPI = {
   playerIdentifier: localStorage.getItem('LL_PID'),
   sessionToken: null,
   playerId: null,
-  version: 'v1.45.03',
+  version: 'v1.45.04',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -259,13 +259,14 @@ export const LootLockerAPI = {
           let alt = Math.floor(score / 1000);
           let coins = score % 1000;
           let time = 0;
+          let rank = d.rank || null;
           try {
             if (d.metadata) {
               let m = JSON.parse(d.metadata);
               time = m.t ? m.t * 1000 : 0;
             }
           } catch(e) {}
-          return { alt, coins, time };
+          return { alt, coins, time, rank };
         } else {
           return { notFound: true };
         }

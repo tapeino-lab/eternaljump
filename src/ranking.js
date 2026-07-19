@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.45.03 - 2026/07/19 17:30 (JST)',
+      version: 'v1.45.04 - 2026/07/19 18:03 (JST)',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -323,12 +323,12 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         
         $('rankingTableBody').innerHTML = tbodyHTML;
         
-        if (!hl && pRank && pRank.rank > 100) {
-            let r = pRank;
-            let rRank = pRank.rank;
+        if (!hl && (pRank || game.personalBest)) {
+            let r = pRank || game.personalBest;
+            let rRank = r.rank || '???';
             let rLang = '---';
             let rName = '??';
-            let rnVal = r.n || '--- ??';
+            let rnVal = r.n || getPlayerName();
             if (rnVal.includes(' ')) {
                 let parts = rnVal.split(' ');
                 rLang = parts[0] || '---';
