@@ -17,7 +17,7 @@ export function initVirtualKeyboard() {
   
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   const numbers = '1234567890'.split('');
-  const symbols = '-_!?./#*+=$@'.split('');
+  const symbols = '.-_!?'.split('');
   
   const handleCharClick = (char) => (e) => {
     e.preventDefault();

@@ -30,9 +30,9 @@ export const escapeHTML = str => {
 export const getPlayerName = () => {
   let n = localStorage.getItem('JUMP_PLAYER_NAME');
   
-  // 新しい「LANG XX」形式（3桁国コード + 半角スペース + 2桁英数字）に適合しているかチェック
+  // 新しい「LANG XX」形式（3桁国コード + 半角スペース + 2桁英数字・許可記号）に適合しているかチェック
   // 適合していない古いID（例：かつての8桁などの文字列）の場合は、自動で新しい仕様にリセット・マイグレーションする
-  const isValidFormat = n && /^[A-Z]{3}\s[A-Z0-9]{2}$/.test(n);
+  const isValidFormat = n && /^[A-Z]{3}\s[A-Z0-9.\-_!?]{2}$/.test(n);
   
   if (!n || !isValidFormat) {
     let lang = getLang();
