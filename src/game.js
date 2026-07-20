@@ -722,7 +722,7 @@ export { dR, inputHandler };
       let curLen = s.length;
       for (let i = 0; i < 100 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });
       
-      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:24px;padding-left:4px;vertical-align:middle;">#</th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;">LANG</th><th style="padding:4px 0;width:4px;padding:0;vertical-align:middle;"></th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;">NAME</th><th style="padding:4px 0;text-align:center;vertical-align:middle;">HEIGHT</th><th style="padding:4px 0;width:32px;padding-right:4px;vertical-align:middle;"><div style="display:flex;justify-content:center;align-items:center;height:8px;"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th></tr></table>';
+      let headerHtml = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:24px;padding-left:4px;vertical-align:middle;font-weight:normal;">#</th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;font-weight:normal;">LANG</th><th style="padding:4px 0;width:4px;padding:0;vertical-align:middle;font-weight:normal;"></th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;font-weight:normal;">NAME</th><th style="padding:4px 0;text-align:center;vertical-align:middle;font-weight:normal;">HEIGHT</th><th style="padding:4px 0;width:32px;padding-right:4px;vertical-align:middle;font-weight:normal;"><div style="display:flex;justify-content:center;align-items:center;height:8px;"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th></tr></table>';
       $('demoHeader').innerHTML = headerHtml;
       
       let t3Html = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;">';
@@ -735,11 +735,11 @@ export { dR, inputHandler };
         let fw = 'normal';
         let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : null;
         let isC = (r.id === LootLockerAPI.playerIdentifier || (pIdVal && r.id === pIdVal));
-        if (i === 0) { m = '<span class="mdl mdl-1"></span>'; color = '#ff0'; fw = 'bold'; }
-        else if (i === 1) { m = '<span class="mdl mdl-2"></span>'; color = '#ccc'; fw = 'bold'; }
-        else if (i === 2) { m = '<span class="mdl mdl-3"></span>'; color = '#d98'; fw = 'bold'; }
+        if (i === 0) { m = '<span class="mdl mdl-1"></span>'; color = '#ff0'; fw = 'normal'; }
+        else if (i === 1) { m = '<span class="mdl mdl-2"></span>'; color = '#ccc'; fw = 'normal'; }
+        else if (i === 2) { m = '<span class="mdl mdl-3"></span>'; color = '#d98'; fw = 'normal'; }
         
-        let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
+        let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:normal;' : '';
         let pt = '6px 0';
         
         let nVal = r.n || '--- ??';
