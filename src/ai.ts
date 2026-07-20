@@ -65,7 +65,7 @@ export function searchPaths(currentNode, allNodes, depth, currentPath, allPaths)
   currentPath.pop();
 }
 
-export function runAI(entity, logAIEvent) {
+export function runAI(entity) {
   let px = entity.x + entity.w / 2;
   let py = entity.y;
   let isIntroState = (entity.isNPC && entity.isIntro) || (entity === game.player && game.state === 'intro');
@@ -137,8 +137,6 @@ export function runAI(entity, logAIEvent) {
         game.items.forEach(function(i) {
           if (!i.collected && i.y < py + 150 && i.y > py - 250) dump += "I(" + FLR(i.x - px) + "," + FLR(i.y - py) + ") ";
         });
-        logAIEvent('STUCK_DUMP', dump);
-        logAIEvent('ADV_START', 'vy:' + entity.vy.toFixed(1));
       }
     }
     let tP = null, mD = Infinity;

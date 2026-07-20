@@ -4,7 +4,6 @@ export const game = {
   demoMode: false,
   aiActive: false,
   isConsecutive: false,
-  isBenchmarking: false,
   playTime: 0,
   timerStarted: false,
   shakeAmount: 0,

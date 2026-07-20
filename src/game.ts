@@ -29,7 +29,6 @@ export { dR, inputHandler };
     const btnL = $('btnLeft');
     const btnR = $('btnRight');
     const wrap = $('canvasWrapper');
-    const dbgModal = $('debugModal');
     export const pBtn = $('pauseBtn');
     export const autoBtn = $('autoBtn');
     const pScreen = $('pauseScreen');
@@ -122,14 +121,6 @@ export { dR, inputHandler };
     
     window.addEventListener('resize', resize);
     resize();
-    
-    
-    export function logAIEvent(type, detail) {
-      if (!game.isBenchmarking) return;
-      let alt = FLR((game.baseScoreY - game.player.y) * config.scoreMultiplier);
-      game.eventLog.push('[Alt: ' + alt + 'm] ' + type.padEnd(12, ' ') + ' | ' + detail);
-      if (type === 'ADV_START') game.loopCount++;
-    }
 
     game.player = new Player();
     initSpawner(game);
@@ -151,7 +142,6 @@ export { dR, inputHandler };
         
         let tn = document.getElementById('gamePlayerName');
         if (tn) tn.style.display = 'none';
-        $('settingsBtn').style.display = 'none';
         setAuto(true);
         startDemoRankingScroll();
       }, 3000);
@@ -170,7 +160,6 @@ export { dR, inputHandler };
       $('demoRankingContainer').style.display = 'none';
       $('tapToStartMsg').innerText = 'TAP TO START';
       $('tapToStartMsg').style.display = 'block';
-      $('settingsBtn').style.display = 'block';
       document.body.classList.add('attract-mode');
       if (!loopRunning) {
         loopRunning = true;
@@ -191,7 +180,6 @@ export { dR, inputHandler };
       let tnDisplay = $('titleNameDisplay');
       if(tnDisplay) tnDisplay.style.display = 'flex';
       $('demoRankingContainer').style.display = 'none';
-      $('settingsBtn').style.display = 'block';
       demoState.active = false;
       initGame(false);
       resetAttractTimer();
@@ -208,7 +196,6 @@ export { dR, inputHandler };
       $('rankingModal').style.display = 'none';
       $('demoRankingContainer').style.display = 'none';
       $('tapToStartMsg').style.display = 'none';
-      $('settingsBtn').style.display = 'none';
       const tn = document.getElementById('gamePlayerName');
       if (tn) tn.style.display = 'none';
       
@@ -225,108 +212,6 @@ export { dR, inputHandler };
       game.demoMode = false;
       game.aiActive = false;
       initGame(false);
-    }
-
-    export let selMode = function(d, el) {
-      tDemo = d;
-      document.querySelectorAll('.mode-btn').forEach(b => (b as HTMLElement).style.borderColor = '#555');
-      el.style.borderColor = '#0f0';
-    };
-
-    export let selHgt = function(s, el) {
-      tS = s;
-      document.querySelectorAll('.hgt-btn').forEach(b => (b as HTMLElement).style.borderColor = '#555');
-      el.style.borderColor = '#0f0';
-    };
-
-    export let startWithSettings = function() {
-      config.scoreMultiplier = tM;
-      game.startScore = tS;
-      game.demoMode = tDemo;
-      game.isBenchmarking = false;
-      $('debugModal').style.display = 'none';
-      initGame(false);
-      if (!loopRunning) {
-        loopRunning = true;
-        requestAnimationFrame(loop);
-      }
-    };
-
-    export async function startBenchmark(runs) {
-      $('debugModal').style.display = 'none';
-      loopRunning = false;
-      ui.style.justifyContent = 'center';
-      ui.style.alignItems = 'center';
-      ui.style.width = '100%';
-      ui.style.height = '100%';
-      ui.style.top = '0';
-      ui.style.left = '0';
-      ui.style.backgroundColor = 'rgba(0,0,0,0.9)';
-      ui.style.pointerEvents = 'auto';
-      
-      let scores = [];
-      let fullLogHTML = '';
-      let clearTimes = [];
-      let endReasons = { CLEAR: 0, TIME_UP: 0, DEATH_FALL: 0 };
-      
-      game.isBenchmarking = true;
-      config.scoreMultiplier = tM;
-      game.startScore = tS;
-      let clears = 0;
-      let totalLoops = 0;
-      
-      for (let i = 0; i < runs; i++) {
-        ui.innerHTML = '<div style="text-align:center;"><h2 style="color:#0f0;font-size:16px;margin-bottom:5px;">BENCHMARKING...</h2><p style="font-size:12px;color:#fff;">RUN ' + (i + 1) + ' / ' + runs + '</p><p style="font-size:10px;color:#aaa;margin-top:10px;">* Skipping rendering for high-speed AI testing</p></div>';
-        await new Promise(r => setTimeout(r, 10));
-        
-        initGame(false);
-        game.eventLog = [];
-        game.demoMode = true;
-        setAuto(true);
-        
-        let timeout = 0;
-        while (game.state !== 'gameover' && game.state !== 'clear' && timeout < 300000) {
-          if (game.state === 'playing' || game.state === 'powerup_anim' || game.state === 'powerdown_anim') {
-            if (game.timerStarted) game.playTime += frameDuration;
-          }
-          updatePhysics();
-          timeout++;
-        }
-        
-        let sc = MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier));
-        scores.push(sc);
-        if (sc >= config.goalScore) clears++;
-        totalLoops += game.loopCount;
-        
-        let reason = game.endReason || 'UNKNOWN';
-        endReasons[reason] = (endReasons[reason] || 0) + 1;
-        if (reason === 'CLEAR') clearTimes.push(game.playTime);
-        
-        let color = '#aaa';
-        if (sc >= config.goalScore) color = '#ff0';
-        else if (sc >= 100000) color = '#0ff';
-        else if (sc >= 50000) color = '#0f0';
-        
-        if (sc < 20000 || reason === 'TIME_UP') {
-          fullLogHTML += '<div style="color:' + color + '; margin-bottom:8px; border-bottom:1px dashed #444; padding-bottom:4px;"><b>[Run ' + (i + 1) + '] ' + sc + 'm (' + reason + ')</b><br>' + game.eventLog.join('<br>') + '</div>';
-        }
-      }
-      
-      let sum = scores.reduce((a, b) => a + b, 0);
-      let avg = FLR(sum / runs);
-      let max = MAX(...scores);
-      let min = MIN(...scores);
-      
-      let avgTimeStr = 'N/A';
-      if (clearTimes.length > 0) {
-        let avgMs = clearTimes.reduce((a, b) => a + b, 0) / clearTimes.length;
-        let m = FLR(avgMs / 60000), s = FLR((avgMs % 60000) / 1000);
-        avgTimeStr = m + ':' + s.toString().padStart(2, '0');
-      }
-      
-      let summaryText = '[BENCHMARK SUMMARY]<br>Runs: ' + runs + '<br>Avg/Max/Min: ' + avg + 'm / ' + max + 'm / ' + min + 'm<br>Clear Rate: ' + (clears / runs * 100).toFixed(1) + '%<br><span style="color:#0ff">Avg Clear Time: ' + avgTimeStr + '</span><br>End Reasons: CLEAR(' + (endReasons.CLEAR || 0) + ') FALL(' + (endReasons.DEATH_FALL || 0) + ') TIME(' + (endReasons.TIME_UP || 0) + ')<br><br>';
-      
-      ui.innerHTML = '<div style="text-align:center;background:#111;padding:10px;border:2px solid #fff;border-radius:6px;width:90%;max-width:400px;display:flex;flex-direction:column;gap:5px;"><h2 style="color:#0f0;margin:0;font-size:16px;">BENCHMARK RESULTS</h2><p style="font-size:10px;color:#ddd;margin:0;">Runs: ' + runs + '</p><p style="font-size:16px;color:#ff0;margin:3px 0;font-weight:bold;">Avg: ' + avg + 'm</p><div style="font-size:10px;color:#ccc;display:flex;justify-content:space-around;"><span>Max: ' + max + 'm</span><span>Min: ' + min + 'm</span></div><div style="font-size:10px;color:#0ff;display:flex;justify-content:space-around;margin-top:3px;"><span>Clear Rate: ' + (clears / runs * 100).toFixed(1) + '%</span><span>Loops: ' + totalLoops + '</span></div><div style="width:100%;height:75px;background:#222;font-family:monospace;font-size:8px;border:1px solid #555;padding:3px;box-sizing:border-box;overflow-y:auto;text-align:left; cursor:pointer;" onclick="this.select()" contenteditable="true"><div style="color:#fff;">' + summaryText + '</div>' + fullLogHTML + '</div><button id="db_reload" class="dbg-btn" style="padding:5px;font-size:10px;background:#e60012;border-color:#faa;width:100%;">RELOAD</button></div>';
     }
 
     export function setAuto(isActive) {
@@ -369,10 +254,9 @@ export { dR, inputHandler };
       game.npcs = [];
       game.birds = [];
       
-      if (!game.isBenchmarking) {
+      
         for (let i = 0; i < 3; i++) {
           game.npcs.push(new NPC(140 + i * 16, 240 - config.playerSize, (i + 1) * 1000, i));
-        }
       }
       
       game.player.reset();
@@ -500,14 +384,10 @@ export { dR, inputHandler };
       
       resetGameState(isConsecutive);
       
-      if (!game.isBenchmarking) {
-        game.eventLog = [];
-        if (!isAttractMode) {
-          pBtn.style.display = 'block';
-          pBtn.innerText = 'II';
-        } else {
-          pBtn.style.display = 'none';
-        }
+      game.eventLog = [];
+      if (!isAttractMode) {
+        pBtn.style.display = 'block';
+        pBtn.innerText = 'II';
       } else {
         pBtn.style.display = 'none';
       }
@@ -515,8 +395,7 @@ export { dR, inputHandler };
       setupGameCameraAndPlayer(isConsecutive);
       
       if (game.demoMode) {
-        if (isDev && !game.isBenchmarking) autoBtn.style.display = 'block';
-        else autoBtn.style.display = 'none';
+        autoBtn.style.display = 'none';
         if (isAttractMode) {
           if (demoState.active) setAuto(true);
           else setAuto(false);
@@ -598,9 +477,8 @@ export { dR, inputHandler };
               game.npcs[0].balloonTimer = 60;
               (window as any).hasShownFirstExclamation = true;
             } else if (Math.random() < 0.2) {
-              let rndIdx = Math.floor(Math.random() * game.npcs.length);
-              game.npcs[rndIdx].balloonText = '!';
-              game.npcs[rndIdx].balloonTimer = 60;
+              game.npcs[0].balloonText = '!';
+              game.npcs[0].balloonTimer = 60;
             }
           }
           game.shakeAmount = 0;
@@ -673,7 +551,7 @@ export { dR, inputHandler };
       if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
         updateStateAnimations();
       } else if (game.state !== 'gameover') {
-        if (game.demoMode && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player, logAIEvent);
+        if (game.demoMode && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player);
         game.player.update();
         
         updateBirds(game);
@@ -810,7 +688,7 @@ export { dR, inputHandler };
         tVer.style.display = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
       }
       
-      if (!game.isBenchmarking) render(ts);
+      render(ts);
       if (loopRunning) requestAnimationFrame(loop);
     }
 
@@ -819,17 +697,15 @@ export { dR, inputHandler };
         e.preventDefault();
         e.stopPropagation();
       }
-      if (game.state === 'gameover' || game.state === 'clear' || game.isBenchmarking) return;
+      if (game.state === 'gameover' || game.state === 'clear') return;
       game.isPaused = !game.isPaused;
       document.body.classList.toggle('game-paused', game.isPaused);
       $('pauseScreen').style.display = game.isPaused ? 'flex' : 'none';
       
       if (isAttractMode) {
           $('pauseBtn').style.display = 'none';
-          $('settingsBtn').style.display = game.isPaused ? 'none' : 'block';
       } else {
           $('pauseBtn').style.display = game.isPaused ? 'none' : 'block';
-          $('settingsBtn').style.display = 'none';
       }
       
       if (game.isPaused) {
@@ -850,7 +726,6 @@ export { dR, inputHandler };
         $('tapToStartMsg').style.display = isAttractMode ? 'block' : 'none';
         if (isAttractMode) {
             $('tapToStartMsg').innerText = 'TAP TO START';
-            $('settingsBtn').style.display = 'block';
             resetAttractTimer();
         }
       }
@@ -895,10 +770,8 @@ export { dR, inputHandler };
     setupKeyboardUI();
 
     if (isDev) {
-      $('debugModal').style.display = 'flex';
       $('devControls').style.display = 'flex';
       
     } else {
-      $('debugModal').style.display = 'none';
       startAttractCycle();
     }

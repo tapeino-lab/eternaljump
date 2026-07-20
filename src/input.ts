@@ -1,5 +1,5 @@
 import { game, demoState } from './state.js';
-import { isDev, isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto, selMode, selHgt, startWithSettings, startBenchmark } from './game.js';
+import { isDev, isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto } from './game.js';
 
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
@@ -32,7 +32,6 @@ function getCtrlDir(cx) {
 
 export function setupInputListeners() {
   const pBtn = $('pauseBtn');
-  const settingsBtn = $('settingsBtn');
   const autoBtn = $('autoBtn');
   const ctrlArea = $('controlArea');
   const tOv = $('touchOverlay');
@@ -132,7 +131,6 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(function(ev) {
     pBtn.addEventListener(ev, togglePause, { passive: false });
-    settingsBtn.addEventListener(ev, togglePause, { passive: false });
     autoBtn.addEventListener(ev, function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -215,7 +213,6 @@ export function setupInputListeners() {
       }
 
 
-      if (e.target.closest('#devControls') || e.target.closest('#debugModal') || e.target.closest('#pauseBtn') || e.target.closest('#settingsBtn') || e.target.closest('#autoBtn') || e.target.closest('#pauseScreen') || e.target.closest('#rankingModal') || e.target.closest('#nameEditModal') || e.target.closest('.thm-btn')) return;
       
       if (isAttractMode) {
         if (ignoreNextTap) return;
@@ -408,26 +405,7 @@ export function setupInputListeners() {
   document.addEventListener('click', (e: any) => {
     const t = (e.target as HTMLElement).closest('button');
     if (t) {
-      if (t.id === 'db_m') selMode(false, t);
-      else if (t.id === 'db_a') selMode(true, t);
-      else if (t.id === 'db_ar') {
-        game.allowAutoRank = !game.allowAutoRank;
-        t.innerText = game.allowAutoRank ? 'ENTRY: ON' : 'ENTRY: OFF';
-        t.style.borderColor = game.allowAutoRank ? '#0f0' : '#555';
-      }
-      else if (t.id === 'db_h0') selHgt(0, t);
-      else if (t.id === 'db_h35') selHgt(35000, t);
-      else if (t.id === 'db_h75') selHgt(75000, t);
-      else if (t.id === 'db_h115') selHgt(115000, t);
-      else if (t.id === 'db_h130') selHgt(130000, t);
-      else if (t.id === 'db_start') startWithSettings();
-      else if (t.id === 'db_rank_reset') RankingAPI.reset();
-      else if (t.id === 'db_title') { $('debugModal').style.display = 'none'; startAttractCycle(); }
-      else if (t.id === 'db_b10') startBenchmark(10);
-      else if (t.id === 'db_b50') startBenchmark(50);
-      else if (t.id === 'db_b100') startBenchmark(100);
-      else if (t.id === 'closeRankBtn') $('rankingModal').style.display = 'none';
-      else if (t.id === 'db_reload') location.reload();
+      if (t.id === 'closeRankBtn') $('rankingModal').style.display = 'none';
     }
   });
 }

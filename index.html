@@ -13,66 +13,6 @@
   <link rel="stylesheet" href="/src/game.css">
 </head>
 <body>
-  <div id="debugModal">
-    <div id="devControls" style="display:none; flex-direction:column; align-items:center; width:100%;">
-      <h2 style="margin-bottom:0px; text-align:center;">DEBUG SETTINGS</h2>
-      <p style="text-align:center; color:#aaa; font-size:12px; margin:5px 0 15px 0; font-family:monospace;">ETERNAL JUMPER - v1.53.00 - 2026/07/20 16:07 (JST)</p>
-      
-      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:90%; max-width:340px;">
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:0px;">CONTROL MODE</div>
-        <button id="db_m" class="dbg-btn mode-btn" style="border-color:#0f0">MANUAL</button>
-        <button id="db_a" class="dbg-btn mode-btn">AUTO</button>
-        
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">AUTO RANK ENTRY</div>
-        <button id="db_ar" class="dbg-btn" style="width:100%; margin-top:5px; padding:8px; border-color:#555; font-size:12px;">ENTRY: OFF</button>
-        
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">START HEIGHT</div>
-        <button id="db_h0" class="dbg-btn hgt-btn" style="border-color:#0f0">0m<br><span style="font-size:10px; font-weight:normal">GROUND</span></button>
-        <button id="db_h35" class="dbg-btn hgt-btn">35K<br><span style="font-size:10px; font-weight:normal">EVENING</span></button>
-        <button id="db_h75" class="dbg-btn hgt-btn">75K<br><span style="font-size:10px; font-weight:normal">ICE/METEOR</span></button>
-        <button id="db_h115" class="dbg-btn hgt-btn">115K<br><span style="font-size:10px; font-weight:normal">RUSH</span></button>
-        <button id="db_h130" class="dbg-btn hgt-btn">130K<br><span style="font-size:10px; font-weight:normal">PRE-HEAVEN</span></button>
-        
-        <div style="width:100%; text-align:center; color:#ddd; font-size:14px; margin-top:10px;">BUTTON THEME</div>
-        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:100%;">
-          <button id="th_neo" class="dbg-btn thm-btn" style="border-color:#0f0; flex:1; font-size:10px; padding:6px; min-width:30%;">NEO-CLS</button>
-          <button id="th_cls" class="dbg-btn thm-btn" style="flex:1; font-size:10px; padding:6px; min-width:30%;">CLASSIC</button>
-          <button id="th_vin" class="dbg-btn thm-btn" style="flex:1; font-size:10px; padding:6px; min-width:30%;">VINTAGE</button>
-        </div>
-        
-        <button id="db_start" class="dbg-btn" style="width:100%; margin-top:20px; padding:12px; background:#e60012; border-color:#faa; font-size:18px;">NORMAL START</button>
-        <button id="db_rank_reset" class="dbg-btn" style="width:100%; margin-top:5px; padding:8px; background:#555; border-color:#aaa; font-size:12px;">RESET RANKING</button>
-        <button id="db_title" class="dbg-btn" style="width:100%; margin-top:10px; padding:12px; background:#444; border-color:#888; font-size:14px; font-family:'Press Start 2P', sans-serif;">RETURN TO TITLE</button>
-        
-        <div style="display:flex; width:100%; margin-top:10px; gap:5px;">
-          <button id="db_b10" class="dbg-btn" style="flex:1; padding:12px; background:#0055ff; border-color:#aaf; font-size:14px;">🤖 10 RUNS</button>
-          <button id="db_b50" class="dbg-btn" style="flex:1; padding:12px; background:#0033cc; border-color:#aaf; font-size:14px;">🤖 50 RUNS</button>
-          <button id="db_b100" class="dbg-btn" style="flex:1; padding:12px; background:#c0c; border-color:#faa; font-size:14px;">🤖 100 RUNS</button>
-        </div>
-
-        <div style="width:100%; text-align:center; color:#ff0; font-size:11px; margin-top:15px; border-top:1px dashed #555; padding-top:12px; font-family:'Press Start 2P', sans-serif;">LOOTLOCKER DIAGNOSTICS</div>
-        <div style="background:#111; border:2px solid #555; border-radius:6px; width:100%; margin-top:8px; padding:10px; box-sizing:border-box; font-family:monospace; text-align:left; font-size:10px; color:#fff; display:flex; flex-direction:column; gap:5px;">
-          <div style="display:flex; justify-content:space-between;"><span>Status:</span><span id="ll-status" style="color:#ff5555;font-weight:bold;">UNINITIALIZED</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Mode:</span><span id="ll-mode" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>API Key:</span><span id="ll-key" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Domain:</span><span id="ll-domain" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Ldrboard:</span><span id="ll-lbid" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between;"><span>Player ID:</span><span id="ll-pid" style="color:#aaa;">-</span></div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid #444; padding-bottom:5px;"><span>Session Token:</span><span id="ll-token" style="color:#aaa;">-</span></div>
-          
-          <div style="color:#ffb; margin-top:4px; font-weight:bold; font-size:9px; font-family:'Press Start 2P', sans-serif;">LIVE DEBUG LOGS:</div>
-          <div id="llDebugLogArea" style="background:#050505; border:1px solid #333; height:120px; overflow-y:auto; padding:6px; border-radius:4px; font-size:9px; color:#0f0; word-break:break-all; white-space:pre-wrap; font-family:monospace; line-height:1.2;"></div>
-          
-          <div style="display:flex; flex-direction:column; gap:6px; margin-top:5px; width:100%;">
-            <div style="display:flex; gap:5px; width:100%;">
-              <button id="ll_btn_test" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#0f0; color:#0f0; margin:0;">TEST CON</button>
-              <button id="ll_btn_copy" class="dbg-btn" style="flex:1; padding:8px; font-size:9px; background:#222; border-color:#ff0; color:#ff0; margin:0;">COPY INFO</button>
-            </div>
-            <button id="ll_btn_clear" class="dbg-btn" style="width:100%; padding:8px; font-size:9px; background:#222; border-color:#f55; color:#f55; margin:0;">RESET ID & SESSION</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div id="gameContainer">
@@ -129,30 +69,7 @@
       <div id="titleVersion" style="position:absolute; left:12px; bottom:12px; font-family:'Press Start 2P', monospace; font-size:9px; color:rgba(255,255,255,0.72); z-index:20; pointer-events:none; display:none; letter-spacing:0.5px;">v1.53.00</div>
       <div id="autoBtn">🤖 ON</div>
       <div id="pauseBtn">II</div>
-      <div id="settingsBtn">
-        <svg viewBox="0 0 12 12" width="24" height="24" style="fill:#eee; shape-rendering:crispEdges; display:block;" class="gear-icon">
-          <rect x="5" y="0" width="2" height="1" />
-          <rect x="1" y="1" width="2" height="1" />
-          <rect x="5" y="1" width="2" height="1" />
-          <rect x="9" y="1" width="2" height="1" />
-          <rect x="1" y="2" width="10" height="1" />
-          <rect x="2" y="3" width="8" height="1" />
-          <rect x="2" y="4" width="2" height="1" />
-          <rect x="8" y="4" width="2" height="1" />
-          <rect x="0" y="5" width="4" height="1" />
-          <rect x="8" y="5" width="4" height="1" />
-          <rect x="0" y="6" width="4" height="1" />
-          <rect x="8" y="6" width="4" height="1" />
-          <rect x="2" y="7" width="2" height="1" />
-          <rect x="8" y="7" width="2" height="1" />
-          <rect x="2" y="8" width="8" height="1" />
-          <rect x="1" y="9" width="10" height="1" />
-          <rect x="1" y="10" width="2" height="1" />
-          <rect x="5" y="10" width="2" height="1" />
-          <rect x="9" y="10" width="2" height="1" />
-          <rect x="5" y="11" width="2" height="1" />
-        </svg>
-      </div>
+
       <canvas id="gameCanvas"></canvas>
       <div id="touchOverlay"></div>
       <div id="fadeOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:250; opacity:0; pointer-events:none; transition:opacity 1s; display:none;"></div>

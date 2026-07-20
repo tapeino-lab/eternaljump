@@ -142,7 +142,6 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         return s;
       },
       saveScore: async function(a, t, c, r) {
-        if (game.isBenchmarking) return;
         if (game.demoMode && !game.allowAutoRank) return;
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;
         game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l };
@@ -240,7 +239,6 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           title = 'DEMO RESULT';
           titleColor = '#fff';
         }
-        if (game.isBenchmarking) title = 'BENCHMARK';
         
         $('resultTitle').innerText = title;
         $('resultTitle').style.color = titleColor;

@@ -1,7 +1,7 @@
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL } from './entities.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
-import { logAIEvent, initGame } from './game.js';
+import { initGame } from './game.js';
 import { RankingAPI } from './ranking.js';
 
 export function updateBirds(game) {
@@ -180,7 +180,7 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode)
               spawnParticles(npc.x + npc.w / 2, p.y, '#f00', 5);
               let fA = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
               RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'NPC_CLEAR');
-              if (!game.isBenchmarking) {
+              if (true) {
                 setTimeout(() => {
                   if (game.state === 'gameover') {
                     if (!isAttractMode) RankingAPI.show('gameover');
@@ -191,7 +191,7 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode)
                   }
                 }, 800);
               }
-              if (game.demoMode && !game.isBenchmarking && !isAttractMode) {
+              if (game.demoMode && !isAttractMode) {
                 setTimeout(function() {
                   if (game.state === 'gameover') initGame(false);
                 }, 5000);
@@ -314,7 +314,7 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttr
           
           let fA = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
           RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'CLEAR');
-          if (!game.isBenchmarking) {
+          if (true) {
             setTimeout(() => {
               if (game.state === 'clear') {
                 if (!isAttractMode) RankingAPI.show('clear');
@@ -453,7 +453,6 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
       }
     } else {
       if (game.state !== 'gameover') {
-        logAIEvent('DEATH_FALL', 'adv:' + game.player.adventureMode + ' vy:' + game.player.vy.toFixed(1));
         game.shakeAmount = 0;
         game.state = 'gameover';
         document.body.classList.add('game-ended');
@@ -469,7 +468,7 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
         
         let fA = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
         RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'DEATH_FALL');
-        if (!game.isBenchmarking) {
+        if (true) {
           setTimeout(() => {
             if (game.state === 'gameover') {
               if (!isAttractMode) RankingAPI.show('gameover');
@@ -491,7 +490,6 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
   }
   
   if (game.playTime >= config.timeLimit * 1000 && game.state !== 'gameover' && game.state !== 'clear') {
-    logAIEvent('TIME_UP', '');
     game.shakeAmount = 0;
     game.state = 'gameover';
     document.body.classList.add('game-ended');
@@ -505,7 +503,7 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
     
     let fA = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
     RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'TIME_UP');
-    if (!game.isBenchmarking) {
+    if (true) {
       setTimeout(() => {
         if (game.state === 'gameover') {
           if (!isAttractMode) RankingAPI.show('gameover');

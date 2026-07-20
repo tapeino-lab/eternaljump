@@ -3,7 +3,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI } from "./utils.js";
 
 // We will import game, ctx, IMG from game.js later.
 import { game } from './state.js';
-import { ctx, IMG, logAIEvent, groundCache, groundCached, isDev } from './game.js';
+import { ctx, IMG, groundCache, groundCached, isDev } from './game.js';
 
 import { dR } from './renderer.js';
 import { runAI } from './ai.js';
@@ -545,7 +545,7 @@ import { runAI } from './ai.js';
           return;
         }
         this.frameCount++;
-        if (!(this.hitTimer > 0) && this.frameCount % 3 === 0) runAI(this, logAIEvent);
+        if (!(this.hitTimer > 0) && this.frameCount % 3 === 0) runAI(this);
         super.update();
       }
     }

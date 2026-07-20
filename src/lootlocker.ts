@@ -30,71 +30,9 @@ export const LootLockerAPI = {
     this.logs.push({ timestamp, msg, type });
     console.log(`[LootLocker ${type.toUpperCase()}] ${msg}`);
     
-    try {
-      const logArea = document.getElementById('llDebugLogArea');
-      if (logArea) {
-        const color = type === 'error' ? '#ff5555' : (type === 'success' ? '#00ff00' : '#ffffff');
-        logArea.innerHTML += `<div style="color:${color};margin-bottom:4px;">[${timestamp}] [${type.toUpperCase()}] ${escapeHTML(msg)}</div>`;
-        logArea.scrollTop = logArea.scrollHeight;
-      }
-    } catch (e) {}
-    this.updateUI();
+    
   },
 
-  updateUI: function() {
-    try {
-      const statusEl = document.getElementById('ll-status');
-      if (!statusEl) return;
-      
-      const modeEl = document.getElementById('ll-mode');
-      const keyEl = document.getElementById('ll-key');
-      const domainEl = document.getElementById('ll-domain');
-      const lbidEl = document.getElementById('ll-lbid');
-      const pidEl = document.getElementById('ll-pid');
-      const tokenEl = document.getElementById('ll-token');
-      
-      if (this.sessionToken) {
-        statusEl.innerText = 'CONNECTED';
-        statusEl.style.color = '#00ff00';
-      } else if (this.hasLootLockerConfig === false) {
-        statusEl.innerText = 'UNCONFIGURED';
-        statusEl.style.color = '#ff5555';
-      } else {
-        statusEl.innerText = 'UNINITIALIZED';
-        statusEl.style.color = '#ffaa00';
-      }
-      
-      if (modeEl) modeEl.innerText = this.hasLootLockerConfig ? (this.isDirectMode ? 'Direct Client API' : 'Server Proxy') : 'None';
-      
-      if (keyEl) {
-        const k = this.apiKey;
-        if (!k) {
-          keyEl.innerText = '[EMPTY]';
-          keyEl.style.color = '#ff5555';
-        } else if (k === 'YOUR_API_KEY_HERE') {
-          keyEl.innerText = '[PLACEHOLDER]';
-          keyEl.style.color = '#ffaa00';
-        } else {
-          keyEl.innerText = k.substring(0, 6) + '...' + k.substring(k.length - 4);
-          keyEl.style.color = '#00ff00';
-        }
-      }
-      
-      if (domainEl) domainEl.innerText = this.domainKey || '-';
-      if (lbidEl) lbidEl.innerText = this.leaderboardId || '-';
-      if (pidEl) pidEl.innerText = this.playerIdentifier || '-';
-      
-      if (tokenEl) {
-        if (this.sessionToken) {
-          tokenEl.innerText = this.sessionToken.substring(0, 8) + '...';
-          tokenEl.style.color = '#00ff00';
-        } else {
-          tokenEl.innerText = 'None';
-          tokenEl.style.color = '#ff5555';
-        }
-      }
-    } catch (e) {}
-  },
 
   checkConfig: async function() {
     if (this.hasLootLockerConfig !== null) return this.hasLootLockerConfig;
@@ -324,7 +262,7 @@ export const LootLockerAPI = {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
           },
-          body: JSON.stringify({ member_id: String(this.playerId), score: sc, metadata: meta })
+          body: JSON.stringify({ score: sc, metadata: meta })
         });
       } else {
         this.log('Submitting score via server proxy...', 'info');
@@ -332,7 +270,6 @@ export const LootLockerAPI = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            member_id: String(this.playerId),
             score: sc,
             metadata: meta,
             session_token: this.sessionToken
@@ -477,96 +414,3 @@ if (!LootLockerAPI.playerIdentifier) {
   localStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
 }
 
-// Attach click listeners to the diagnostic UI buttons when DOM content is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    LootLockerAPI.updateUI();
-    
-    const testBtn = document.getElementById('ll_btn_test');
-    if (testBtn) {
-      testBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        testBtn.innerText = 'TESTING...';
-        (testBtn as HTMLButtonElement).disabled = true;
-        // Reset config check so it re-runs config fetch
-        LootLockerAPI.hasLootLockerConfig = null;
-        LootLockerAPI.sessionToken = null;
-        await LootLockerAPI.init();
-        testBtn.innerText = 'TEST CON';
-        (testBtn as HTMLButtonElement).disabled = false;
-      });
-    }
-    
-    const clearBtn = document.getElementById('ll_btn_clear');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (confirm('Are you sure you want to reset your Player ID and session?')) {
-          LootLockerAPI.resetPlayerSession();
-        }
-      });
-    }
-
-    const copyBtn = document.getElementById('ll_btn_copy');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const keyVal = LootLockerAPI.apiKey;
-        const maskedKey = keyVal ? (keyVal === 'YOUR_API_KEY_HERE' ? '[PLACEHOLDER]' : `${keyVal.substring(0, 6)}...${keyVal.substring(keyVal.length - 4)}`) : '[EMPTY]';
-        const logsStr = LootLockerAPI.logs.map(l => `[${l.timestamp}] [${l.type.toUpperCase()}] ${l.msg}`).join('\n');
-        
-        const diags = [
-          `=== LOOTLOCKER DIAGNOSTICS (v${LootLockerAPI.version}) ===`,
-          `Status: ${LootLockerAPI.sessionToken ? 'CONNECTED' : (LootLockerAPI.hasLootLockerConfig === false ? 'UNCONFIGURED' : 'UNINITIALIZED')}`,
-          `Mode: ${LootLockerAPI.hasLootLockerConfig ? (LootLockerAPI.isDirectMode ? 'Direct Client API' : 'Server Proxy') : 'None'}`,
-          `API Key: ${maskedKey}`,
-          `Domain: ${LootLockerAPI.domainKey || '-'}`,
-          `Leaderboard ID: ${LootLockerAPI.leaderboardId || '-'}`,
-          `Player ID: ${LootLockerAPI.playerIdentifier || '-'}`,
-          `Session Token: ${LootLockerAPI.sessionToken || 'None'}`,
-          `User Agent: ${navigator.userAgent}`,
-          `URL: ${window.location.href}`,
-          `Local Time: ${new Date().toString()}`,
-          '',
-          '--- LIVE DEBUG LOGS ---',
-          logsStr || '(No logs captured yet)'
-        ].join('\n');
-
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(diags);
-          } else {
-            const textArea = document.createElement('textarea');
-            textArea.value = diags;
-            textArea.style.position = 'fixed';
-            textArea.style.top = '0';
-            textArea.style.left = '0';
-            textArea.style.opacity = '0';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-          }
-          LootLockerAPI.log('Diagnostics copied to clipboard!', 'success');
-          const originalText = copyBtn.innerText;
-          copyBtn.innerText = 'COPIED!';
-          copyBtn.style.color = '#00ff00';
-          copyBtn.style.borderColor = '#00ff00';
-          setTimeout(() => {
-            copyBtn.innerText = originalText;
-            copyBtn.style.color = '#ff0';
-            copyBtn.style.borderColor = '#ff0';
-          }, 1500);
-        } catch (err) {
-          LootLockerAPI.log(`Copy failed: ${err.message}`, 'error');
-          alert('Could not copy automatically. You can copy the logs directly from the log area.');
-        }
-      });
-    }
-  }, 1000);
-});
