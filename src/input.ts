@@ -38,7 +38,7 @@ export function setupInputListeners() {
   const tOv = $('touchOverlay');
   const tOrgs = new Map();
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', (e: any) => {
     if ($('nameEditModal').style.display === 'flex') return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'a' || e.key === 'd' || e.key === 'A' || e.key === 'D') {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -83,7 +83,7 @@ export function setupInputListeners() {
     }
   });
 
-  document.addEventListener('keyup', e => {
+  document.addEventListener('keyup', (e: any) => {
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
       inputHandler.end('k_-1');
     } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
@@ -94,7 +94,7 @@ export function setupInputListeners() {
 
   // Intercept all touch/mousedown events globally when ranking modal is open
   ['touchstart', 'mousedown'].forEach(ev => {
-    document.addEventListener(ev, e => {
+    document.addEventListener(ev, (e: any) => {
       if ($('rankingModal').style.display === 'flex') {
         if (ignoreNextTap) {
           e.preventDefault();
@@ -138,7 +138,7 @@ export function setupInputListeners() {
       e.stopPropagation();
       setAuto(!game.aiActive);
     }, { passive: false });
-    $('pauseScreen').addEventListener(ev, e => {
+    $('pauseScreen').addEventListener(ev, (e: any) => {
       if (e.target.id === 'btnRankingPause') {
         e.preventDefault();
         e.stopPropagation();
@@ -177,7 +177,7 @@ export function setupInputListeners() {
     }, { passive: false });
   });
 
-  window.addEventListener('keydown', e => {
+  window.addEventListener('keydown', (e: any) => {
     if (e.repeat) return;
     if ($('rankingModal').style.display === 'flex') {
       e.preventDefault();
@@ -195,13 +195,13 @@ export function setupInputListeners() {
     if (e.code === 'ArrowRight' || e.code === 'KeyD') inputHandler.start('k_r', 1);
   });
 
-  window.addEventListener('keyup', e => {
+  window.addEventListener('keyup', (e: any) => {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') inputHandler.end('k_l');
     if (e.code === 'ArrowRight' || e.code === 'KeyD') inputHandler.end('k_r');
   });
 
   ['touchstart', 'mousedown'].forEach(ev => {
-    document.addEventListener(ev, e => {
+    document.addEventListener(ev, (e: any) => {
       if (game.isPaused) {
         e.stopPropagation();
         if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen') && !e.target.closest('#nameEditModal') && !e.target.closest('#rankingModal')) togglePause();
@@ -235,7 +235,7 @@ export function setupInputListeners() {
     
     let dc = $('demoRankingContainer');
     if (dc) {
-      dc.addEventListener(ev, e => {
+      dc.addEventListener(ev, (e: any) => {
         if (isAttractMode) {
           if (ignoreNextTap) return;
           e.preventDefault();
@@ -246,7 +246,7 @@ export function setupInputListeners() {
   });
 
   ['touchstart', 'mousedown'].forEach(ev => {
-    ctrlArea.addEventListener(ev, e => {
+    ctrlArea.addEventListener(ev, (e: any) => {
       e.preventDefault();
       if ($('nameEditModal').style.display === 'flex') {
         e.stopPropagation();
@@ -276,7 +276,7 @@ export function setupInputListeners() {
       }
       if (game.demoMode && game.aiActive) setAuto(false);
       if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach(t => inputHandler.start('c_' + t.identifier, getCtrlDir(t.clientX)));
+        Array.from(e.changedTouches).forEach((t: any) => inputHandler.start('c_' + t.identifier, getCtrlDir(t.clientX)));
       } else {
         inputHandler.start('c_m', getCtrlDir(e.clientX));
       }
@@ -284,12 +284,12 @@ export function setupInputListeners() {
   });
 
   ['touchmove', 'mousemove'].forEach(ev => {
-    ctrlArea.addEventListener(ev, e => {
+    ctrlArea.addEventListener(ev, (e: any) => {
       if (e.cancelable) e.preventDefault();
       if (isAttractMode) return;
       if (game.demoMode && game.aiActive) return;
       if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach(t => {
+        Array.from(e.changedTouches).forEach((t: any) => {
           if (inputHandler.active.has('c_' + t.identifier)) inputHandler.start('c_' + t.identifier, getCtrlDir(t.clientX));
         });
       } else {
@@ -299,9 +299,9 @@ export function setupInputListeners() {
   });
 
   ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => {
-    ctrlArea.addEventListener(ev, e => {
+    ctrlArea.addEventListener(ev, (e: any) => {
       if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach(t => inputHandler.end('c_' + t.identifier));
+        Array.from(e.changedTouches).forEach((t: any) => inputHandler.end('c_' + t.identifier));
       } else {
         inputHandler.end('c_m');
       }
@@ -309,7 +309,7 @@ export function setupInputListeners() {
   });
 
   ['touchstart', 'mousedown'].forEach(ev => {
-    tOv.addEventListener(ev, e => {
+    tOv.addEventListener(ev, (e: any) => {
       e.preventDefault();
       if (game.isPaused) {
         e.stopPropagation();
@@ -335,7 +335,7 @@ export function setupInputListeners() {
       }
       if (game.demoMode && game.aiActive) return;
       if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach(t => {
+        Array.from(e.changedTouches).forEach((t: any) => {
           let id = 'sc_' + t.identifier;
           tOrgs.set(id, t.clientX);
           inputHandler.start(id, 0);
@@ -348,22 +348,22 @@ export function setupInputListeners() {
   });
 
   ['touchmove', 'mousemove'].forEach(ev => {
-    tOv.addEventListener(ev, e => {
+    tOv.addEventListener(ev, (e: any) => {
       if (e.cancelable) e.preventDefault();
       if (game.demoMode && game.aiActive) return;
       let proc = (id, cx) => {
         if (inputHandler.active.has(id) && tOrgs.has(id)) {
           let b = tOrgs.get(id);
-          let thr = 12 * window.gameScale;
+          let thr = 12 * (window as any).gameScale;
           if (cx > b + thr) b = cx - thr;
           else if (cx < b - thr) b = cx + thr;
           tOrgs.set(id, b);
           let df = cx - b;
-          inputHandler.start(id, df > 2 * window.gameScale ? 1 : (df < -2 * window.gameScale ? -1 : 0));
+          inputHandler.start(id, df > 2 * (window as any).gameScale ? 1 : (df < -2 * (window as any).gameScale ? -1 : 0));
         }
       };
       if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach(t => proc('sc_' + t.identifier, t.clientX));
+        Array.from(e.changedTouches).forEach((t: any) => proc('sc_' + t.identifier, t.clientX));
       } else {
         proc('sc_m', e.clientX);
       }
@@ -371,9 +371,9 @@ export function setupInputListeners() {
   });
 
   ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => {
-    tOv.addEventListener(ev, e => {
+    tOv.addEventListener(ev, (e: any) => {
       if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach(t => {
+        Array.from(e.changedTouches).forEach((t: any) => {
           let id = 'sc_' + t.identifier;
           inputHandler.end(id);
           tOrgs.delete(id);
@@ -387,15 +387,16 @@ export function setupInputListeners() {
 
   let themeBtn = document.querySelectorAll('.thm-btn');
   themeBtn.forEach(btn => {
-    btn.addEventListener('click', function(e) {
+    btn.addEventListener('click', function(this: HTMLElement, e: Event) {
       e.preventDefault();
       e.stopPropagation();
-      themeBtn.forEach(b => b.style.borderColor = '#555');
+      themeBtn.forEach(b => (b as HTMLElement).style.borderColor = '#555');
       this.style.borderColor = '#0f0';
       let th = 'neo';
       if (this.id === 'th_cls') th = 'classic';
       else if (this.id === 'th_vin') th = 'vintage';
-      $('controlArea').setAttribute('data-theme', th);
+      const ca = $('controlArea');
+      if (ca) ca.setAttribute('data-theme', th);
     });
   });
 
@@ -404,8 +405,8 @@ export function setupInputListeners() {
   });
 
   // Also bind dev control buttons
-  document.addEventListener('click', e => {
-    const t = e.target.closest('button');
+  document.addEventListener('click', (e: any) => {
+    const t = (e.target as HTMLElement).closest('button');
     if (t) {
       if (t.id === 'db_m') selMode(false, t);
       else if (t.id === 'db_a') selMode(true, t);

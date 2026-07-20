@@ -1,5 +1,7 @@
+type BGPhase = { score: number; color: { r: number; g: number; b: number } };
+
 export const config = {
-  controlMode: 'button',
+  controlMode: 'button' as 'button' | 'swipe',
   targetFPS: 60,
   gameWidth: 224,
   gameHeight: 360,
@@ -27,7 +29,7 @@ export const config = {
     { score: 115680, color: { r: 5, g: 10, b: 30 } },
     { score: 120000, color: { r: 0, g: 0, b: 0 } },
     { score: 144000, color: { r: 0, g: 0, b: 0 } }
-  ],
+  ] as BGPhase[],
   itemsEnabled: true,
   mushroomSpawnProb: 0.08,
   mushroomMinScore: 500,

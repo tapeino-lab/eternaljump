@@ -167,7 +167,7 @@ export function setupKeyboardUI() {
       const tn = document.getElementById('gamePlayerName');
       if (tn) tn.innerText = 'ID: ' + newFullName;
       
-      const pNameInput = document.getElementById('pausePlayerNameInput');
+      const pNameInput = document.getElementById('pausePlayerNameInput') as HTMLInputElement;
       if (pNameInput) pNameInput.value = tempNameVal;
       
       $('nameEditModal').style.display = 'none';

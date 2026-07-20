@@ -16,14 +16,14 @@ import { setupKeyboardUI, openNameEditModal } from './keyboard.js';
 export { dR, inputHandler };
     
         
-    export const IMG = {};
+    export const IMG: Record<string, HTMLImageElement> = {};
     for (let k in B64) {
       IMG[k] = new Image();
       IMG[k].src = B64[k];
     }
     let isFirstPlay = true;
     
-    const cvs = $('gameCanvas');
+    const cvs = $('gameCanvas') as HTMLCanvasElement;
     export const ctx = cvs.getContext('2d');
     const ui = $('ui');
     const btnL = $('btnLeft');
@@ -89,7 +89,7 @@ export { dR, inputHandler };
       }
     });
     
-    window.gameScale = 1;
+    (window as any).gameScale = 1;
     export let ctrlCenterX = 0;
     
     function resize() {
@@ -106,16 +106,16 @@ export { dR, inputHandler };
       gc.style.height = tH + 'px';
       ca.style.width = tW + 'px';
       ca.style.height = cH + 'px';
-      window.gameScale = tW / config.gameWidth;
+      (window as any).gameScale = tW / config.gameWidth;
       wrap.style.width = config.gameWidth + 'px';
       wrap.style.height = config.gameHeight + 'px';
-      wrap.style.transform = `scale(${window.gameScale})`;
+      wrap.style.transform = `scale(${(window as any).gameScale})`;
       wrap.style.transformOrigin = 'center center';
       cvs.width = config.gameWidth;
       cvs.height = config.gameHeight;
       cvs.style.width = '100%';
       cvs.style.height = '100%';
-      $('tapToStartMsg').style.fontSize = MAX(10, FLR(10 * window.gameScale)) + 'px';
+      $('tapToStartMsg').style.fontSize = MAX(10, FLR(10 * (window as any).gameScale)) + 'px';
       let r = ca.getBoundingClientRect();
       ctrlCenterX = r.left + r.width / 2;
     }
@@ -229,13 +229,13 @@ export { dR, inputHandler };
 
     export let selMode = function(d, el) {
       tDemo = d;
-      document.querySelectorAll('.mode-btn').forEach(b => b.style.borderColor = '#555');
+      document.querySelectorAll('.mode-btn').forEach(b => (b as HTMLElement).style.borderColor = '#555');
       el.style.borderColor = '#0f0';
     };
 
     export let selHgt = function(s, el) {
       tS = s;
-      document.querySelectorAll('.hgt-btn').forEach(b => b.style.borderColor = '#555');
+      document.querySelectorAll('.hgt-btn').forEach(b => (b as HTMLElement).style.borderColor = '#555');
       el.style.borderColor = '#0f0';
     };
 
@@ -573,7 +573,7 @@ export { dR, inputHandler };
           game.player.y = game.goalY - game.player.h;
           game.player.vy = 0;
         }
-      } else if (game.state === 'intro_anim') {
+      } else if ((game.state as any) === 'intro_anim') {
         game.player.vx = 0;
         game.player.vy = 0;
         game.player.inputDir = 0;
@@ -593,10 +593,10 @@ export { dR, inputHandler };
             cover.isCrumbling = true;
           }
           if (game.npcs && game.npcs.length > 0) {
-            if (!window.hasShownFirstExclamation) {
+            if (!(window as any).hasShownFirstExclamation) {
               game.npcs[0].balloonText = '!';
               game.npcs[0].balloonTimer = 60;
-              window.hasShownFirstExclamation = true;
+              (window as any).hasShownFirstExclamation = true;
             } else if (Math.random() < 0.2) {
               let rndIdx = Math.floor(Math.random() * game.npcs.length);
               game.npcs[rndIdx].balloonText = '!';
@@ -670,7 +670,7 @@ export { dR, inputHandler };
     function updatePhysics() {
       updateParticles(game);
       
-      if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || game.state === 'intro_anim') {
+      if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
         updateStateAnimations();
       } else if (game.state !== 'gameover') {
         if (game.demoMode && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player, logAIEvent);
@@ -679,7 +679,7 @@ export { dR, inputHandler };
         updateBirds(game);
         updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode);
         
-        if (game.state !== 'intro' && game.state !== 'intro_anim') {
+        if (game.state !== 'intro' && (game.state as any) !== 'intro_anim') {
           if (game.player.y < game.goalY - 120) {
             game.player.y = game.goalY - 120;
             if (game.player.vy < 0) game.player.vy = 0;
@@ -693,7 +693,7 @@ export { dR, inputHandler };
         
         if (game.state === 'intro') {
           updateIntroState();
-        } else if (game.state !== 'intro_anim') {
+        } else if ((game.state as any) !== 'intro_anim') {
           updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode);
         }
         
@@ -814,7 +814,7 @@ export { dR, inputHandler };
       if (loopRunning) requestAnimationFrame(loop);
     }
 
-    export function togglePause(e) {
+    export function togglePause(e?: any) {
       if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -855,7 +855,7 @@ export { dR, inputHandler };
         }
       }
       if (game.isPaused) {
-        const pNameInput = document.getElementById('pausePlayerNameInput');
+        const pNameInput = document.getElementById('pausePlayerNameInput') as HTMLInputElement;
         if (pNameInput) {
           let fullName = getPlayerName();
           let parts = fullName.split(' ');
@@ -883,7 +883,7 @@ export { dR, inputHandler };
             }
         }
       } else {
-        const pNameInput = document.getElementById('pausePlayerNameInput');
+        const pNameInput = document.getElementById('pausePlayerNameInput') as HTMLInputElement;
         if (pNameInput) {
           pNameInput.blur();
         }

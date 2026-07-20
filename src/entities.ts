@@ -47,6 +47,7 @@ import { runAI } from './ai.js';
     }
 
     export class Particle {
+      [key: string]: any;
       init(x, y, vx, vy, color, size, life, g = 0.2, isSp = false) {
         this.x = x;
         this.y = y;
@@ -129,6 +130,7 @@ import { runAI } from './ai.js';
     }
 
     export class Bird {
+      [key: string]: any;
       init(type, x, y, isPerched, platform = null, isTitleBird = false) {
         this.type = type;
         this.isPerched = isPerched;
@@ -224,6 +226,7 @@ import { runAI } from './ai.js';
     }
 
     export class Meteor {
+      [key: string]: any;
       init(x, y, vx, vy) {
         this.isLarge = RND() < 0.3;
         this.scale = this.isLarge ? 2 : 1;
@@ -289,6 +292,7 @@ import { runAI } from './ai.js';
     }
 
     export class Player {
+      [key: string]: any;
       constructor() {
         this.isNPC = false;
         this.reset();
@@ -547,6 +551,7 @@ import { runAI } from './ai.js';
     }
 
     export class Platform {
+      [key: string]: any;
       init(y, t = 'normal', ig = false, cx = null, cw = null, ch = null, count = 1, isIcy = false) {
         this.isGround = ig;
         this.count = count;
@@ -739,6 +744,7 @@ import { runAI } from './ai.js';
     }
 
     export class Item {
+      [key: string]: any;
       init(y) {
         this.w = 16;
         this.h = 16;
@@ -785,6 +791,7 @@ import { runAI } from './ai.js';
     }
 
     export class Coin {
+      [key: string]: any;
       init(x, y) {
         this.w = 12;
         this.h = 12;
@@ -847,6 +854,7 @@ import { runAI } from './ai.js';
     }
     
     export class BackgroundCloud {
+      [key: string]: any;
       constructor(x, y) {
         this.x = x;
         this.y = y;

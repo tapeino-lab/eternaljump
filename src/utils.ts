@@ -7,18 +7,19 @@ export const SIN = Math.sin;
 export const POW = Math.pow;
 export const PI = Math.PI;
 
-export const getLang = () => {
+export const getLang = (): string => {
   try {
-    let l = (navigator.language || navigator.userLanguage || '').split('-')[0].toLowerCase();
-    let m = { ja: 'JPN', en: 'ENG', zh: 'CHN', ko: 'KOR', es: 'SPA', fr: 'FRA', de: 'GER', ru: 'RUS', it: 'ITA', pt: 'POR' };
+    let l = (navigator.language || (navigator as any).userLanguage || '').split('-')[0].toLowerCase();
+    let m: Record<string, string> = { ja: 'JPN', en: 'ENG', zh: 'CHN', ko: 'KOR', es: 'SPA', fr: 'FRA', de: 'GER', ru: 'RUS', it: 'ITA', pt: 'POR' };
     return m[l] || (l.length >= 3 ? l.substring(0, 3).toUpperCase() : '---');
   } catch (e) {
     return '---';
   }
 };
-export const $ = i => document.getElementById(i);
 
-export const escapeHTML = str => {
+export const $ = (i: string): HTMLElement | null => document.getElementById(i);
+
+export const escapeHTML = (str: string | number): string => {
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -27,7 +28,7 @@ export const escapeHTML = str => {
     .replace(/'/g, '&#39;');
 };
 
-export const getPlayerName = () => {
+export const getPlayerName = (): string => {
   let n = localStorage.getItem('JUMP_PLAYER_NAME');
   
   // 新しい「LANG XX」形式（3桁国コード + 半角スペース + 2桁英数字・許可記号）に適合しているかチェック

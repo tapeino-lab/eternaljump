@@ -488,13 +488,13 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         e.stopPropagation();
         testBtn.innerText = 'TESTING...';
-        testBtn.disabled = true;
+        (testBtn as HTMLButtonElement).disabled = true;
         // Reset config check so it re-runs config fetch
         LootLockerAPI.hasLootLockerConfig = null;
         LootLockerAPI.sessionToken = null;
         await LootLockerAPI.init();
         testBtn.innerText = 'TEST CON';
-        testBtn.disabled = false;
+        (testBtn as HTMLButtonElement).disabled = false;
       });
     }
     
