@@ -21,10 +21,10 @@ export const LootLockerAPI = {
   domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '',
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
   playerIdentifier: localStorage.getItem('LL_PID'),
-  isNewPlayer: false,
+  
   sessionToken: null,
   playerId: null,
-  version: 'v1.54.00',
+  version: 'v1.58.00',
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -103,12 +103,12 @@ export const LootLockerAPI = {
       return false;
     }
 
-    let isNewPlayer = this.isNewPlayer;
+    
     if (!this.playerIdentifier) {
       this.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
       localStorage.setItem('LL_PID', this.playerIdentifier);
       this.log(`Generated new Player Identifier: ${this.playerIdentifier}`, 'info');
-      isNewPlayer = true;
+      
     } else {
       this.log(`Loaded existing Player Identifier: ${this.playerIdentifier}`, 'info');
     }
@@ -168,42 +168,6 @@ export const LootLockerAPI = {
           if (tn) tn.innerText = 'ID: ' + localName;
           this.setPlayerName(localName);
         } catch(e) {}
-
-        // If it's a new player, submit an initial score
-        if (isNewPlayer) {
-          this.isNewPlayer = false; // Reset the flag to avoid duplicate submission
-          this.log('First-time player detected: Pre-submitting initial score.', 'info');
-          
-          try {
-            const existingPB = localStorage.getItem('EternalJumper_PB');
-            if (!existingPB) {
-              localStorage.setItem('EternalJumper_PB', JSON.stringify({ alt: 2000, coins: 0, time: 1000 }));
-              if (game) {
-                game.personalBest = { alt: 2000, coins: 0, time: 1000 };
-              }
-              setTimeout(async () => {
-                try {
-                  await this.submitScore(2000, 0, 1000, getLang());
-                  this.log('Initial score of 2000m successfully pre-submitted to LootLocker!', 'success');
-                } catch (err) {
-                  this.log(`Failed to submit initial score: ${err.message}`, 'error');
-                }
-              }, 1000);
-            } else {
-              const pbObj = JSON.parse(existingPB);
-              if (pbObj && pbObj.alt !== undefined) {
-                setTimeout(async () => {
-                  try {
-                    await this.submitScore(pbObj.alt, pbObj.coins || 0, pbObj.time || 1000, getLang());
-                    this.log('Existing PB successfully pre-submitted to LootLocker!', 'success');
-                  } catch (err) {
-                    this.log(`Failed to submit existing PB: ${err.message}`, 'error');
-                  }
-                }, 1000);
-              }
-            }
-          } catch (e) {}
-        }
 
         return d;
       }
@@ -444,7 +408,7 @@ export const LootLockerAPI = {
     this.playerIdentifier = null;
     this.sessionToken = null;
     this.playerId = null;
-    this.isNewPlayer = true;
+    
     this.init();
   }
 };
@@ -453,6 +417,6 @@ export const LootLockerAPI = {
 if (!LootLockerAPI.playerIdentifier) {
   LootLockerAPI.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
   localStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
-  LootLockerAPI.isNewPlayer = true;
+  
 }
 

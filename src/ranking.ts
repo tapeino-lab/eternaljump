@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.54.00 - 2026/07/21 03:40 (JST)',
+      version: 'v1.58.00 - 2026/07/21 10:12 (JST)',
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {
@@ -66,7 +66,10 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             let now = Date.now();
             let lastFetch = parseInt(localStorage.getItem('LL_LAST_FETCH') || '0');
             
-            if (!forceNetwork && (now - lastFetch) < 30000) {
+            // プレイモード（ポーズなど）は60秒、デモモード放置時は10分キャッシュ
+            let cacheDuration = (game && game.state === 'demo') ? 600000 : 60000;
+
+            if (!forceNetwork && (now - lastFetch) < cacheDuration) {
               try {
                 let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
                 if (cached) scores = JSON.parse(cached);

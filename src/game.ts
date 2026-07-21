@@ -274,7 +274,16 @@ export { dR, inputHandler };
       game.lastRank = null;
       game.lastScoreObj = null;
       game.isNewRecord = false;
-      game.personalBest = null;
+      let storedPB = localStorage.getItem('EternalJumper_PB');
+      if (storedPB) {
+        try {
+          game.personalBest = JSON.parse(storedPB);
+        } catch (e) {
+          game.personalBest = null;
+        }
+      } else {
+        game.personalBest = null;
+      }
       game.clearTime = 0;
       game.lastUI = '';
     }

@@ -149,6 +149,7 @@ export function drawAIDevPath() {
 
 export function drawGameEntities(ts) {
   game.birds.forEach(function(b) {
+    if (b.y > game.cameraY + config.gameHeight + 50 || b.y < game.cameraY - 50) return;
     if (!b.isPerched && (b.type === 1 || b.type === 2)) b.draw(ts);
   });
   game.platforms.forEach(function(p) {
@@ -164,15 +165,19 @@ export function drawGameEntities(ts) {
     c.draw();
   });
   game.meteors.forEach(function(m) {
+    if (m.y > game.cameraY + config.gameHeight + 100 || m.y < game.cameraY - 100) return;
     m.draw();
   });
   game.particles.forEach(function(pt) {
+    if (pt.y > game.cameraY + config.gameHeight + 50 || pt.y < game.cameraY - 50) return;
     pt.draw();
   });
   game.birds.forEach(function(b) {
+    if (b.y > game.cameraY + config.gameHeight + 50 || b.y < game.cameraY - 50) return;
     if (b.type === 0 || (b.isPerched && b.type === 1)) b.draw(ts);
   });
   game.npcs.forEach(function(n) {
+    if (n.y > game.cameraY + config.gameHeight + 100 || n.y + (n.h || 32) < game.cameraY - 100) return;
     n.draw();
   });
   game.player.draw();
