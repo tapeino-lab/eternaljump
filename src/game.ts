@@ -698,10 +698,14 @@ export { dR, inputHandler };
         }
       }
       
-      // アトラクトモード(タイトル画面)かつデモプレイ中ではなく一時停止もされていない時だけバージョン表示
+      // アトラクトモード(タイトル画面)かつデモプレイ中ではなく一時停止もされていない時だけバージョン表示と設定ボタンを表示
       const tVer = $('titleVersion');
       if (tVer) {
         tVer.style.display = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
+      }
+      const sBtn = $('settingsBtn');
+      if (sBtn) {
+        sBtn.style.display = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
       }
       
       render(ts);
@@ -727,7 +731,7 @@ export { dR, inputHandler };
       if (game.isPaused) {
         if (isAttractMode) {
           clearTimeout(attractTimer);
-          $('pauseTitle').innerText = 'SETTING';
+          $('pauseTitle').innerText = 'SETTINGS';
           $('btnTitlePause').style.display = 'none';
           $('btnResumePause').style.display = 'none';
           $('tapToStartMsg').innerText = 'TAP TO CLOSE';

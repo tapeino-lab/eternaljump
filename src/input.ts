@@ -42,14 +42,6 @@ export function setupInputListeners() {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'a' || e.key === 'd' || e.key === 'A' || e.key === 'D') {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       e.preventDefault();
-      if (game.isPaused) {
-        togglePause();
-        return;
-      }
-      if (isAttractMode) {
-        startRealGame();
-        return;
-      }
       if ($('rankingModal').style.display === 'flex') {
         if (ignoreNextTap) return;
         if (RankingAPI.isShowingResult) {
@@ -66,6 +58,15 @@ export function setupInputListeners() {
             $('tapToStartMsg').style.display = 'block';
           }
         }
+        return;
+      }
+      
+      if (game.isPaused) {
+        togglePause();
+        return;
+      }
+      if (isAttractMode) {
+        startRealGame();
         return;
       }
       if (game.state === 'gameover' || game.state === 'clear') {
@@ -95,14 +96,7 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
-
-      if (isAttractMode) {
-        if (ignoreNextTap) return;
-        e.preventDefault();
-        e.stopPropagation();
-        startRealGame();
-        return;
-      }
+      if (e.target.closest('#settingsBtn')) return;
 
       if ($('rankingModal').style.display === 'flex') {
         if (ignoreNextTap) {
@@ -133,8 +127,21 @@ export function setupInputListeners() {
               $('tapToStartMsg').innerText = 'TAP TO RESUME';
               $('tapToStartMsg').style.display = 'block';
             }
+          } else {
+            // let the event propagate so we can scroll
           }
+          return;
         }
+      }
+
+      if (game.isPaused) return;
+
+      if (isAttractMode) {
+        if (ignoreNextTap) return;
+        e.preventDefault();
+        e.stopPropagation();
+        startRealGame();
+        return;
       }
     }, { capture: true, passive: false });
   });
@@ -146,6 +153,18 @@ export function setupInputListeners() {
       e.stopPropagation();
       setAuto(!game.aiActive);
     }, { passive: false });
+    
+    let settingsBtn = $('settingsBtn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener(ev, function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isAttractMode) {
+          togglePause();
+        }
+      }, { passive: false });
+    }
+
     $('pauseScreen').addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagramPause')) return;
       if (e.target.id === 'btnRankingPause') {
@@ -178,10 +197,12 @@ export function setupInputListeners() {
         e.stopPropagation();
       } else if (e.target.closest('#pausePlayerNameInput') || e.target.closest('#pauseEditIcon') || e.target.closest('#nameEditModal')) {
         e.stopPropagation();
-      } else {
+      } else if (e.target.id === 'pauseScreen') {
         e.preventDefault();
         e.stopPropagation();
         togglePause();
+      } else {
+        e.stopPropagation();
       }
     }, { passive: false });
   });
@@ -223,6 +244,8 @@ export function setupInputListeners() {
     if (dc) {
       dc.addEventListener(ev, (e: any) => {
         if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+        if (e.target.closest('#settingsBtn')) return;
+        if (game.isPaused) return;
         if (isAttractMode) {
           if (ignoreNextTap) return;
           e.preventDefault();
@@ -235,6 +258,7 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     ctrlArea.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+      if (e.target.closest('#settingsBtn')) return;
       e.preventDefault();
       if ($('nameEditModal').style.display === 'flex') {
         e.stopPropagation();
@@ -274,6 +298,7 @@ export function setupInputListeners() {
   ['touchmove', 'mousemove'].forEach(ev => {
     ctrlArea.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+      if (e.target.closest('#settingsBtn')) return;
       if (e.cancelable) e.preventDefault();
       if (isAttractMode) return;
       if (game.demoMode && game.aiActive) return;
@@ -300,6 +325,7 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     tOv.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+      if (e.target.closest('#settingsBtn')) return;
       e.preventDefault();
       if (game.isPaused) {
         e.stopPropagation();

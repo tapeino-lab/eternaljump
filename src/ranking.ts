@@ -309,7 +309,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             else if (rNum === 3) m = '<span class="mdl mdl-3"></span>';
             
             let nVal = r.n || '--- ??';
-            if (isC && (!r.n || r.n === '--- ??')) nVal = getPlayerName();
+            if (isC) nVal = getPlayerName(); // 常にローカルの最新の名前で上書きして表示する
             
             let lang = '---';
             let name = '??';

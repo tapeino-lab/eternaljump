@@ -309,7 +309,7 @@ background: #444 !important;
 border-color: #ddd !important;
 box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
 }
-#pauseBtn:hover, #autoBtn:hover {
+#pauseBtn:hover, #autoBtn:hover, #settingsBtn:hover {
 background: rgba(255,255,255,0.3) !important;
 border-color: #fff !important;
 box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
@@ -350,7 +350,7 @@ color: #fff;
 border: 1px solid rgba(255,255,255,0.3);
 }
 
-#pauseBtn:active, #autoBtn:active {
+#pauseBtn:active, #autoBtn:active, #settingsBtn:active {
 background: rgba(255,255,255,0.2) !important;
 border-color: #fff !important;
 transform: scale(0.95);
@@ -386,7 +386,7 @@ flex-direction: column;
 justify-content: center;
 align-items: center;
 pointer-events: auto;
-z-index: 15;
+z-index: 200;
 top: 0;
 left: 0;
 right: 0;
