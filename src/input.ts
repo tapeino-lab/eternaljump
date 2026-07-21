@@ -37,18 +37,6 @@ export function setupInputListeners() {
   const tOv = $('touchOverlay');
   const tOrgs = new Map();
 
-  const handleInsta = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.open('https://www.instagram.com/tapeino.lab', '_blank');
-  };
-  ['touchstart', 'mousedown'].forEach(ev => {
-    const btn1 = $('btnInstagram');
-    if (btn1) btn1.addEventListener(ev, handleInsta, { passive: false });
-    const btn2 = $('btnInstagramPause');
-    if (btn2) btn2.addEventListener(ev, handleInsta, { passive: false });
-  });
-
   document.addEventListener('keydown', (e: any) => {
     if ($('nameEditModal').style.display === 'flex') return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'a' || e.key === 'd' || e.key === 'A' || e.key === 'D') {
