@@ -724,12 +724,15 @@ import { runAI } from './ai.js';
         }
         for (let i = 0; i < this.count; i++) {
           let dY = this.y, dH = this.h, px = this.x + i * config.platformW;
-          let cImg = this.isIcy ? IMG.i30 : IMG.p30;
+          
+          let isSpecial = (this.type === 'h-slide' || this.type === 'v-slide' || this.isGlowing);
+          let cImg = this.isIcy ? IMG.i30 : (isSpecial && !this.isGround ? IMG.pm30 : IMG.p30);
+          
           if (this.squishTimers[i] > 0) {
             let t = this.squishTimers[i];
-            if (t >= 10) { dH = 22; cImg = this.isIcy ? IMG.i22 : IMG.p22; }
-            else if (t >= 7) { dH = 14; cImg = this.isIcy ? IMG.i14 : IMG.p14; }
-            else if (t >= 4) { dH = 22; cImg = this.isIcy ? IMG.i22 : IMG.p22; }
+            if (t >= 10) { dH = 22; cImg = this.isIcy ? IMG.i22 : (isSpecial && !this.isGround ? IMG.pm22 : IMG.p22); }
+            else if (t >= 7) { dH = 14; cImg = this.isIcy ? IMG.i14 : (isSpecial && !this.isGround ? IMG.pm14 : IMG.p14); }
+            else if (t >= 4) { dH = 22; cImg = this.isIcy ? IMG.i22 : (isSpecial && !this.isGround ? IMG.pm22 : IMG.p22); }
             dY += (this.h - dH);
           }
           if (cImg.complete && cImg.naturalWidth > 0) ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
