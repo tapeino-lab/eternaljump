@@ -107,6 +107,15 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+
+      if (isAttractMode) {
+        if (ignoreNextTap) return;
+        e.preventDefault();
+        e.stopPropagation();
+        startRealGame();
+        return;
+      }
+
       if ($('rankingModal').style.display === 'flex') {
         if (ignoreNextTap) {
           e.preventDefault();
@@ -220,29 +229,6 @@ export function setupInputListeners() {
         if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen') && !e.target.closest('#nameEditModal') && !e.target.closest('#rankingModal')) togglePause();
         return;
       }
-      if (RankingAPI.isShowingResult) {
-        if (ignoreNextTap) return;
-        e.preventDefault();
-        RankingAPI.showRanking(game.state);
-        return;
-      }
-
-
-      
-      if (isAttractMode) {
-        if (ignoreNextTap) return;
-        e.preventDefault();
-        startRealGame();
-        return;
-      }
-      if (game.state === 'gameover' || game.state === 'clear') {
-        if (!game.demoMode) {
-          if (ignoreNextTap) return;
-          e.preventDefault();
-          initGame(true);
-          $('tapToStartMsg').style.display = 'none';
-        }
-      }
     }, { passive: false });
     
     let dc = $('demoRankingContainer');
@@ -330,23 +316,6 @@ export function setupInputListeners() {
       if (game.isPaused) {
         e.stopPropagation();
         togglePause();
-        return;
-      }
-      if (isAttractMode) {
-        startRealGame();
-        return;
-      }
-      if (RankingAPI.isShowingResult) {
-        if (ignoreNextTap) return;
-        RankingAPI.showRanking(game.state);
-        return;
-      }
-      if (game.state === 'gameover' || game.state === 'clear') {
-        if (!game.demoMode) {
-          if (ignoreNextTap) return;
-          initGame(true);
-          $('tapToStartMsg').style.display = 'none';
-        }
         return;
       }
       if (game.demoMode && game.aiActive) return;
