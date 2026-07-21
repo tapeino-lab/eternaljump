@@ -267,10 +267,11 @@ export function updateHUD(topColor) {
     else aiStatus = '<br><span style="color:#0f0;font-size:5px;">FEARLESS AI</span>';
   }
   
-  let curState = game.scoreCoin + '_' + MIN(config.goalScore, game.score) + '_' + timeStr + '_' + aiStatus;
+  let curState = game.scoreCoin + '_' + MIN(config.goalScore, game.score) + '_' + timeStr + '_' + aiStatus + '_' + isAttractMode;
   if (game.lastUI !== curState) {
     let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
-    let nUI = '<span style="flex:1;text-align:left;display:flex;align-items:center;">' + cI + '<span>' + game.scoreCoin + '</span></span><span style="flex:1;text-align:center;">' + MIN(config.goalScore, game.score) + 'm' + aiStatus + '</span><span style="flex:1;text-align:right;">TIME <span style="' + timeNumStyle + '">' + timeStr + '</span></span>';
+    let timeHtml = (isAttractMode || demoState.active) ? '' : 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>';
+    let nUI = '<span style="flex:1;text-align:left;display:flex;align-items:center;">' + cI + '<span>' + game.scoreCoin + '</span></span><span style="flex:1;text-align:center;">' + MIN(config.goalScore, game.score) + 'm' + aiStatus + '</span><span style="flex:1;text-align:right;">' + timeHtml + '</span>';
     ui.innerHTML = nUI;
     game.lastUI = curState;
   }

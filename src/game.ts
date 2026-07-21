@@ -156,6 +156,10 @@ export { dR, inputHandler };
       }
       isAttractMode = true;
       demoState.active = false;
+      
+      let btnInsta = $('btnInstagram');
+      if (btnInsta) btnInsta.style.display = 'flex';
+
       $('rankingModal').style.display = 'none';
       $('demoRankingContainer').style.display = 'none';
       $('tapToStartMsg').innerText = 'TAP TO START';
@@ -193,6 +197,9 @@ export { dR, inputHandler };
       demoState.active = false;
       document.body.classList.remove('attract-mode');
       
+      let btnInsta = $('btnInstagram');
+      if (btnInsta) btnInsta.style.display = 'none';
+
       $('rankingModal').style.display = 'none';
       $('demoRankingContainer').style.display = 'none';
       $('tapToStartMsg').style.display = 'none';

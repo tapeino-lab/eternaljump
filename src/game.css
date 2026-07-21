@@ -1,477 +1,477 @@
-    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-    
-    body {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      overflow: hidden;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      height: 100dvh;
-      color: #fff;
-      font-family: sans-serif;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: none;
-    }
-    
-    #gameContainer {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    #canvasWrapper {
-      position: relative;
-    }
-    
-    #touchOverlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 5;
-      touch-action: none;
-    }
-    
-    #controlArea {
-      --ca-bg: #1a1a1a;
-      --ca-bt: #333;
-      --l-bg: #00c3e3;
-      --l-col: #f4f4f4;
-      --l-sh1: #007b8f;
-      --l-sh2: #80e1f1;
-      --l-bd: #000;
-      --r-bg: #ff4554;
-      --r-col: #f4f4f4;
-      --r-sh1: #a3000d;
-      --r-sh2: #ff9ea6;
-      --r-bd: #000;
-      --l-a-bg: #0098b3;
-      --r-a-bg: #cc1222;
-      --a-col: #e0e0e0;
-      --a-sh: #000;
-      --rad: 0px;
-      background: var(--ca-bg);
-      border-top: 4px solid var(--ca-bt);
-      box-sizing: border-box;
-      display: flex;
-      position: relative;
-    }
-    
-    #controlArea[data-theme="classic"] {
-      --ca-bg: #1a1a1a;
-      --ca-bt: #333;
-      --l-bg: #8b0000;
-      --l-sh1: #400;
-      --l-sh2: #f55;
-      --r-bg: #8b0000;
-      --r-sh1: #400;
-      --r-sh2: #f55;
-      --l-a-bg: #500;
-      --r-a-bg: #500;
-    }
-    
-    #controlArea[data-theme="vintage"] {
-      --ca-bg: #666666;
-      --ca-bt: #444444;
-      --l-bg: #4a769e;
-      --l-sh1: #2b4a66;
-      --l-sh2: #85aed4;
-      --r-bg: #bd4c43;
-      --r-sh1: #7a2922;
-      --r-sh2: #e88a82;
-      --l-a-bg: #355a7a;
-      --r-a-bg: #9e342c;
-    }
-    
-    .dir-btn {
-      display: flex;
-      flex: 1;
-      height: 100%;
-      background: transparent;
-      border: none;
-      position: relative;
-      cursor: pointer;
-      padding: 0;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .dir-btn::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      box-sizing: border-box;
-      z-index: 1;
-    }
-    
-    .tri {
-      font-size: 32px;
-      z-index: 3;
-      pointer-events: none;
-      position: relative;
-      color: rgba(0,0,0,0.5);
-    }
-    
-    #btnLeft .tri::after {
-      content: '◀';
-      position: absolute;
-      left: 0;
-      top: 2px;
-      color: var(--l-col);
-    }
-    
-    #btnRight .tri::after {
-      content: '▶';
-      position: absolute;
-      left: 0;
-      top: 2px;
-      color: var(--r-col);
-    }
-    
-    .dir-btn.active-visual .tri {
-      transform: translateY(3px);
-      color: rgba(0,0,0,0.7);
-    }
-    
-    .dir-btn.active-visual .tri::after {
-      top: 1px;
-      color: var(--a-col);
-    }
-    
-    .s-wrap {
-      position: absolute;
-      width: 7px;
-      height: 7px;
-      z-index: 2;
-      pointer-events: none;
-    }
-    
-    .s0 { top: 8px; left: 8px; }
-    .s1 { top: 8px; right: 8px; }
-    .s2 { bottom: 8px; left: 8px; }
-    .s3 { bottom: 8px; right: 8px; }
-    
-    .dir-btn.active-visual .s-wrap {
-      transform: translateY(3px);
-    }
-    
-    .screw {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ddd, #777 60%, #111 100%);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.6);
-    }
-    
-    .screw-slot {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-    
-    .screw-slot::before, .screw-slot::after {
-      content: '';
-      position: absolute;
-      background: #111;
-      box-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-    }
-    
-    .screw-slot::before { top: 1px; left: 3px; width: 1px; height: 5px; }
-    .screw-slot::after { top: 3px; left: 1px; width: 5px; height: 1px; }
-    
-    #btnLeft::after {
-      background-color: var(--l-bg);
-      border: 2px solid var(--l-bd);
-      border-radius: var(--rad);
-      box-shadow: inset 0 -3px 0px var(--l-sh1), inset 0 3px 0px var(--l-sh2);
-    }
-    
-    #btnRight::after {
-      background-color: var(--r-bg);
-      border: 2px solid var(--r-bd);
-      border-radius: var(--rad);
-      box-shadow: inset 0 -3px 0px var(--r-sh1), inset 0 3px 0px var(--r-sh2);
-    }
-    
-    #btnLeft.active-visual::after {
-      background-color: var(--l-a-bg, var(--a-bg));
-      box-shadow: inset 0 4px 8px var(--a-sh);
-    }
-    
-    #btnRight.active-visual::after {
-      background-color: var(--r-a-bg, var(--a-bg));
-      box-shadow: inset 0 4px 8px var(--a-sh);
-    }
-    
-    body.attract-mode .dir-btn::after,
-    body.game-ended .dir-btn::after,
-    body.game-paused .dir-btn::after,
-    body.attract-mode .dir-btn .s-wrap,
-    body.game-ended .dir-btn .s-wrap,
-    body.game-paused .dir-btn .s-wrap,
-    body.attract-mode .dir-btn .tri,
-    body.game-ended .dir-btn .tri,
-    body.game-paused .dir-btn .tri {
-      opacity: 0.2;
-    }
-    
-    body.game-paused #controlArea {
-      filter: brightness(0.5);
-      transition: filter 0.2s;
-    }
-    
-    #gameCanvas {
-      image-rendering: pixelated;
-      display: block;
-    }
-    
-    #ui {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      font-size: 10px;
-      color: #fff;
-      font-family: 'Press Start 2P', sans-serif;
-      pointer-events: none;
-      z-index: 10;
-      display: flex;
-      align-items: flex-start;
-      transition: color .3s;
-    }
-    
-    @keyframes blink { 0% { opacity: 1; } 100% { opacity: .2; } }
-    @keyframes blinkRetro { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-    @keyframes blinkLong { 0%, 75% { opacity: 1; } 76%, 100% { opacity: 0; } }
-    @keyframes superBlink {
-      0% { color: #f00; } 14% { color: #0f0; } 28% { color: #00f; }
-      42% { color: #ff0; } 57% { color: #0ff; } 71% { color: #f0f; }
-      85% { color: #fff; } 100% { color: #f00; }
-    }
-    @keyframes rowBlink {
-      0%, 100% { background: rgba(255,255,0,0.25); color: #ff0; }
-      50% { background: transparent; color: #cc0; }
-    }
-    
-    #debugModal {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.85);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-      overflow-y: auto;
-      padding: 24px 0;
-      box-sizing: border-box;
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    .dbg-btn {
-      background: #333;
-      color: #fff;
-      border: 2px solid #555;
-      padding: 8px 12px;
-      font-size: 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 3px;
-      font-weight: bold;
-      transition: all 0.05s ease;
-    }
-    
-    @media (hover: hover) {
-      .dbg-btn:hover {
-        background: #444 !important;
-        border-color: #ddd !important;
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
-      }
-      #pauseEditIcon:hover {
-        background: #444 !important;
-        border-color: #ddd !important;
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
-      }
-      #pauseBtn:hover, #autoBtn:hover {
-        background: rgba(255,255,255,0.3) !important;
-        border-color: #fff !important;
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
-      }
-    }
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-    .dbg-btn:active {
-      background: #555 !important;
-      border-color: #fff !important;
-      transform: scale(0.95);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
-    }
-    
-    #pauseEditIcon {
-      transition: all 0.05s ease;
-    }
-    #pauseEditIcon:active {
-      background: #555 !important;
-      border-color: #fff !important;
-      transform: scale(0.95);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
-    }
-    
-    #pauseBtn {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      font-size: 14px;
-      font-weight: bold;
-      background: rgba(0,0,0,0.5);
-      padding: 4px 8px;
-      border-radius: 6px;
-      z-index: 20;
-      cursor: pointer;
-      pointer-events: auto;
-      transition: all 0.05s ease;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    
-    #pauseBtn:active, #autoBtn:active {
-      background: rgba(255,255,255,0.2) !important;
-      border-color: #fff !important;
-      transform: scale(0.95);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
-    }
-    
-    #autoBtn {
-      position: absolute;
-      bottom: 36px;
-      right: 10px;
-      font-size: 10px;
-      font-weight: bold;
-      background: rgba(0,255,0,0.5);
-      padding: 4px 5px;
-      border-radius: 6px;
-      z-index: 20;
-      cursor: pointer;
-      pointer-events: auto;
-      transition: all 0.05s ease;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
-      display: none;
-    }
-    
-    #autoBtn:active {
-      background: rgba(255,255,255,0.2) !important;
-    }
-    
-    #pauseScreen {
-      position: absolute;
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      pointer-events: auto;
-      z-index: 15;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      font-family: 'Press Start 2P', sans-serif;
-    }
-    
-    #pauseScreen h1 {
-      font-size: 16px;
-      margin: 0;
-      color: #fff;
-      letter-spacing: 2px;
-    }
-    
-    .mdl {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      margin-right: 2px;
-      vertical-align: middle;
-      box-sizing: border-box;
-      position: relative;
-      top: -1px;
-    }
-    
-    .mdl-1 { background: #FFD700; border: 1px solid #DAA520; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
-    .mdl-2 { background: #E0E0E0; border: 1px solid #999; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
-    .mdl-3 { background: #CD7F32; border: 1px solid #8B4513; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
+body {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+overflow: hidden;
+background: #000;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+height: 100vh;
+height: 100dvh;
+color: #fff;
+font-family: sans-serif;
+user-select: none;
+-webkit-user-select: none;
+touch-action: none;
+}
 
-    /* Coin icon global pixel-art styles */
-    .coin-icon {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      position: relative;
-      flex-shrink: 0;
-      transform: translateY(-1px); /* 錯視とフォントのベースライン余白を考慮して1px上にシフト */
-    }
-    .coin-icon .c-p1 { position: absolute; left: 2px; top: 0; width: 4px; height: 8px; background: #fd0; }
-    .coin-icon .c-p2 { position: absolute; left: 0; top: 2px; width: 8px; height: 4px; background: #fd0; }
-    .coin-icon .c-p3 { position: absolute; left: 3px; top: 2px; width: 2px; height: 4px; background: #ff9; }
+#gameContainer {
+position: relative;
+display: flex;
+justify-content: center;
+align-items: center;
+}
 
-    /* Centering layout for coin + text */
-    .coin-align {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      line-height: 1;
-    }
+#canvasWrapper {
+position: relative;
+}
+
+#touchOverlay {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 5;
+touch-action: none;
+}
+
+#controlArea {
+--ca-bg: #1a1a1a;
+--ca-bt: #333;
+--l-bg: #00c3e3;
+--l-col: #f4f4f4;
+--l-sh1: #007b8f;
+--l-sh2: #80e1f1;
+--l-bd: #000;
+--r-bg: #ff4554;
+--r-col: #f4f4f4;
+--r-sh1: #a3000d;
+--r-sh2: #ff9ea6;
+--r-bd: #000;
+--l-a-bg: #0098b3;
+--r-a-bg: #cc1222;
+--a-col: #e0e0e0;
+--a-sh: #000;
+--rad: 0px;
+background: var(--ca-bg);
+border-top: 4px solid var(--ca-bt);
+box-sizing: border-box;
+display: flex;
+position: relative;
+}
+
+#controlArea[data-theme="classic"] {
+--ca-bg: #1a1a1a;
+--ca-bt: #333;
+--l-bg: #8b0000;
+--l-sh1: #400;
+--l-sh2: #f55;
+--r-bg: #8b0000;
+--r-sh1: #400;
+--r-sh2: #f55;
+--l-a-bg: #500;
+--r-a-bg: #500;
+}
+
+#controlArea[data-theme="vintage"] {
+--ca-bg: #666666;
+--ca-bt: #444444;
+--l-bg: #4a769e;
+--l-sh1: #2b4a66;
+--l-sh2: #85aed4;
+--r-bg: #bd4c43;
+--r-sh1: #7a2922;
+--r-sh2: #e88a82;
+--l-a-bg: #355a7a;
+--r-a-bg: #9e342c;
+}
+
+.dir-btn {
+display: flex;
+flex: 1;
+height: 100%;
+background: transparent;
+border: none;
+position: relative;
+cursor: pointer;
+padding: 0;
+justify-content: center;
+align-items: center;
+}
+
+.dir-btn::after {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+box-sizing: border-box;
+z-index: 1;
+}
+
+.tri {
+font-size: 32px;
+z-index: 3;
+pointer-events: none;
+position: relative;
+color: rgba(0,0,0,0.5);
+}
+
+#btnLeft .tri::after {
+content: '◀';
+position: absolute;
+left: 0;
+top: 2px;
+color: var(--l-col);
+}
+
+#btnRight .tri::after {
+content: '▶';
+position: absolute;
+left: 0;
+top: 2px;
+color: var(--r-col);
+}
+
+.dir-btn.active-visual .tri {
+transform: translateY(3px);
+color: rgba(0,0,0,0.7);
+}
+
+.dir-btn.active-visual .tri::after {
+top: 1px;
+color: var(--a-col);
+}
+
+.s-wrap {
+position: absolute;
+width: 7px;
+height: 7px;
+z-index: 2;
+pointer-events: none;
+}
+
+.s0 { top: 8px; left: 8px; }
+.s1 { top: 8px; right: 8px; }
+.s2 { bottom: 8px; left: 8px; }
+.s3 { bottom: 8px; right: 8px; }
+
+.dir-btn.active-visual .s-wrap {
+transform: translateY(3px);
+}
+
+.screw {
+position: relative;
+width: 100%;
+height: 100%;
+border-radius: 50%;
+background: radial-gradient(circle at 30% 30%, #ddd, #777 60%, #111 100%);
+box-shadow: 0 1px 2px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.screw-slot {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+}
+
+.screw-slot::before, .screw-slot::after {
+content: '';
+position: absolute;
+background: #111;
+box-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+}
+
+.screw-slot::before { top: 1px; left: 3px; width: 1px; height: 5px; }
+.screw-slot::after { top: 3px; left: 1px; width: 5px; height: 1px; }
+
+#btnLeft::after {
+background-color: var(--l-bg);
+border: 2px solid var(--l-bd);
+border-radius: var(--rad);
+box-shadow: inset 0 -3px 0px var(--l-sh1), inset 0 3px 0px var(--l-sh2);
+}
+
+#btnRight::after {
+background-color: var(--r-bg);
+border: 2px solid var(--r-bd);
+border-radius: var(--rad);
+box-shadow: inset 0 -3px 0px var(--r-sh1), inset 0 3px 0px var(--r-sh2);
+}
+
+#btnLeft.active-visual::after {
+background-color: var(--l-a-bg, var(--a-bg));
+box-shadow: inset 0 4px 8px var(--a-sh);
+}
+
+#btnRight.active-visual::after {
+background-color: var(--r-a-bg, var(--a-bg));
+box-shadow: inset 0 4px 8px var(--a-sh);
+}
+
+body.attract-mode .dir-btn::after,
+body.game-ended .dir-btn::after,
+body.game-paused .dir-btn::after,
+body.attract-mode .dir-btn .s-wrap,
+body.game-ended .dir-btn .s-wrap,
+body.game-paused .dir-btn .s-wrap,
+body.attract-mode .dir-btn .tri,
+body.game-ended .dir-btn .tri,
+body.game-paused .dir-btn .tri {
+opacity: 0.2;
+}
+
+body.game-paused #controlArea {
+filter: brightness(0.5);
+transition: filter 0.2s;
+}
+
+#gameCanvas {
+image-rendering: pixelated;
+display: block;
+}
+
+#ui {
+position: absolute;
+top: 10px;
+left: 10px;
+right: 10px;
+font-size: 10px;
+color: #fff;
+font-family: "Press Start 2P", sans-serif;
+pointer-events: none;
+z-index: 10;
+display: flex;
+align-items: flex-start;
+transition: color .3s;
+}
+
+@keyframes blink { 0% { opacity: 1; } 100% { opacity: .2; } }
+@keyframes blinkRetro { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes blinkLong { 0%, 75% { opacity: 1; } 76%, 100% { opacity: 0; } }
+@keyframes superBlink {
+0% { color: #f00; } 14% { color: #0f0; } 28% { color: #00f; }
+42% { color: #ff0; } 57% { color: #0ff; } 71% { color: #f0f; }
+85% { color: #fff; } 100% { color: #f00; }
+}
+@keyframes rowBlink {
+0%, 100% { background: rgba(255,255,0,0.25); color: #ff0; }
+50% { background: transparent; color: #cc0; }
+}
+
+#debugModal {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.85);
+z-index: 100;
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+align-items: center;
+overflow-y: auto;
+padding: 24px 0;
+box-sizing: border-box;
+-webkit-overflow-scrolling: touch;
+}
+
+.dbg-btn {
+background: #333;
+color: #fff;
+border: 2px solid #555;
+padding: 8px 12px;
+font-size: 14px;
+border-radius: 8px;
+cursor: pointer;
+margin: 3px;
+font-weight: bold;
+transition: all 0.05s ease;
+}
+
+@media (hover: hover) {
+.dbg-btn:hover {
+background: #444 !important;
+border-color: #ddd !important;
+box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
+}
+#pauseEditIcon:hover {
+background: #444 !important;
+border-color: #ddd !important;
+box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
+}
+#pauseBtn:hover, #autoBtn:hover {
+background: rgba(255,255,255,0.3) !important;
+border-color: #fff !important;
+box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
+}
+}
+
+.dbg-btn:active {
+background: #555 !important;
+border-color: #fff !important;
+transform: scale(0.95);
+box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+#pauseEditIcon {
+transition: all 0.05s ease;
+}
+#pauseEditIcon:active {
+background: #555 !important;
+border-color: #fff !important;
+transform: scale(0.95);
+box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+#pauseBtn {
+position: absolute;
+bottom: 10px;
+right: 10px;
+font-size: 14px;
+font-weight: bold;
+background: rgba(0,0,0,0.5);
+padding: 4px 8px;
+border-radius: 6px;
+z-index: 20;
+cursor: pointer;
+pointer-events: auto;
+transition: all 0.05s ease;
+color: #fff;
+border: 1px solid rgba(255,255,255,0.3);
+}
+
+#pauseBtn:active, #autoBtn:active {
+background: rgba(255,255,255,0.2) !important;
+border-color: #fff !important;
+transform: scale(0.95);
+box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+#autoBtn {
+position: absolute;
+bottom: 36px;
+right: 10px;
+font-size: 10px;
+font-weight: bold;
+background: rgba(0,255,0,0.5);
+padding: 4px 5px;
+border-radius: 6px;
+z-index: 20;
+cursor: pointer;
+pointer-events: auto;
+transition: all 0.05s ease;
+color: #fff;
+border: 1px solid rgba(255,255,255,0.3);
+display: none;
+}
+
+#autoBtn:active {
+background: rgba(255,255,255,0.2) !important;
+}
+
+#pauseScreen {
+position: absolute;
+display: none;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+pointer-events: auto;
+z-index: 15;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background: rgba(0,0,0,0.5);
+font-family: "Press Start 2P", sans-serif;
+}
+
+#pauseScreen h1 {
+font-size: 16px;
+margin: 0;
+color: #fff;
+letter-spacing: 2px;
+}
+
+.mdl {
+display: inline-block;
+width: 8px;
+height: 8px;
+margin-right: 2px;
+vertical-align: middle;
+box-sizing: border-box;
+position: relative;
+top: -1px;
+}
+
+.mdl-1 { background: #FFD700; border: 1px solid #DAA520; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
+.mdl-2 { background: #E0E0E0; border: 1px solid #999; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
+.mdl-3 { background: #CD7F32; border: 1px solid #8B4513; box-shadow: inset -1px -1px 0 rgba(0,0,0,.3), inset 1px 1px 0 rgba(255,255,255,.5); }
+
+/* Coin icon global pixel-art styles */
+.coin-icon {
+display: inline-block;
+width: 8px;
+height: 8px;
+position: relative;
+flex-shrink: 0;
+transform: translateY(-1px); /* 錯視とフォントのベースライン余白を考慮して1px上にシフト */
+}
+.coin-icon .c-p1 { position: absolute; left: 2px; top: 0; width: 4px; height: 8px; background: #fd0; }
+.coin-icon .c-p2 { position: absolute; left: 0; top: 2px; width: 8px; height: 4px; background: #fd0; }
+.coin-icon .c-p3 { position: absolute; left: 3px; top: 2px; width: 2px; height: 4px; background: #ff9; }
+
+/* Centering layout for coin + text */
+.coin-align {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 3px;
+line-height: 1;
+}
 
 
-    #settingsBtn {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      z-index: 20;
-      cursor: pointer;
-      pointer-events: auto;
-      transition: all 0.05s ease;
-      display: none;
-      background: transparent;
-      border: none;
-      padding: 0;
-      box-shadow: none;
-      width: 24px;
-      height: 24px;
-      align-items: center;
-      justify-content: center;
-    }
-    .gear-icon {
-      fill: #f3f4f6;
-      transition: fill 0.1s ease;
-    }
-    #settingsBtn:hover .gear-icon {
-      fill: #ffffff;
-    }
-    #settingsBtn:hover {
-      transform: scale(1.1);
-    }
-    #settingsBtn:active .gear-icon {
-      fill: #ffffff;
-    }
-    #settingsBtn:active {
-      transform: scale(0.9);
-    }
-    
+#settingsBtn {
+position: absolute;
+bottom: 12px;
+right: 12px;
+z-index: 20;
+cursor: pointer;
+pointer-events: auto;
+transition: all 0.05s ease;
+display: none;
+background: transparent;
+border: none;
+padding: 0;
+box-shadow: none;
+width: 24px;
+height: 24px;
+align-items: center;
+justify-content: center;
+}
+.gear-icon {
+fill: #f3f4f6;
+transition: fill 0.1s ease;
+}
+#settingsBtn:hover .gear-icon {
+fill: #ffffff;
+}
+#settingsBtn:hover {
+transform: scale(1.1);
+}
+#settingsBtn:active .gear-icon {
+fill: #ffffff;
+}
+#settingsBtn:active {
+transform: scale(0.9);
+}
+

@@ -94,7 +94,7 @@ export function setupInputListeners() {
   // Intercept all touch/mousedown events globally when ranking modal is open
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, (e: any) => {
-      if (e.target.closest('#btnInstagram')) return;
+      if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
       if ($('rankingModal').style.display === 'flex') {
         if (ignoreNextTap) {
           e.preventDefault();
@@ -138,6 +138,7 @@ export function setupInputListeners() {
       setAuto(!game.aiActive);
     }, { passive: false });
     $('pauseScreen').addEventListener(ev, (e: any) => {
+      if (e.target.closest('#btnInstagramPause')) return;
       if (e.target.id === 'btnRankingPause') {
         e.preventDefault();
         e.stopPropagation();
@@ -201,7 +202,7 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, (e: any) => {
-      if (e.target.closest('#btnInstagram')) return;
+      if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
       if (game.isPaused) {
         e.stopPropagation();
         if (!e.target.closest('#pauseBtn') && !e.target.closest('#pauseScreen') && !e.target.closest('#nameEditModal') && !e.target.closest('#rankingModal')) togglePause();
@@ -235,7 +236,7 @@ export function setupInputListeners() {
     let dc = $('demoRankingContainer');
     if (dc) {
       dc.addEventListener(ev, (e: any) => {
-        if (e.target.closest('#btnInstagram')) return;
+        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
         if (isAttractMode) {
           if (ignoreNextTap) return;
           e.preventDefault();
@@ -247,7 +248,7 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(ev => {
     ctrlArea.addEventListener(ev, (e: any) => {
-      if (e.target.closest('#btnInstagram')) return;
+      if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
       e.preventDefault();
       if ($('nameEditModal').style.display === 'flex') {
         e.stopPropagation();
@@ -286,7 +287,7 @@ export function setupInputListeners() {
 
   ['touchmove', 'mousemove'].forEach(ev => {
     ctrlArea.addEventListener(ev, (e: any) => {
-      if (e.target.closest('#btnInstagram')) return;
+      if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
       if (e.cancelable) e.preventDefault();
       if (isAttractMode) return;
       if (game.demoMode && game.aiActive) return;
@@ -312,7 +313,7 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(ev => {
     tOv.addEventListener(ev, (e: any) => {
-      if (e.target.closest('#btnInstagram')) return;
+      if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
       e.preventDefault();
       if (game.isPaused) {
         e.stopPropagation();
