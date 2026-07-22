@@ -98,7 +98,7 @@ export function updateParticles(game) {
 }
 
 
-export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode) {
+export function updateNPCs(game, setIgnoreNextTap, pBtn, isAttractMode) {
   if (game.state === 'playing' && game.npcs.length > 0 && Math.random() < 0.00003) {
     let anyBalloon = game.npcs.some(n => n.balloonTimer > 0);
     if (!anyBalloon) {
@@ -173,7 +173,6 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode)
               game.shakeAmount = 0;
               if (!isAttractMode) {
                 pBtn.style.display = 'none';
-                autoBtn.style.display = 'none';
               }
               $('tapToStartMsg').style.display = 'none';
               setIgnoreNextTap(true);
@@ -254,7 +253,7 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode)
   }
 }
 
-export function updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode) {
+export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) {
   game.items.forEach(function(i) {
     if (!i.collected && game.player.x < i.x + i.w && game.player.x + game.player.w > i.x && game.player.y < i.y + i.h && game.player.y + game.player.h > i.y) {
       i.collected = true;
@@ -306,7 +305,6 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttr
           game.shakeAmount = 0;
           if (!isAttractMode) {
             pBtn.style.display = 'none';
-            autoBtn.style.display = 'none';
           }
           $('tapToStartMsg').style.display = 'none';
           setIgnoreNextTap(true);
@@ -386,7 +384,7 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttr
   }
 }
 
-export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode, initGame, spawnPlatform) {
+export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, initGame, spawnPlatform) {
   let upB = game.cameraY + config.gameHeight * 0.4, lowB = game.cameraY + config.gameHeight * 0.6, nY = game.cameraY;
   if (game.player.y < upB) nY -= (upB - game.player.y) * 0.15;
   else if (game.player.y > lowB) nY += (game.player.y - lowB) * 0.15;
@@ -461,7 +459,6 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
         
         if (!isAttractMode) {
           pBtn.style.display = 'none';
-          autoBtn.style.display = 'none';
         }
         $('tapToStartMsg').style.display = 'none';
         setIgnoreNextTap(true);
@@ -496,7 +493,6 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttra
     game.endReason = 'TIME_UP';
     if (!isAttractMode) {
       pBtn.style.display = 'none';
-      autoBtn.style.display = 'none';
     }
     $('tapToStartMsg').style.display = 'none';
     setIgnoreNextTap(true);

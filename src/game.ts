@@ -30,8 +30,7 @@ export { dR, inputHandler };
     const btnR = $('btnRight');
     const wrap = $('canvasWrapper');
     export const pBtn = $('pauseBtn');
-    export const autoBtn = $('autoBtn');
-    const pScreen = $('pauseScreen');
+        const pScreen = $('pauseScreen');
     
     document.addEventListener('pwa-update-available', () => {
       if (game.state === 'intro' || demoState.active) {
@@ -54,7 +53,6 @@ export { dR, inputHandler };
       }
     });
     
-    export const isDev = new URLSearchParams(window.location.search).get('dev') === '1';
     export let isAttractMode = false;
     export let attractTimer = null;
     export let ignoreNextTap = false;
@@ -224,8 +222,6 @@ export { dR, inputHandler };
     export function setAuto(isActive) {
       if (!game.demoMode) return;
       game.aiActive = isActive;
-      $('autoBtn').innerText = isActive ? '🤖 ON' : '🤖 OFF';
-      $('autoBtn').style.background = isActive ? 'rgba(0,255,0,0.5)' : 'rgba(255,0,0,0.5)';
       if (isActive) {
         game.player.aiPath = [];
         game.player.visitedHistory = [];
@@ -411,7 +407,6 @@ export { dR, inputHandler };
       setupGameCameraAndPlayer(isConsecutive);
       
       if (game.demoMode) {
-        autoBtn.style.display = 'none';
         if (isAttractMode) {
           if (demoState.active) setAuto(true);
           else setAuto(false);
@@ -419,7 +414,6 @@ export { dR, inputHandler };
           setAuto(true);
         }
       } else {
-        autoBtn.style.display = 'none';
         game.aiActive = false;
       }
       
@@ -571,7 +565,7 @@ export { dR, inputHandler };
         game.player.update();
         
         updateBirds(game);
-        updateNPCs(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode);
+        updateNPCs(game, setIgnoreNextTap, pBtn, isAttractMode);
         
         if (game.state !== 'intro' && (game.state as any) !== 'intro_anim') {
           if (game.player.y < game.goalY - 120) {
@@ -588,10 +582,10 @@ export { dR, inputHandler };
         if (game.state === 'intro') {
           updateIntroState();
         } else if ((game.state as any) !== 'intro_anim') {
-          updatePlayingState(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode);
+          updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode);
         }
         
-        postUpdatePhysics(game, setIgnoreNextTap, pBtn, autoBtn, isAttractMode, initGame, spawnPlatform);
+        postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, initGame, spawnPlatform);
       }
     }
 
@@ -703,10 +697,6 @@ export { dR, inputHandler };
       if (tVer) {
         tVer.style.display = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
       }
-      const sBtn = $('settingsBtn');
-      if (sBtn) {
-        sBtn.style.display = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
-      }
       
       render(ts);
       if (loopRunning) requestAnimationFrame(loop);
@@ -789,9 +779,4 @@ export { dR, inputHandler };
 
     setupKeyboardUI();
 
-    if (isDev) {
-      $('devControls').style.display = 'flex';
-      
-    } else {
-      startAttractCycle();
-    }
+    startAttractCycle();

@@ -3,7 +3,7 @@ import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI } from "./utils.js";
 
 // We will import game, ctx, IMG from game.js later.
 import { game } from './state.js';
-import { ctx, IMG, groundCache, groundCached, isDev } from './game.js';
+import { ctx, IMG, groundCache, groundCached } from './game.js';
 
 import { dR } from './renderer.js';
 import { runAI } from './ai.js';
@@ -738,11 +738,6 @@ import { runAI } from './ai.js';
           if (cImg.complete && cImg.naturalWidth > 0) ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
           else dR(px, dY, config.platformW, dH, '#A0522D');
         }
-        if (isDev && game.demoMode && this.blacklisted) {
-          ctx.strokeStyle = 'rgba(255,0,0,0.8)';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(FLR(this.x - 2), FLR(this.y - 2), FLR(this.w + 4), FLR(this.h + 4));
-        }
       }
     }
 
@@ -785,11 +780,6 @@ import { runAI } from './ai.js';
         dR(this.x, this.y, 16, 8, '#f33');
         dR(this.x + 2, this.y + 2, 4, 4, '#fff');
         dR(this.x + 10, this.y + 2, 4, 4, '#fff');
-        if (isDev && game.demoMode && this.blacklisted) {
-          ctx.strokeStyle = 'rgba(255,0,0,0.8)';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(FLR(this.x - 2), FLR(this.y - 2), FLR(this.w + 4), FLR(this.h + 4));
-        }
       }
     }
 

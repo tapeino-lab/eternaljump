@@ -1,5 +1,5 @@
 import { game, demoState } from './state.js';
-import { ctx, isDev, isAttractMode, IMG, runAttractUICycle, setIgnoreNextTap } from './game.js';
+import { ctx, isAttractMode, IMG, runAttractUICycle, setIgnoreNextTap } from './game.js';
 
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
@@ -116,37 +116,6 @@ export function drawBG(ts) {
   return getColorAtScore(scoreTop);
 }
 
-export function drawAIDevPath() {
-  if (isDev && game.demoMode && game.aiActive && game.player.aiPath && game.player.aiPath.length > 0) {
-    ctx.strokeStyle = game.player.adventureMode ? 'rgba(255, 255, 0, 0.8)' : 'rgba(0, 255, 0, 0.6)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    let px = game.player.x + game.player.w / 2;
-    let py = game.player.y + game.player.h / 2;
-    ctx.moveTo(px, py);
-    for (let n of game.player.aiPath) {
-      let nx = n.x + (n.w ? n.w / 2 : 8);
-      let ny = n.y + (n.h ? n.h / 2 : 8);
-      if (n.type === 'h-slide') nx += n.direction * 30;
-      let dx = nx - px;
-      if (ABS(dx) > config.gameWidth / 2) {
-        let wrappedNx = dx > 0 ? nx - config.gameWidth : nx + config.gameWidth;
-        let wrappedPx = dx > 0 ? px + config.gameWidth : px - config.gameWidth;
-        ctx.lineTo(wrappedNx, ny);
-        ctx.moveTo(wrappedPx, py);
-      }
-      ctx.lineTo(nx, ny);
-      ctx.fillStyle = game.player.adventureMode ? 'rgba(255, 255, 0, 0.8)' : 'rgba(0, 255, 0, 0.8)';
-      ctx.arc(nx, ny, 3, 0, PI * 2);
-      ctx.fill();
-      ctx.moveTo(nx, ny);
-      px = nx;
-      py = ny;
-    }
-    ctx.stroke();
-  }
-}
-
 export function drawGameEntities(ts) {
   game.birds.forEach(function(b) {
     if (b.y > game.cameraY + config.gameHeight + 50 || b.y < game.cameraY - 50) return;
@@ -261,11 +230,6 @@ export function updateHUD(topColor) {
   else if (timeLeft === 0) timeNumStyle = 'color:#f00;';
   
   let aiStatus = '';
-  if (isDev && game.demoMode && game.aiActive) {
-    if (game.player.adventureMode) aiStatus = '<br><span style="color:#ff0;font-size:5px;animation:blink 0.5s infinite alternate">⚡ SURVIVAL MODE</span>';
-    else if (game.player.stagnationTimer > 80) aiStatus = '<br><span style="color:#fa0;font-size:5px;">DEEP SEARCH...</span>';
-    else aiStatus = '<br><span style="color:#0f0;font-size:5px;">FEARLESS AI</span>';
-  }
   
   let curState = game.scoreCoin + '_' + MIN(config.goalScore, game.score) + '_' + timeStr + '_' + aiStatus + '_' + isAttractMode;
   if (game.lastUI !== curState) {
@@ -360,7 +324,6 @@ export function render(ts) {
     ctx.drawImage(IMG.title, FLR((config.gameWidth - IMG.title.naturalWidth) / 2), 95);
   }
   
-  drawAIDevPath();
   drawGameEntities(ts);
   
   ctx.restore();

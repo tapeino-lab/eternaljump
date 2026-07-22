@@ -30,7 +30,7 @@ export function evaluatePath(path, entity) {
     let stepY = i > 0 ? (path[i - 1].y - pn.y) : (entity.y - pn.y);
     if (stepY < 10) score -= 500;
     if (entity.visitedHistory.includes(pn)) score -= 500000;
-    if (pn.collected !== undefined) score += 2000;
+    if (pn.collected !== undefined) score += 10000;
       
     if (i > 0) {
       let prNx = path[i - 1].x + (path[i - 1].w || 16) / 2;
@@ -49,8 +49,12 @@ export function searchPaths(currentNode, allNodes, depth, currentPath, allPaths)
     allPaths.push([...currentPath]);
   } else {
     let nextMoves = [];
+    let limitY = currentNode.y - 120;
+    if (currentNode.collected !== undefined || currentNode.isGlowing || currentNode.type === 'super') {
+      limitY = currentNode.y - 350;
+    }
     for (let n of allNodes) {
-      if (n !== currentNode && n.y < currentNode.y && n.y >= currentNode.y - 120) {
+      if (n !== currentNode && n.y < currentNode.y && n.y >= limitY) {
         nextMoves.push(n);
       }
     }
@@ -194,8 +198,9 @@ export function runAI(entity) {
     if (entity.vy < 0) peakY = py - (entity.vy * entity.vy) / (2 * config.jumpGravity);
       
     for (let n of validNodes) {
-      let isSup = (n.type === 'super' || n.isGlowing || n.collected !== undefined);
-      let minReqY = isSup ? peakY - 30 : peakY + 14;
+      let isItem = (n.collected !== undefined);
+      let isSup = (n.type === 'super' || n.isGlowing);
+      let minReqY = isItem ? peakY - 10 : (isSup ? peakY - 30 : peakY + 14);
       if (n.y >= minReqY && n.y <= py + 300) firstMoves.push(n);
     }
       

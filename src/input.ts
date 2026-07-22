@@ -1,5 +1,5 @@
 import { game, demoState } from './state.js';
-import { isDev, isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto } from './game.js';
+import { isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto } from './game.js';
 
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
@@ -32,7 +32,6 @@ function getCtrlDir(cx) {
 
 export function setupInputListeners() {
   const pBtn = $('pauseBtn');
-  const autoBtn = $('autoBtn');
   const ctrlArea = $('controlArea');
   const tOv = $('touchOverlay');
   const tOrgs = new Map();
@@ -96,7 +95,6 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     document.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
-      if (e.target.closest('#settingsBtn')) return;
 
       if ($('rankingModal').style.display === 'flex') {
         if (ignoreNextTap) {
@@ -148,22 +146,7 @@ export function setupInputListeners() {
 
   ['touchstart', 'mousedown'].forEach(function(ev) {
     pBtn.addEventListener(ev, togglePause, { passive: false });
-    autoBtn.addEventListener(ev, function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      setAuto(!game.aiActive);
-    }, { passive: false });
     
-    let settingsBtn = $('settingsBtn');
-    if (settingsBtn) {
-      settingsBtn.addEventListener(ev, function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (isAttractMode) {
-          togglePause();
-        }
-      }, { passive: false });
-    }
 
     $('pauseScreen').addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagramPause')) return;
@@ -244,8 +227,7 @@ export function setupInputListeners() {
     if (dc) {
       dc.addEventListener(ev, (e: any) => {
         if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
-        if (e.target.closest('#settingsBtn')) return;
-        if (game.isPaused) return;
+          if (game.isPaused) return;
         if (isAttractMode) {
           if (ignoreNextTap) return;
           e.preventDefault();
@@ -258,7 +240,6 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     ctrlArea.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
-      if (e.target.closest('#settingsBtn')) return;
       e.preventDefault();
       if ($('nameEditModal').style.display === 'flex') {
         e.stopPropagation();
@@ -298,7 +279,6 @@ export function setupInputListeners() {
   ['touchmove', 'mousemove'].forEach(ev => {
     ctrlArea.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
-      if (e.target.closest('#settingsBtn')) return;
       if (e.cancelable) e.preventDefault();
       if (isAttractMode) return;
       if (game.demoMode && game.aiActive) return;
@@ -325,7 +305,6 @@ export function setupInputListeners() {
   ['touchstart', 'mousedown'].forEach(ev => {
     tOv.addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
-      if (e.target.closest('#settingsBtn')) return;
       e.preventDefault();
       if (game.isPaused) {
         e.stopPropagation();

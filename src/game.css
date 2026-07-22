@@ -285,7 +285,7 @@ box-sizing: border-box;
 -webkit-overflow-scrolling: touch;
 }
 
-.dbg-btn {
+.modal-btn {
 background: #333;
 color: #fff;
 border: 2px solid #555;
@@ -299,7 +299,7 @@ transition: all 0.05s ease;
 }
 
 @media (hover: hover) {
-.dbg-btn:hover {
+.modal-btn:hover {
 background: #444 !important;
 border-color: #ddd !important;
 box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
@@ -316,7 +316,7 @@ box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
 }
 }
 
-.dbg-btn:active {
+.modal-btn:active {
 background: #555 !important;
 border-color: #fff !important;
 transform: scale(0.95);
