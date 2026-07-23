@@ -195,9 +195,14 @@ class FireworksSystem {
         }
       }
 
-      if (s.alpha <= 0) {
+      if (s.alpha <= 0 || s.y > config.gameHeight + 250 || s.y < -350) {
         this.sparks.splice(i, 1);
       }
+    }
+
+    // 古いスマホ・低スペック端末向け粒子数制限（最大220個に抑制）
+    if (this.sparks.length > 220) {
+      this.sparks.splice(0, this.sparks.length - 220);
     }
   }
 

@@ -312,6 +312,7 @@ export function updateDemoRanking(ts) {
 export function render(ts) {
   let topColor = drawBG(ts);
   ctx.save();
+  ctx.imageSmoothingEnabled = false;
   
   let sX = 0, sY = 0;
   if (game.shakeAmount > 0) {
