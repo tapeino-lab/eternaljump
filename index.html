@@ -10,6 +10,14 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="ETERNAL JUMPER">
   <meta name="twitter:description" content="ETERNAL JUMPER">
+  <script>
+    function setAppHeight() {
+      document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+    }
+    window.addEventListener('resize', setAppHeight);
+    window.addEventListener('orientationchange', setAppHeight);
+    setAppHeight();
+  </script>
   <link rel="stylesheet" href="/src/game.css">
 </head>
 <body>
@@ -167,8 +175,8 @@
   </div>
 
   <!-- 名前編集用バーチャルキーボードモーダル (ゲーム画面＋操作エリアの最前面に表示) -->
-  <div id="nameEditModal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:rgba(0,0,0,0.9); z-index:9999; display:none; flex-direction:column; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif; box-sizing:border-box; padding:10px;">
-    <div id="nameEditModalContent" style="background:#0a0a0a; border:2px solid #333; border-radius:8px; padding:20px; width:100%; max-width:340px; max-height: 100vh; overflow-y: auto; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+  <div id="nameEditModal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; height:var(--app-height, 100vh); background:rgba(0,0,0,0.9); z-index:9999; display:none; flex-direction:column; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif; box-sizing:border-box; padding:10px;">
+    <div id="nameEditModalContent" style="background:#0a0a0a; border:2px solid #333; border-radius:8px; padding:20px; width:100%; max-width:340px; max-height: var(--app-height, 100vh); overflow-y: auto; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
       <div style="font-size:14px; color:#fff; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-shadow:1px 1px 0 #000;">EDIT NAME</div>
       
       <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:20px; box-sizing:border-box;">
