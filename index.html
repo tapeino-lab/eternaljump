@@ -82,7 +82,7 @@
             </div>
           </div>
         </div>
-      <div id="titleVersion" style="position:absolute; left:12px; bottom:12px; font-family:'Press Start 2P', monospace; font-size:9px; color:rgba(255,255,255,0.72); z-index:20; pointer-events:none;  letter-spacing:0.5px;">v1.86.19</div>
+      <div id="titleVersion" style="position:absolute; left:12px; bottom:12px; font-family:'Press Start 2P', monospace; font-size:9px; color:rgba(255,255,255,0.72); z-index:20; pointer-events:none;  letter-spacing:0.5px;"></div>
                   <div id="pauseBtn">II</div>
 
       <canvas id="gameCanvas"></canvas>
@@ -219,13 +219,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/eruda@3.0.1/eruda.min.js"></script>
   <script>
-    if (typeof eruda !== 'undefined') {
-      eruda.init({
-        tool: ['console', 'elements', 'info', 'snippets', 'sources', 'resources']
-      });
-    }
     if (!CanvasRenderingContext2D.prototype.roundRect) {
       CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
         if (w < 2 * r) r = w / 2;

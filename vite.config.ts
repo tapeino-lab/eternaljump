@@ -1,10 +1,16 @@
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import fs from 'fs';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+
 export default defineConfig(() => {
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(packageJson.version),
+    },
     base: process.env.VITE_BASE_PATH || './',
     plugins: [
       tailwindcss(),

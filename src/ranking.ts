@@ -8,7 +8,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
       pbKey: 'EternalJumper_PB',
-      version: 'v1.74.00 - 2026/07/21 23:31 (JST)',
+      version: `v${__APP_VERSION__}`,
       isShowingResult: false,
       prefetchedScoresPromise: null,
       hasLootLocker: function() {

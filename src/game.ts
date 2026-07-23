@@ -784,6 +784,11 @@ export { dR, inputHandler };
 
     setupInputListeners();
 
+    const tVer = $('titleVersion');
+    if (tVer) {
+      tVer.innerText = `v${__APP_VERSION__}`;
+    }
+
     setupKeyboardUI();
 
     startAttractCycle();
