@@ -13,9 +13,16 @@ class AirplaneBannerSystem {
   // 横断幕描画用オフスクリーンキャンバス
   private offCanvas: HTMLCanvasElement | null = null;
   private offCtx: CanvasRenderingContext2D | null = null;
+  private fontLoaded: boolean = false;
 
   constructor() {
     this.reset();
+    if (typeof document !== 'undefined' && document.fonts) {
+      document.fonts.ready.then(() => {
+        this.fontLoaded = true;
+        this.updateOffscreenBanner();
+      });
+    }
   }
 
   reset() {
@@ -27,7 +34,9 @@ class AirplaneBannerSystem {
     this.waveTimer = 0;
   }
 
-  private initOffscreenBanner(w: number, h: number) {
+  private updateOffscreenBanner() {
+    const w = 120;
+    const h = 15;
     if (!this.offCanvas) {
       this.offCanvas = document.createElement('canvas');
       this.offCanvas.width = w;
@@ -106,9 +115,15 @@ class AirplaneBannerSystem {
     const bannerW = 120;
     const bannerH = 15;
 
-    // オフスクリーンキャンバスの初期化（初回のみ）
+    // オフスクリーンキャンバスの初期化（初回のみ、またはフォント読み込み完了時）
     if (!this.offCanvas) {
-      this.initOffscreenBanner(bannerW, bannerH);
+      this.updateOffscreenBanner();
+    }
+    if (!this.fontLoaded && typeof document !== 'undefined' && document.fonts) {
+      if (document.fonts.check('8px "Press Start 2P"')) {
+        this.fontLoaded = true;
+        this.updateOffscreenBanner();
+      }
     }
 
     // 1. 横断幕の細分割はためき (6px刻みのなめらかな波打ち)
