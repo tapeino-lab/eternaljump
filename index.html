@@ -212,7 +212,26 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/eruda@3.0.1/eruda.min.js"></script>
-  <script>if (typeof eruda !== 'undefined') { eruda.init(); }</script>
+  <script>
+    if (typeof eruda !== 'undefined') {
+      eruda.init({
+        tool: ['console', 'elements', 'info', 'snippets', 'sources', 'resources']
+      });
+    }
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      };
+    }
+  </script>
   <script type="module" src="/src/game.ts"></script>
 </body>
 </html>
