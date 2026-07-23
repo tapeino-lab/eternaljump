@@ -457,3 +457,29 @@ fill: #ffffff;
 transform: scale(0.9);
 }
 
+
+@media (max-height: 520px) {
+  #nameEditModalContent {
+    padding: 10px !important;
+  }
+  #nameEditModalContent > div:first-child {
+    margin-bottom: 10px !important;
+  }
+  #nameEditModalContent > div:nth-child(2) {
+    margin-bottom: 10px !important;
+  }
+  #virtualKeyboard {
+    margin-bottom: 10px !important;
+    padding: 8px !important;
+  }
+  #kbContainer {
+    height: 220px !important;
+  }
+}
+
+@media (max-height: 440px) {
+  #nameEditModalContent {
+    transform: scale(0.85);
+    transform-origin: top center;
+  }
+}

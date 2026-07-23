@@ -168,7 +168,7 @@
 
   <!-- 名前編集用バーチャルキーボードモーダル (ゲーム画面＋操作エリアの最前面に表示) -->
   <div id="nameEditModal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:rgba(0,0,0,0.9); z-index:9999; display:none; flex-direction:column; justify-content:center; align-items:center; font-family:'Press Start 2P', sans-serif; box-sizing:border-box; padding:10px;">
-    <div style="background:#0a0a0a; border:2px solid #333; border-radius:8px; padding:20px; width:100%; max-width:340px; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+    <div id="nameEditModalContent" style="background:#0a0a0a; border:2px solid #333; border-radius:8px; padding:20px; width:100%; max-width:340px; max-height: 100vh; overflow-y: auto; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
       <div style="font-size:14px; color:#fff; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px; text-shadow:1px 1px 0 #000;">EDIT NAME</div>
       
       <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:20px; box-sizing:border-box;">
@@ -186,8 +186,8 @@
       
       <!-- 中央: キーボード -->
       <div id="virtualKeyboard" style="width:100%; background:#151515; border:2px solid #444; border-radius:6px; padding:12px; box-sizing:border-box; margin-bottom:20px;">
-        <!-- コンテナの高さを 340px に固定し、各ブロックは通常フロー。 -->
-        <div style="height: 340px; width: 100%;">
+        <!-- コンテナの高さを 260px に固定し、各ブロックは通常フロー。 -->
+        <div id="kbContainer" style="height: 260px; width: 100%;">
           <!-- A-Z Block -->
           <div id="kbLetters" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:6px 4px; align-content:start;"></div>
           <!-- 0-9 Block -->
