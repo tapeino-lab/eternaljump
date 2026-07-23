@@ -13,6 +13,7 @@ import { inputHandler, setupInputListeners } from './input.js';
 import { checkUpdateAndReload } from './pwa.js';
 import { game, demoState } from './state.js';
 import { setupKeyboardUI, openNameEditModal } from './keyboard.js';
+import { fireworksSystem } from './fireworks.js';
 export { dR, inputHandler };
     
         
@@ -154,6 +155,7 @@ export { dR, inputHandler };
       }
       isAttractMode = true;
       demoState.active = false;
+      fireworksSystem.launch();
       
       let btnInsta = $('btnInstagram');
       if (btnInsta) btnInsta.style.display = 'flex';
@@ -557,6 +559,7 @@ export { dR, inputHandler };
 
     function updatePhysics() {
       updateParticles(game);
+      fireworksSystem.update(game, isAttractMode);
       
       if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
         updateStateAnimations();

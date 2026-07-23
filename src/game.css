@@ -267,24 +267,6 @@ transition: color .3s;
 50% { background: transparent; color: #cc0; }
 }
 
-#debugModal {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0,0,0,0.85);
-z-index: 100;
-display: flex;
-flex-direction: column;
-justify-content: flex-start;
-align-items: center;
-overflow-y: auto;
-padding: 24px 0;
-box-sizing: border-box;
--webkit-overflow-scrolling: touch;
-}
-
 .modal-btn {
 background: #333;
 color: #fff;
@@ -309,7 +291,7 @@ background: #444 !important;
 border-color: #ddd !important;
 box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
 }
-#pauseBtn:hover, #autoBtn:hover, #settingsBtn:hover {
+#pauseBtn:hover {
 background: rgba(255,255,255,0.3) !important;
 border-color: #fff !important;
 box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
