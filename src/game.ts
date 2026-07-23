@@ -14,6 +14,7 @@ import { checkUpdateAndReload } from './pwa.js';
 import { game, demoState } from './state.js';
 import { setupKeyboardUI, openNameEditModal } from './keyboard.js';
 import { fireworksSystem } from './fireworks.js';
+import { airplaneSystem } from './airplane.js';
 export { dR, inputHandler };
     
         
@@ -560,6 +561,7 @@ export { dR, inputHandler };
     function updatePhysics() {
       updateParticles(game);
       fireworksSystem.update(game, isAttractMode);
+      airplaneSystem.update(game, isAttractMode);
       
       if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
         updateStateAnimations();

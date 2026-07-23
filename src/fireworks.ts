@@ -314,13 +314,13 @@ class FireworksSystem {
   /**
    * 描画処理
    */
-  draw(ctx: CanvasRenderingContext2D, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
 
     // 1. 爆発フラッシュ描画 (レトロな四角いフラッシュ)
     for (let i = 0; i < this.flashes.length; i++) {
       const f = this.flashes[i];
-      const screenY = Math.floor(f.y - cameraY);
+      const screenY = Math.floor(f.y);
       const size = Math.floor(f.radius * 1.8);
       ctx.globalAlpha = Math.max(0, f.alpha);
       ctx.fillStyle = f.color;
@@ -330,7 +330,7 @@ class FireworksSystem {
     // 2. ロケット描画 (レトロなドット弾)
     for (let i = 0; i < this.rockets.length; i++) {
       const r = this.rockets[i];
-      const screenY = Math.floor(r.y - cameraY);
+      const screenY = Math.floor(r.y);
 
       // 外側の枠
       ctx.globalAlpha = 0.7;
@@ -346,8 +346,8 @@ class FireworksSystem {
     // 3. 火花粒子描画 (レトロドット)
     for (let i = 0; i < this.sparks.length; i++) {
       const s = this.sparks[i];
-      const screenY = Math.floor(s.y - cameraY);
-      if (screenY < -50 || screenY > config.gameHeight + 50) continue;
+      const screenY = Math.floor(s.y);
+      if (screenY < -50 || screenY > config.gameHeight + 200) continue;
 
       let alpha = s.alpha;
       let color = s.color;

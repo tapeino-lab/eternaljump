@@ -1,6 +1,7 @@
 import { game, demoState } from './state.js';
 import { ctx, isAttractMode, IMG, runAttractUICycle, setIgnoreNextTap } from './game.js';
 import { fireworksSystem } from './fireworks.js';
+import { airplaneSystem } from './airplane.js';
 
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
@@ -321,7 +322,8 @@ export function render(ts) {
   }
   ctx.translate(FLR(sX), FLR(-game.cameraY + sY));
   
-  fireworksSystem.draw(ctx, game.cameraY);
+  fireworksSystem.draw(ctx);
+  airplaneSystem.draw(ctx);
   
   if (IMG.title && IMG.title.complete && IMG.title.naturalWidth > 0) {
     ctx.drawImage(IMG.title, FLR((config.gameWidth - IMG.title.naturalWidth) / 2), 95);
