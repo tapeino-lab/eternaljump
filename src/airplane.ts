@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { FLR } from './utils.js';
+import { FLR, SIN } from './utils.js';
 
 class AirplaneBannerSystem {
   x: number = 0;
@@ -7,8 +7,12 @@ class AirplaneBannerSystem {
   speed: number = 0.55;
   flapFrame: number = 0;
   flapTimer: number = 0;
-  respawnTimer: number = 0;
+  waveTimer: number = 0;
   text: string = '2026 VILNIUS';
+
+  // 横断幕描画用オフスクリーンキャンバス
+  private offCanvas: HTMLCanvasElement | null = null;
+  private offCtx: CanvasRenderingContext2D | null = null;
 
   constructor() {
     this.reset();
@@ -20,21 +24,42 @@ class AirplaneBannerSystem {
     this.y = 62;
     this.flapFrame = 0;
     this.flapTimer = 0;
-    this.respawnTimer = 0;
+    this.waveTimer = 0;
+  }
+
+  private initOffscreenBanner(w: number, h: number) {
+    if (!this.offCanvas) {
+      this.offCanvas = document.createElement('canvas');
+      this.offCanvas.width = w;
+      this.offCanvas.height = h;
+      this.offCtx = this.offCanvas.getContext('2d');
+    }
+    if (this.offCtx) {
+      // 純白背景
+      this.offCtx.fillStyle = '#ffffff';
+      this.offCtx.fillRect(0, 0, w, h);
+
+      // 黒文字
+      this.offCtx.fillStyle = '#000000';
+      this.offCtx.font = '8px "Press Start 2P", monospace';
+      this.offCtx.textAlign = 'center';
+      this.offCtx.textBaseline = 'middle';
+      this.offCtx.fillText(this.text, w / 2, h / 2 + 1);
+    }
   }
 
   update(game: any, isAttractMode: boolean) {
-    const isTitleOrIntro = isAttractMode || game.state === 'intro' || (game.state as any) === 'intro_anim';
-    if (!isTitleOrIntro) {
+    if (game && game.isPaused) {
       return;
     }
 
-    if (this.respawnTimer > 0) {
-      this.respawnTimer--;
-      if (this.respawnTimer <= 0) {
-        this.x = config.gameWidth + 40;
+    // プレイ中で、かつプレイヤーが高く登りすぎてカメラがコウノトリの位置(y=62)に戻らなくなった場合は更新・表示を終了
+    if (game && !isAttractMode) {
+      const recScreens = config.recoveryScreens ?? 1;
+      const maxReturnCamY = (game.highestCameraY ?? 0) + config.gameHeight * recScreens;
+      if (maxReturnCamY < -180) {
+        return;
       }
-      return;
     }
 
     // 右から左へ移動
@@ -47,15 +72,27 @@ class AirplaneBannerSystem {
       this.flapFrame = (this.flapFrame + 1) % 4;
     }
 
-    // 全体（コウノトリ＋ロープ＋横断幕）が左外に出たか判定
+    // 横断幕の上下ウェーブ用タイマー
+    this.waveTimer += 0.08;
+
+    // 全体（コウノトリ＋ロープ＋横断幕）が左外に出たらすぐに右から再登場
     if (this.x < -150) {
-      this.respawnTimer = 90; // 約1.5秒後に再登場
+      this.x = config.gameWidth + 30;
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, game?: any, isAttractMode?: boolean) {
+    // プレイ中で、かつカメラがコウノトリの位置に戻らなくなった場合は描画スキップ
+    if (game && !isAttractMode) {
+      const recScreens = config.recoveryScreens ?? 1;
+      const maxReturnCamY = (game.highestCameraY ?? 0) + config.gameHeight * recScreens;
+      if (maxReturnCamY < -180) {
+        return;
+      }
+    }
+
     // 画面外の場合は描画スキップ
-    if (this.x < -160 || this.x > config.gameWidth + 60 || this.respawnTimer > 0) {
+    if (this.x < -160 || this.x > config.gameWidth + 60) {
       return;
     }
 
@@ -66,10 +103,20 @@ class AirplaneBannerSystem {
 
     const bannerX = storkX + 28;
     const bannerY = storkY - 2;
-    const bannerW = 116; // 左右に十分な余白を持たせた幅
+    const bannerW = 120;
     const bannerH = 15;
 
-    // 1. ロープ描画 (コウノトリの脚/尾付近 -> 横断幕前部)
+    // オフスクリーンキャンバスの初期化（初回のみ）
+    if (!this.offCanvas) {
+      this.initOffscreenBanner(bannerW, bannerH);
+    }
+
+    // 1. 横断幕の細分割はためき (6px刻みのなめらかな波打ち)
+    const sliceWidth = 6;
+    const slices = Math.ceil(bannerW / sliceWidth);
+    const waveY0 = FLR(SIN(this.waveTimer) * 1.5); // 先端ブロックの波オフセット
+
+    // ロープ描画 (コウノトリの脚/尾付近 -> 横断幕先頭ブロック)
     const ropeStartX = storkX + 17;
     const ropeStartY1 = storkY + 4;
     const ropeStartY2 = storkY + 8;
@@ -80,30 +127,28 @@ class AirplaneBannerSystem {
     // 上ロープ
     ctx.beginPath();
     ctx.moveTo(ropeStartX, ropeStartY1);
-    ctx.lineTo(bannerX, bannerY + 3);
+    ctx.lineTo(bannerX, bannerY + waveY0 + 3);
     ctx.stroke();
 
     // 下ロープ
     ctx.beginPath();
     ctx.moveTo(ropeStartX, ropeStartY2);
-    ctx.lineTo(bannerX, bannerY + bannerH - 3);
+    ctx.lineTo(bannerX, bannerY + waveY0 + bannerH - 3);
     ctx.stroke();
 
-    // 2. 横断幕 (Banner) 描画 - 上下揺れなし、枠なし白地＆黒文字
-    ctx.save();
+    // 2. 横断幕 (Banner) の波打ち描画
+    if (this.offCanvas) {
+      for (let i = 0; i < slices; i++) {
+        const sx = i * sliceWidth;
+        const sw = Math.min(sliceWidth, bannerW - sx);
+        const waveY = FLR(SIN(this.waveTimer - i * 0.35) * 1.5);
 
-    // 背景（純白）
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(bannerX, bannerY, bannerW, bannerH);
+        const dx = bannerX + sx;
+        const dy = bannerY + waveY;
 
-    // シンプルな黒文字「2026 VILNIUS」
-    ctx.fillStyle = '#000000';
-    ctx.font = '8px "Press Start 2P", monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.text, bannerX + bannerW / 2, bannerY + bannerH / 2 + 1);
-
-    ctx.restore();
+        ctx.drawImage(this.offCanvas, sx, 0, sw, bannerH, dx, dy, sw, bannerH);
+      }
+    }
 
     // 3. コウノトリ (Stork) ドット絵描画（右から左へ飛行）
     // くちばし (長いオレンジ色)

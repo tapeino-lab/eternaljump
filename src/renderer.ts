@@ -323,7 +323,7 @@ export function render(ts) {
   ctx.translate(FLR(sX), FLR(-game.cameraY + sY));
   
   fireworksSystem.draw(ctx);
-  airplaneSystem.draw(ctx);
+  airplaneSystem.draw(ctx, game, isAttractMode);
   
   if (IMG.title && IMG.title.complete && IMG.title.naturalWidth > 0) {
     ctx.drawImage(IMG.title, FLR((config.gameWidth - IMG.title.naturalWidth) / 2), 95);

@@ -109,8 +109,19 @@ class FireworksSystem {
    * @param isAttractMode アトラクトモードかどうか
    */
   update(game: any, isAttractMode: boolean) {
-    const isJumpingUp = game.state === 'playing' && game.player && game.player.vy < -2;
-    const allowSpawn = (isAttractMode || game.state === 'intro' || (game.state as any) === 'intro_anim') && !isJumpingUp;
+    if (game && game.isPaused) {
+      return;
+    }
+
+    let allowSpawn = isAttractMode;
+    if (!isAttractMode && game) {
+      const recScreens = config.recoveryScreens ?? 1;
+      const maxReturnCamY = (game.highestCameraY ?? 0) + config.gameHeight * recScreens;
+      // カメラが地上・花火高度に戻れる範囲(maxReturnCamY >= -200)であれば打ち上げを継続
+      if (maxReturnCamY >= -200) {
+        allowSpawn = true;
+      }
+    }
 
     // スポーン処理
     if (allowSpawn) {
@@ -320,33 +331,33 @@ class FireworksSystem {
     // 1. 爆発フラッシュ描画 (レトロな四角いフラッシュ)
     for (let i = 0; i < this.flashes.length; i++) {
       const f = this.flashes[i];
-      const screenY = Math.floor(f.y);
-      const size = Math.floor(f.radius * 1.8);
+      const screenY = FLR(f.y);
+      const size = FLR(f.radius * 1.8);
       ctx.globalAlpha = Math.max(0, f.alpha);
       ctx.fillStyle = f.color;
-      ctx.fillRect(Math.floor(f.x - size / 2), Math.floor(screenY - size / 2), size, size);
+      ctx.fillRect(FLR(f.x - size / 2), FLR(screenY - size / 2), size, size);
     }
 
     // 2. ロケット描画 (レトロなドット弾)
     for (let i = 0; i < this.rockets.length; i++) {
       const r = this.rockets[i];
-      const screenY = Math.floor(r.y);
+      const screenY = FLR(r.y);
 
       // 外側の枠
       ctx.globalAlpha = 0.7;
       ctx.fillStyle = r.color;
-      ctx.fillRect(Math.floor(r.x - 2), Math.floor(screenY - 2), 4, 4);
+      ctx.fillRect(FLR(r.x - 2), FLR(screenY - 2), 4, 4);
 
       // 内側の白い芯
       ctx.globalAlpha = 1.0;
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(Math.floor(r.x - 1), Math.floor(screenY - 1), 2, 2);
+      ctx.fillRect(FLR(r.x - 1), FLR(screenY - 1), 2, 2);
     }
 
     // 3. 火花粒子描画 (レトロドット)
     for (let i = 0; i < this.sparks.length; i++) {
       const s = this.sparks[i];
-      const screenY = Math.floor(s.y);
+      const screenY = FLR(s.y);
       if (screenY < -50 || screenY > config.gameHeight + 200) continue;
 
       let alpha = s.alpha;
@@ -358,9 +369,9 @@ class FireworksSystem {
         alpha = Math.min(1.0, alpha + 0.4);
       }
 
-      const px = Math.floor(s.x);
+      const px = FLR(s.x);
       const py = screenY;
-      const sz = Math.max(1, Math.floor(s.size * 1.2));
+      const sz = Math.max(1, FLR(s.size * 1.2));
 
       ctx.globalAlpha = Math.max(0, alpha);
       ctx.fillStyle = color;
