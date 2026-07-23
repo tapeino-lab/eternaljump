@@ -171,7 +171,7 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, isAttractMode) {
               game.endReason = 'NPC_CLEAR';
               game.clearTime = game.playTime;
               game.shakeAmount = 0;
-              if (!isAttractMode) {
+              if (!isAttractMode && pBtn) {
                 pBtn.style.display = 'none';
               }
               $('tapToStartMsg').style.display = 'none';
@@ -303,7 +303,7 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) 
           game.endReason = 'CLEAR';
           game.clearTime = game.playTime;
           game.shakeAmount = 0;
-          if (!isAttractMode) {
+          if (!isAttractMode && pBtn) {
             pBtn.style.display = 'none';
           }
           $('tapToStartMsg').style.display = 'none';
@@ -457,7 +457,7 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, i
         game.endReason = 'DEATH_FALL';
         game.player.y = game.cameraY + config.gameHeight - game.player.h * 0.5;
         
-        if (!isAttractMode) {
+        if (!isAttractMode && pBtn) {
           pBtn.style.display = 'none';
         }
         $('tapToStartMsg').style.display = 'none';
@@ -491,7 +491,7 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, i
     game.state = 'gameover';
     document.body.classList.add('game-ended');
     game.endReason = 'TIME_UP';
-    if (!isAttractMode) {
+    if (!isAttractMode && pBtn) {
       pBtn.style.display = 'none';
     }
     $('tapToStartMsg').style.display = 'none';

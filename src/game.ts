@@ -401,10 +401,12 @@ export { dR, inputHandler };
       
       game.eventLog = [];
       if (!isAttractMode) {
-        pBtn.style.display = 'block';
-        pBtn.innerText = 'II';
+        if (pBtn) {
+          pBtn.style.display = 'block';
+          pBtn.innerText = 'II';
+        }
       } else {
-        pBtn.style.display = 'none';
+        if (pBtn) pBtn.style.display = 'none';
       }
       
       setupGameCameraAndPlayer(isConsecutive);
