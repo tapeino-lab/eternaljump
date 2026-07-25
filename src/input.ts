@@ -200,19 +200,19 @@ export function setupInputListeners() {
 
     $('pauseScreen').addEventListener(ev, (e: any) => {
       if (e.target.closest('#btnInstagramPause')) return;
-      if (e.target.id === 'btnRankingPause') {
+      if (e.target.closest('#btnRankingPause')) {
         e.preventDefault();
         e.stopPropagation();
         RankingAPI.showRanking('pause');
-      } else if (e.target.id === 'btnResumePause') {
+      } else if (e.target.closest('#btnResumePause')) {
         e.preventDefault();
         e.stopPropagation();
         togglePause();
-      } else if (e.target.id === 'btnTitlePause') {
+      } else if (e.target.closest('#btnTitlePause')) {
         e.preventDefault();
         e.stopPropagation();
         $('pauseConfirmModal').style.display = 'flex';
-      } else if (e.target.id === 'btnConfirmYes') {
+      } else if (e.target.closest('#btnConfirmYes')) {
         e.preventDefault();
         e.stopPropagation();
         $('pauseConfirmModal').style.display = 'none';
@@ -221,7 +221,7 @@ export function setupInputListeners() {
         setIgnoreNextTap(true);
         setTimeout(() => setIgnoreNextTap(false), 500);
         startAttractCycle();
-      } else if (e.target.id === 'btnConfirmNo') {
+      } else if (e.target.closest('#btnConfirmNo')) {
         e.preventDefault();
         e.stopPropagation();
         $('pauseConfirmModal').style.display = 'none';
