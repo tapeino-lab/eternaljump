@@ -1,6 +1,6 @@
 import { $ } from './utils.js';
 import { game } from './state.js';
-import { FlyingCoin } from './entities.js';
+import { FlyingCoin } from './entities/index.js';
 
 export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', alreadyAddedToTotal: boolean = false, showWindow: boolean = true) {
   if (coins <= 0) return;
@@ -24,7 +24,7 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
     floater.style.left = '50%';
     floater.style.top = 'calc(100% * 256 / 360)';
     floater.style.transform = 'translateX(-50%)';
-    floater.style.backgroundColor = 'rgba(0,0,0,0.85)';
+    floater.style.backgroundColor = 'rgba(0,0,0,0.4)';
     floater.style.border = '2px solid #fff';
     floater.style.padding = '12px 16px';
     floater.style.borderRadius = '4px';
@@ -86,12 +86,54 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
         valSpan.textContent = remainingCoins.toString();
       }
 
-      let fc = new FlyingCoin(startX, startY + game.cameraY, () => {
+            let domStartX = 50;
+      let domStartY = 50;
+      let domEndX = 10;
+      let domEndY = 10;
+      let uiIcon = document.querySelector('#ui .coin-icon');
+      let floaterIcon = floater ? floater.querySelector('.coin-icon') : null;
+      let cwEl = document.getElementById('canvasWrapper');
+
+      if (cwEl && uiIcon) {
+          let cwRect = cwEl.getBoundingClientRect();
+          if (floaterIcon) {
+            let fRect = floaterIcon.getBoundingClientRect();
+            domStartX = ((fRect.left + fRect.width/2 - cwRect.left) / cwRect.width) * 100;
+            domStartY = ((fRect.top + fRect.height/2 - cwRect.top) / cwRect.height) * 100;
+          } else {
+            domStartX = 50;
+            domStartY = (250 / 360) * 100;
+          }
+          let uRect = uiIcon.getBoundingClientRect();
+          domEndX = ((uRect.left + uRect.width/2 - cwRect.left) / cwRect.width) * 100;
+          domEndY = ((uRect.top + uRect.height/2 - cwRect.top) / cwRect.height) * 100;
+      }
+
+      let fc = document.createElement('div');
+      fc.className = 'coin-icon';
+      fc.innerHTML = '<div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div>';
+      fc.style.position = 'absolute';
+      fc.style.zIndex = '3000';
+      fc.style.pointerEvents = 'none';
+      if (cwEl) cwEl.appendChild(fc);
+
+      let anim = fc.animate([
+        { left: domStartX + '%', top: domStartY + '%', transform: 'translate(-50%, -50%) scale(1.5)', opacity: 1 },
+        { left: domEndX + '%', top: domEndY + '%', transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }
+      ], { duration: 400, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
+
+      anim.onfinish = () => {
+        if (fc.parentNode) fc.remove();
         game.totalCoins += amt;
         localStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins.toString());
-      });
-      if (!game.flyingCoins) game.flyingCoins = [];
-      game.flyingCoins.push(fc);
+        if (uiIcon && uiIcon.parentElement) {
+            uiIcon.parentElement.animate([
+               { transform: 'scale(1)', filter: 'brightness(1)' },
+               { transform: 'scale(1.4)', filter: 'brightness(2)' },
+               { transform: 'scale(1)', filter: 'brightness(1)' }
+            ], { duration: 250, easing: 'ease-out' });
+        }
+      };
 
     }, spawnInterval);
 

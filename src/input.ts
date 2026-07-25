@@ -140,6 +140,7 @@ export function setupInputListeners() {
 
       if (isAttractMode) {
         if (ignoreNextTap) return;
+        if (e.target.closest('#pauseBtn')) return;
         e.preventDefault();
         e.stopPropagation();
         startRealGame();
@@ -279,6 +280,7 @@ export function setupInputListeners() {
           if (game.isPaused) return;
         if (isAttractMode) {
           if (ignoreNextTap) return;
+          if (e.target.closest('#pauseBtn')) return;
           e.preventDefault();
           startRealGame();
         }
@@ -300,6 +302,7 @@ export function setupInputListeners() {
         return;
       }
       if (isAttractMode) {
+        if (e.target.closest('#pauseBtn')) return;
         startRealGame();
         return;
       }

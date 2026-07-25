@@ -71,6 +71,8 @@ export async function startDemoRankingScroll(isAttractMode: boolean) {
   $('demoOthers').innerHTML = otHtml;
   
   demoState.active = true;
+  const pBtn = document.getElementById('pauseBtn');
+  if (pBtn) pBtn.style.display = 'none';
   demoState.phase = 'scroll';
   demoState.startTime = performance.now();
   demoState.calculated = false;

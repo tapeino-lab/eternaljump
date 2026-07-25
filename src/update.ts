@@ -1,6 +1,6 @@
 import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
 import { initGame } from './game.js';
 import { RankingAPI } from './ranking.js';
