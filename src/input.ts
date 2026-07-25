@@ -1,3 +1,4 @@
+import { applyCoinCountUp } from './ui-effects.js';
 import { game, demoState } from './state.js';
 import { isAttractMode, ctrlCenterX, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto } from './game.js';
 
@@ -50,7 +51,9 @@ export function setupInputListeners() {
           $('tapToStartMsg').style.display = 'none';
           if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
             if (!game.demoMode) {
-              initGame(true);
+              let earned = game.scoreCoin;
+              initGame(false);
+              applyCoinCountUp(earned, 'COINS GET!', true, false);
             }
           } else if (game.isPaused) {
             $('tapToStartMsg').innerText = 'TAP TO RESUME';
@@ -71,8 +74,10 @@ export function setupInputListeners() {
       if (game.state === 'gameover' || game.state === 'clear') {
         if (!game.demoMode) {
           if (ignoreNextTap) return;
-          initGame(true);
+          let earned = game.scoreCoin;
+          initGame(false);
           $('tapToStartMsg').style.display = 'none';
+          applyCoinCountUp(earned, 'COINS GET!', true, false);
         }
         return;
       }
@@ -119,7 +124,9 @@ export function setupInputListeners() {
               if (isAttractMode) {
                 startRealGame();
               } else {
-                initGame(true);
+                let earned = game.scoreCoin;
+                initGame(false);
+                applyCoinCountUp(earned, 'COINS GET!', true, false);
               }
             } else if (game.isPaused) {
               $('tapToStartMsg').innerText = 'TAP TO RESUME';
@@ -262,8 +269,10 @@ export function setupInputListeners() {
       if (game.state === 'gameover' || game.state === 'clear') {
         if (!game.demoMode) {
           if (ignoreNextTap) return;
-          initGame(true);
+          let earned = game.scoreCoin;
+          initGame(false);
           $('tapToStartMsg').style.display = 'none';
+          applyCoinCountUp(earned, 'COINS GET!', true, false);
         }
         return;
       }

@@ -1,3 +1,4 @@
+import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL } from './entities.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
@@ -301,6 +302,8 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) 
           game.state = 'clear';
           document.body.classList.add('game-ended');
           game.endReason = 'CLEAR';
+          if (!isAttractMode && !game.demoMode) {
+          }
           game.clearTime = game.playTime;
           game.shakeAmount = 0;
           if (!isAttractMode && pBtn) {
@@ -308,7 +311,6 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) 
           }
           $('tapToStartMsg').style.display = 'none';
           setIgnoreNextTap(true);
-          spawnParticles(game.player.x + game.player.w / 2, p.y, '#ccc', 5);
           
           let fA = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
           RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'CLEAR');
@@ -326,7 +328,11 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) 
           
           if (game.demoMode && !game.isBenchmarking) {
             setTimeout(function() {
-              if (game.state === 'gameover' || game.state === 'clear') initGame(isAttractMode ? true : false);
+              if (game.state === 'gameover' || game.state === 'clear') {
+                let earned = game.scoreCoin;
+                initGame(false);
+                if (isAttractMode) applyCoinCountUp(earned, 'DEMO BONUS', false);
+              }
             }, isAttractMode ? 2000 : 5000);
           }
         } else {
@@ -479,7 +485,11 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, i
         
         if (game.demoMode && !game.isBenchmarking) {
           setTimeout(function() {
-            if (game.state === 'gameover' || game.state === 'clear') initGame(isAttractMode ? true : false);
+            if (game.state === 'gameover' || game.state === 'clear') {
+              let earned = game.scoreCoin;
+              initGame(false);
+              if (isAttractMode) applyCoinCountUp(earned, 'DEMO BONUS', false);
+            }
           }, isAttractMode ? 2000 : 5000);
         }
       }
@@ -513,7 +523,11 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, i
     
     if (game.demoMode && !game.isBenchmarking) {
       setTimeout(function() {
-        if (game.state === 'gameover' || game.state === 'clear') initGame(isAttractMode ? true : false);
+        if (game.state === 'gameover' || game.state === 'clear') {
+          let earned = game.scoreCoin;
+          initGame(false);
+          if (isAttractMode) applyCoinCountUp(earned, 'DEMO BONUS', false);
+        }
       }, isAttractMode ? 2000 : 5000);
     }
   }

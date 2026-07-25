@@ -23,6 +23,7 @@ export const game = {
   highestPlayerY: 0,
   score: 0,
   scoreCoin: 0,
+  totalCoins: 0,
   lastCoinY: 0,
   baseScoreY: 0,
   goalY: 0,

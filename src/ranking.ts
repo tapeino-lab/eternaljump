@@ -213,6 +213,13 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         }
       },
       showResult: async function(state) {
+        if (!game.demoMode && game.lastScoreObj && state !== 'demo') {
+          let c = game.lastScoreObj.coins || 0;
+          if (state === 'clear') c *= 2;
+          game.totalCoins += c;
+          localStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins.toString());
+        }
+
         this.isShowingResult = true;
         $('rankingLoading').style.display = 'none';
         $('rankingContainer').style.display = 'none';
@@ -255,7 +262,95 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           }
           
           $('resultScoreAlt').innerText = game.lastScoreObj.alt + 'm';
-          $('resultScoreCoins').innerHTML = '&times; ' + (game.lastScoreObj.coins || 0);
+          
+          let finalCoins = game.lastScoreObj.coins || 0;
+          let elCoins = $('resultScoreCoins');
+          
+          if (state === 'clear' && !game.demoMode && finalCoins > 0) {
+            let baseCoins = finalCoins;
+            finalCoins = baseCoins * 2;
+            elCoins.innerHTML = '&times; ' + baseCoins;
+            
+            setTimeout(() => {
+              // x2 floater
+              let rect = elCoins.getBoundingClientRect();
+              let x2 = document.createElement('div');
+              x2.innerHTML = 'x2';
+              x2.style.position = 'fixed';
+              x2.style.left = (rect.right + 10) + 'px';
+              x2.style.top = rect.top + 'px';
+              x2.style.color = '#fd0';
+              x2.style.textShadow = '2px 2px 0 #000';
+              x2.style.fontSize = '20px';
+              x2.style.fontFamily = '"Press Start 2P", sans-serif';
+              x2.style.pointerEvents = 'none';
+              x2.style.zIndex = '2000';
+              document.body.appendChild(x2);
+              
+              x2.animate([
+                { transform: 'translate(0, 0)', opacity: 0 },
+                { transform: 'translate(0, -10px)', opacity: 1, offset: 0.2 },
+                { transform: 'translate(0, -40px)', opacity: 0 }
+              ], { duration: 1500, easing: 'ease-out' });
+              
+              setTimeout(() => x2.remove(), 1500);
+              
+              // Particles
+              let cx = rect.left + rect.width / 2;
+              let cy = rect.top + rect.height / 2;
+              for (let i = 0; i < 30; i++) {
+                let p = document.createElement('div');
+                p.style.position = 'fixed';
+                p.style.left = cx + 'px';
+                p.style.top = cy + 'px';
+                let size = 6 + Math.random() * 10;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.backgroundColor = '#fd0';
+                p.style.borderRadius = '0';
+                p.style.pointerEvents = 'none';
+                p.style.zIndex = '2000';
+                document.body.appendChild(p);
+                
+                let ang = Math.random() * Math.PI * 2;
+                let spd = Math.random() * 200 + 50;
+                let tx = Math.cos(ang) * spd;
+                let ty = Math.sin(ang) * spd;
+                let rot = Math.random() * 720 - 360;
+                
+                p.animate([
+                  { transform: 'translate(-50%, -50%) rotate(0deg) scale(1)', opacity: 1 },
+                  { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rot}deg) scale(0)`, opacity: 0 }
+                ], { duration: 800, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
+                
+                setTimeout(() => p.remove(), 800);
+              }
+              
+              elCoins.animate([
+                { transform: 'scale(1)', filter: 'brightness(1)', color: 'inherit' },
+                { transform: 'scale(1.8)', filter: 'brightness(2)', color: '#fd0', offset: 0.1 },
+                { transform: 'scale(1)', filter: 'brightness(1)', color: 'inherit' }
+              ], { duration: 600, easing: 'ease-out' });
+              
+              // Count up
+              let cur = baseCoins;
+              let step = Math.max(1, Math.floor((finalCoins - baseCoins) / 10));
+              let countTimer = setInterval(() => {
+                cur += step;
+                if (cur >= finalCoins) {
+                  cur = finalCoins;
+                  clearInterval(countTimer);
+                }
+                elCoins.innerHTML = '&times; ' + cur;
+                // Update header UI total coins visual if possible
+                let headCoins = game.totalCoins - finalCoins + cur;
+                game.scoreCoin = cur; // Update game state for header to catch up during UI render loop
+              }, 50);
+              
+            }, 600);
+          } else {
+            elCoins.innerHTML = '&times; ' + finalCoins;
+          }
           
           let showBest = (!game.isNewRecord && game.personalBest);
           if (showBest) {
