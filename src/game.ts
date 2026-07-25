@@ -480,23 +480,28 @@ export { dR, inputHandler };
         }
         acc += dT;
         let upd = 0;
+        
         while (acc >= frameDuration && upd < 3) {
-          
-      updatePhysicsMain({
-        game, isAttractMode, demoState, config, inputHandler, IMG,
-        setIgnoreNextTap, pBtn, initGame, spawnPlatform, fireworksSystem,
-        airplaneSystem, runAI, FLR, spawnParticles
-      });
-      
+          updatePhysicsMain({
+            game, isAttractMode, demoState, config, inputHandler, IMG,
+            setIgnoreNextTap, pBtn, initGame, spawnPlatform, fireworksSystem,
+            airplaneSystem, runAI, FLR, spawnParticles
+          });
           acc -= frameDuration;
           upd++;
         }
+        if (acc > frameDuration * 3) {
+          acc = 0; // prevent spiral of death
+        }
+
       }
       
       // アトラクトモード(タイトル画面)かつデモプレイ中ではなく一時停止もされていない時だけバージョン表示と設定ボタンを表示
       const tVer = $('titleVersion');
       if (tVer) {
-        tVer.style.display = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
+        
+        let nDisp = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
+        if (tVer.style.display !== nDisp) tVer.style.display = nDisp;
       }
       
       render(ts);

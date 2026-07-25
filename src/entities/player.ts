@@ -245,7 +245,7 @@ import { spawnParticles } from './particles.js';
           ctx.fill();
           
           ctx.fillStyle = '#000';
-          ctx.font = '8px "Press Start 2P", monospace';
+          if (ctx.font !== '8px "Press Start 2P", monospace') ctx.font = '8px "Press Start 2P", monospace';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(this.balloonText, 0, -5);

@@ -180,7 +180,7 @@ export function drawOffscreenIndicators() {
           ctx.fill();
           
           ctx.fillStyle = '#000';
-          ctx.font = '8px "Press Start 2P", monospace';
+          if (ctx.font !== '8px "Press Start 2P", monospace') ctx.font = '8px "Press Start 2P", monospace';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(n.balloonText, 0, 11);
@@ -196,7 +196,7 @@ export function drawOffscreenIndicators() {
           ctx.fill();
           
           ctx.fillStyle = '#000';
-          ctx.font = '8px "Press Start 2P", monospace';
+          if (ctx.font !== '8px "Press Start 2P", monospace') ctx.font = '8px "Press Start 2P", monospace';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(n.balloonText, 0, -7);
@@ -235,16 +235,27 @@ export function updateHUD(topColor) {
   
   let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
   let isTimerVisible = !isAttractMode;
-  let curState = game.scoreCoin + '_' + game.totalCoins + '_' + game.state + '_' + MIN(config.goalScore, game.score) + '_' + timeStr + '_' + aiStatus + '_' + isAttractMode + '_' + isTitle + '_' + isTimerVisible;
-  if (game.lastUI !== curState) {
+  
+  if (!ui.querySelector('#hud-coin')) {
     let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
-    let timeHtml = isTimerVisible ? 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>' : '';
-    let centerHtml = isTitle ? '' : MIN(config.goalScore, game.score) + 'm' + aiStatus;
-    let coinDisplay = isTitle ? game.totalCoins : game.scoreCoin;
-    let nUI = '<span style="flex:1;text-align:left;display:flex;align-items:center;">' + cI + '<span>' + coinDisplay + '</span></span><span style="flex:1;text-align:center;">' + centerHtml + '</span><span style="flex:1;text-align:right;">' + timeHtml + '</span>';
-    ui.innerHTML = nUI;
+    ui.innerHTML = '<span style="flex:1;text-align:left;display:flex;align-items:center;">' + cI + '<span id="hud-coin"></span></span><span id="hud-score" style="flex:1;text-align:center;"></span><span id="hud-time" style="flex:1;text-align:right;"></span>';
+  }
+
+  let coinDisplay = isTitle ? game.totalCoins : game.scoreCoin;
+  let centerHtml = isTitle ? '' : MIN(config.goalScore, game.score) + 'm' + aiStatus;
+  let timeHtml = isTimerVisible ? 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>' : '';
+
+  let curState = coinDisplay + '_' + centerHtml + '_' + timeHtml;
+  if (game.lastUI !== curState) {
+    let hc = document.getElementById('hud-coin');
+    let hs = document.getElementById('hud-score');
+    let ht = document.getElementById('hud-time');
+    if (hc && hc.innerHTML !== coinDisplay.toString()) hc.innerHTML = coinDisplay.toString();
+    if (hs && hs.innerHTML !== centerHtml) hs.innerHTML = centerHtml;
+    if (ht && ht.innerHTML !== timeHtml) ht.innerHTML = timeHtml;
     game.lastUI = curState;
   }
+
 }
 
 export function updateDemoRanking(ts) {
