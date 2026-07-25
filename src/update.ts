@@ -708,3 +708,4 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, i
         postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, initGame, spawnPlatform);
       }
     }
+

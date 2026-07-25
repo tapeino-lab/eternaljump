@@ -15,3 +15,6 @@
 ## Git Workflow
 - **No Automatic Git Commits**: DO NOT run `git commit` or `git add` in the terminal. Doing so breaks the AI Studio GitHub export UI because it requires uncommitted changes. 
 - **Suggested Commit Message**: At the end of every response where code changes were made, always provide a concise, 1-line commit message in a code block or easily copyable format for the user to paste into the AI Studio GitHub commit UI.
+
+<!-- UI sync -->
+

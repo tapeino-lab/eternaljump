@@ -357,3 +357,4 @@ export function render(ts) {
   updateHUD(topColor);
   updateDemoRanking(ts);
 }
+

@@ -593,3 +593,5 @@ export { dR, inputHandler };
     setupKeyboardUI();
 
     startAttractCycle();
+
+// Trigger UI sync
