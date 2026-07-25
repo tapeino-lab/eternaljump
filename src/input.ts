@@ -146,8 +146,8 @@ export function setupInputListeners() {
         startRealGame();
 
         const targetIsCtrl = e.target && e.target.closest && e.target.closest('#controlArea');
-        if (e.changedTouches && e.changedTouches.length > 0) {
-          Array.from(e.changedTouches).forEach((t: any) => {
+        if ((e as TouchEvent).changedTouches && (e as TouchEvent).changedTouches.length > 0) {
+          Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => {
             const dir = targetIsCtrl ? getCtrlDir(t.clientX) : (t.clientX < window.innerWidth / 2 ? -1 : 1);
             inputHandler.start('g_t_' + t.identifier, dir);
           });
@@ -162,8 +162,8 @@ export function setupInputListeners() {
 
   ['touchmove', 'mousemove'].forEach(ev => {
     document.addEventListener(ev, (e: any) => {
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        Array.from(e.changedTouches).forEach((t: any) => {
+      if ((e as TouchEvent).changedTouches && (e as TouchEvent).changedTouches.length > 0) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => {
           const id = 'g_t_' + t.identifier;
           if (inputHandler.active.has(id)) {
             const targetIsCtrl = e.target && e.target.closest && e.target.closest('#controlArea');
@@ -184,8 +184,8 @@ export function setupInputListeners() {
 
   ['touchend', 'touchcancel', 'mouseup'].forEach(ev => {
     document.addEventListener(ev, (e: any) => {
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        Array.from(e.changedTouches).forEach((t: any) => {
+      if ((e as TouchEvent).changedTouches && (e as TouchEvent).changedTouches.length > 0) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => {
           inputHandler.end('g_t_' + t.identifier);
         });
       } else {
@@ -321,8 +321,8 @@ export function setupInputListeners() {
         return;
       }
       if (game.demoMode && game.aiActive) setAuto(false);
-      if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach((t: any) => inputHandler.start('c_' + t.identifier, getCtrlDir(t.clientX)));
+      if ((e as TouchEvent).changedTouches) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => inputHandler.start('c_' + t.identifier, getCtrlDir(t.clientX)));
       } else {
         inputHandler.start('c_m', getCtrlDir(e.clientX));
       }
@@ -335,8 +335,8 @@ export function setupInputListeners() {
       if (e.cancelable) e.preventDefault();
       if (isAttractMode) return;
       if (game.demoMode && game.aiActive) return;
-      if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach((t: any) => {
+      if ((e as TouchEvent).changedTouches) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => {
           if (inputHandler.active.has('c_' + t.identifier)) inputHandler.start('c_' + t.identifier, getCtrlDir(t.clientX));
         });
       } else {
@@ -347,8 +347,8 @@ export function setupInputListeners() {
 
   ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => {
     ctrlArea.addEventListener(ev, (e: any) => {
-      if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach((t: any) => inputHandler.end('c_' + t.identifier));
+      if ((e as TouchEvent).changedTouches) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => inputHandler.end('c_' + t.identifier));
       } else {
         inputHandler.end('c_m');
       }
@@ -365,8 +365,8 @@ export function setupInputListeners() {
         return;
       }
       if (game.demoMode && game.aiActive) return;
-      if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach((t: any) => {
+      if ((e as TouchEvent).changedTouches) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => {
           let id = 'sc_' + t.identifier;
           tOrgs.set(id, t.clientX);
           inputHandler.start(id, 0);
@@ -393,8 +393,8 @@ export function setupInputListeners() {
           inputHandler.start(id, df > 2 * (window as any).gameScale ? 1 : (df < -2 * (window as any).gameScale ? -1 : 0));
         }
       };
-      if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach((t: any) => proc('sc_' + t.identifier, t.clientX));
+      if ((e as TouchEvent).changedTouches) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => proc('sc_' + t.identifier, t.clientX));
       } else {
         proc('sc_m', e.clientX);
       }
@@ -403,8 +403,8 @@ export function setupInputListeners() {
 
   ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => {
     tOv.addEventListener(ev, (e: any) => {
-      if (e.changedTouches) {
-        Array.from(e.changedTouches).forEach((t: any) => {
+      if ((e as TouchEvent).changedTouches) {
+        Array.from((e as TouchEvent).changedTouches).forEach((t: Touch) => {
           let id = 'sc_' + t.identifier;
           inputHandler.end(id);
           tOrgs.delete(id);

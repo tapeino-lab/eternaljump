@@ -55,6 +55,7 @@ export interface GameState {
   lastUI: string;
   flockDir: number;
   isNewRecord: boolean;
+  isBenchmarking?: boolean;
   personalBest: any;
 }
 
