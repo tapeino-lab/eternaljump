@@ -544,3 +544,167 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, i
     }
   }
 }
+    export function updateStateAnimations(game: any, config: any, FLR: any) {
+      if (game.state === 'powerup_anim') {
+        game.player.animTimer--;
+        if (game.player.animTimer < 0) {
+          game.state = 'playing';
+          game.player.isPoweredUp = true;
+          game.player.h = config.playerSize * 2;
+          game.player.y = game.player.baseY - config.playerSize;
+          game.player.jump(config.superJumpPower);
+        }
+      } else if (game.state === 'powerdown_anim') {
+        game.player.animTimer--;
+        if (game.player.animTimer < 0) {
+          game.state = 'playing';
+          game.player.h = config.playerSize;
+          game.player.y = game.player.baseY + config.playerSize - 1;
+          if (game.player.savedVy !== undefined) {
+            game.player.vy = game.player.savedVy;
+            game.player.savedVy = undefined;
+            if (game.player.savedVx !== undefined) {
+              game.player.vx = game.player.savedVx;
+              game.player.savedVx = undefined;
+            }
+          } else {
+            game.player.jump(config.superJumpPower);
+          }
+        }
+      } else if (game.state === 'clear') {
+        game.player.inputDir = 0;
+        game.player.update();
+        if (game.player.y + game.player.h >= game.goalY) {
+          game.player.y = game.goalY - game.player.h;
+          game.player.vy = 0;
+        }
+      } else if ((game.state as any) === 'intro_anim') {
+        game.player.vx = 0;
+        game.player.vy = 0;
+        game.player.inputDir = 0;
+        game.player.history.unshift({ x: game.player.x, y: game.player.y, dir: game.player.facingRight });
+        if (game.player.history.length > 4) game.player.history.pop();
+        
+        game.introAnimTimer--;
+        let cover = game.platforms.find(p => p.isIntroCover);
+        if (cover) cover.blink = (FLR(game.introAnimTimer / 4) % 2 === 0);
+        
+        if (game.introAnimTimer < 60 && game.introAnimTimer > 0 && game.introAnimTimer % 4 === 0) {
+          game.shakeAmount = 0;
+        }
+        
+        if (game.introAnimTimer <= 0) {
+          if (cover) {
+            cover.isCrumbling = true;
+          }
+          if (game.npcs && game.npcs.length > 0) {
+            if (!(window as any).hasShownFirstExclamation) {
+              game.npcs[0].balloonText = '!';
+              game.npcs[0].balloonTimer = 60;
+              (window as any).hasShownFirstExclamation = true;
+            } else if (Math.random() < 0.2) {
+              game.npcs[0].balloonText = '!';
+              game.npcs[0].balloonTimer = 60;
+            }
+          }
+          game.shakeAmount = 0;
+          game.state = 'intro';
+        }
+      }
+    }
+
+
+
+
+    export function updateIntroState(game: any, config: any, FLR: any, isAttractMode: boolean, demoState: any, IMG: any, inputHandler: any, spawnParticles: any) {
+      let plX = game.player.x, plW = game.player.w, onG = false;
+      if (game.player.vy > 0) {
+        game.platforms.forEach(function(p) {
+          if (p.isGround && p.y === 240 && plX + plW > p.x && plX < p.x + p.w && game.player.y + game.player.h >= p.y && game.player.y + game.player.h < p.y + 15) {
+            game.player.y = p.y - game.player.h;
+            game.player.vy = 0;
+            onG = true;
+            if (!game.timerStarted && (!isAttractMode || demoState.active)) {
+              game.timerStarted = true;
+              game.playTime = 0;
+            }
+          }
+        });
+      }
+      if (!game.isConsecutive && onG) {
+        let cover = game.platforms.find(p => p.isIntroCover && !p.broken);
+        if (cover) {
+          let pcX = plX + plW / 2;
+          if (pcX >= 106 && pcX <= 118) {
+            game.state = 'intro_anim';
+            game.introAnimTimer = 60;
+            game.player.vx = 0;
+            game.player.inputDir = 0;
+            game.player.savedIntroImg = (FLR(performance.now() / 100) % 3) === 0 ? IMG.wlk1 : ((FLR(performance.now() / 100) % 3) === 1 ? IMG.wlk2 : IMG.wlk3);
+            inputHandler.active.clear();
+            inputHandler.update();
+          }
+        }
+      }
+      if (!onG) {
+        game.platforms.forEach(function(p) {
+          if (!p.isGround && !p.broken && plX + plW > p.x && plX < p.x + p.w && game.player.y + game.player.h > p.y && game.player.y + game.player.h < p.y + p.h + game.player.vy) {
+            game.player.y = p.y - game.player.h;
+            let seg = FLR((plX + plW / 2 - p.x) / config.platformW);
+            if (seg < 0) seg = 0;
+            if (seg >= p.count) seg = p.count - 1;
+            p.squishTimers[seg] = 12;
+            p.breakOnSquish[seg] = true;
+            game.player.squatTimer = 3;
+            game.player.jump(config.superJumpPower);
+            game.player.isSparkleJumping = false;
+            if (!p.noEffect) spawnParticles(game.player.x + plW / 2, p.y, '#ccc', 6);
+            game.state = 'playing';
+            if (!game.timerStarted) {
+              game.timerStarted = true;
+              game.playTime = 0;
+            }
+          }
+        });
+      }
+    }
+
+
+
+    export function updatePhysicsMain(args: any) {
+  const { game, isAttractMode, demoState, config, inputHandler, IMG, setIgnoreNextTap, pBtn, initGame, spawnPlatform, fireworksSystem, airplaneSystem, runAI, FLR, spawnParticles } = args;
+      updateParticles(game);
+      updateFlyingCoins(game);
+      fireworksSystem.update(game, isAttractMode);
+      airplaneSystem.update(game, isAttractMode);
+      
+      if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
+        updateStateAnimations(game, config, FLR);
+      } else if (game.state !== 'gameover') {
+        if (game.demoMode && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player);
+        game.player.update();
+        
+        updateBirds(game);
+        updateNPCs(game, setIgnoreNextTap, pBtn, isAttractMode);
+        
+        if (game.state !== 'intro' && (game.state as any) !== 'intro_anim') {
+          if (game.player.y < game.goalY - 120) {
+            game.player.y = game.goalY - 120;
+            if (game.player.vy < 0) game.player.vy = 0;
+          }
+          if (game.player.y < game.goalY && game.player.vy > 1.5) game.player.vy = 1.5;
+        }
+        
+        game.platforms.forEach(function(p) { p.update(); });
+        
+        updateMeteors(game);
+        
+        if (game.state === 'intro') {
+          updateIntroState(game, config, FLR, isAttractMode, demoState, IMG, inputHandler, spawnParticles);
+        } else if ((game.state as any) !== 'intro_anim') {
+          updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode);
+        }
+        
+        postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, initGame, spawnPlatform);
+      }
+    }

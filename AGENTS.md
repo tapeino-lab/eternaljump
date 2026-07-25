@@ -11,3 +11,6 @@
 
 ## Asset & Font Rendering
 - **Canvas Text & Custom Fonts**: Always ensure proper font loading / re-rendering checks for canvas text (such as retro fonts in offscreen canvases) so custom web fonts render reliably without falling back to default system fonts.
+
+## Git Workflow
+- **Automatic Commits**: After completing code changes and verifying them, always automatically run `git add .` and `git commit -m "<Appropriate commit message>"` unless instructed otherwise. This ensures commit messages are automatically filled with a descriptive summary of the changes.
