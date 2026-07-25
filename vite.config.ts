@@ -15,7 +15,7 @@ export default defineConfig(() => {
     plugins: [
       tailwindcss(),
       VitePWA({
-        registerType: 'prompt',
+        registerType: 'autoUpdate',
         injectRegister: 'auto',
         includeAssets: ['icon.svg'],
         manifest: {
