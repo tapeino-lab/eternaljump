@@ -269,7 +269,6 @@ import { spawnParticles } from './particles.js';
       draw() {
         super.draw();
         if (this.balloonTimer > 0) {
-          this.balloonTimer--;
           ctx.save();
           let bx = FLR(this.x + this.w / 2);
           let by = FLR(this.y - 12);
@@ -296,6 +295,7 @@ import { spawnParticles } from './particles.js';
         }
       }
       update() {
+        if (this.balloonTimer > 0) this.balloonTimer--;
         if (!this.active) {
           if (game.state === 'playing') {
             this.waitTimer += 1000 / config.targetFPS;
