@@ -1,3 +1,4 @@
+import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
@@ -544,7 +545,7 @@ export function postUpdatePhysics(game, setIgnoreNextTap, pBtn, isAttractMode, i
     }
   }
 }
-    export function updateStateAnimations(game: any, config: any, FLR: any) {
+    export function updateStateAnimations(game: GameState, config: any, FLR: any) {
       if (game.state === 'powerup_anim') {
         game.player.animTimer--;
         if (game.player.animTimer < 0) {

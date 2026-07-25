@@ -40,8 +40,21 @@ export const P_MT: Meteor[] = [];
     }
 
     export class Bird {
-      [key: string]: any;
-      init(type, x, y, isPerched, platform = null, isTitleBird = false) {
+      type: number = 0;
+      isPerched: boolean = false;
+      platform: any = null;
+      offsetX: number = 0;
+      offsetY: number = 0;
+      x: number = 0;
+      y: number = 0;
+      vx: number = 0;
+      vy: number = 0;
+      isTitleBird: boolean = false;
+      alertDist: number = 0;
+      animOffset: number = 0;
+      baseY?: number;
+      
+      init(type: number, x: number, y: number, isPerched: boolean, platform: any = null, isTitleBird = false) {
         this.type = type;
         this.isPerched = isPerched;
         this.platform = platform;
@@ -136,8 +149,20 @@ export const P_MT: Meteor[] = [];
     }
 
     export class Meteor {
-      [key: string]: any;
-      init(x, y, vx, vy) {
+      isLarge: boolean = false;
+      scale: number = 1;
+      w: number = 16;
+      h: number = 16;
+      x: number = 0;
+      y: number = 0;
+      vx: number = 0;
+      vy: number = 0;
+      hitTimer: number = 0;
+      ang: number = 0;
+      rot: number = 0;
+      hit?: boolean;
+
+      init(x: number, y: number, vx: number, vy: number) {
         this.isLarge = RND() < 0.3;
         this.scale = this.isLarge ? 2 : 1;
         this.w = 16 * this.scale;

@@ -13,8 +13,29 @@ export const P_PL: Platform[] = [];
       return p;
     }
     export class Platform {
-      [key: string]: any;
-      init(y, t = 'normal', ig = false, cx = null, cw = null, ch = null, count = 1, isIcy = false) {
+      x: number = 0;
+      y: number = 0;
+      w: number = 0;
+      h: number = 0;
+      type: string = 'normal';
+      isGround: boolean = false;
+      count: number = 1;
+      isIcy: boolean = false;
+      broken: boolean = false;
+      blacklisted: boolean = false;
+      blink: boolean = false;
+      breakOnSquish: boolean[] = [];
+      direction: number = 1;
+      isCrumbling: boolean = false;
+      isGlowing: boolean = false;
+      isIntroCover: boolean = false;
+      isOverlapping: boolean = false;
+      noEffect: boolean = false;
+      squishTimers: number[] = [];
+      startX: number = 0;
+      startY: number = 0;
+      
+      init(y: any, t = 'normal', ig = false, cx: any = null, cw: any = null, ch: any = null, count = 1, isIcy = false) {
         this.isGround = ig;
         this.count = count;
         this.isIcy = isIcy;

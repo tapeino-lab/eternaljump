@@ -12,7 +12,17 @@ export function getPt(x: number, y: number, vx: number, vy: number, c: string, s
 }
 
 export class Particle {
-  [key: string]: any;
+  x: number = 0;
+  y: number = 0;
+  vx: number = 0;
+  vy: number = 0;
+  color: string = '';
+  size: number = 0;
+  life: number = 0;
+  maxLife: number = 0;
+  g: number = 0;
+  isSp: boolean = false;
+  
   init(x: number, y: number, vx: number, vy: number, color: string, size: number, life: number, g = 0.2, isSp = false) {
     this.x = x;
     this.y = y;

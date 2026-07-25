@@ -18,8 +18,14 @@ export const P_IT: Item[] = [];
       return i;
     }
     export class Item {
-      [key: string]: any;
-      init(y) {
+      x: number = 0;
+      y: number = 0;
+      w: number = 16;
+      h: number = 16;
+      collected: boolean = false;
+      blacklisted: boolean = false;
+      
+      init(y: number) {
         this.w = 16;
         this.h = 16;
         this.y = FLR(y);
@@ -60,8 +66,18 @@ export const P_IT: Item[] = [];
     }
 
     export class Coin {
-      [key: string]: any;
-      init(x, y) {
+      x: number = 0;
+      y: number = 0;
+      w: number = 12;
+      h: number = 12;
+      hitW: number = 20;
+      hitH: number = 16;
+      collected: boolean = false;
+      animTimer: number = 0;
+      dead: boolean = false;
+      vy: number = 0;
+
+      init(x: number, y: number) {
         this.w = 12;
         this.h = 12;
         this.hitW = 20;
@@ -108,8 +124,19 @@ export const P_IT: Item[] = [];
     }
 
     export class FlyingCoin {
-      [key: string]: any;
-      constructor(worldX, worldY, onArrive?: () => void) {
+      sx: number;
+      sy: number;
+      tx: number;
+      ty: number;
+      cx: number;
+      cy: number;
+      progress: number;
+      maxProgress: number;
+      dead: boolean;
+      animTimer: number;
+      onArrive?: () => void;
+
+      constructor(worldX: number, worldY: number, onArrive?: () => void) {
         this.sx = FLR(worldX);
         this.sy = FLR(worldY - game.cameraY);
         this.tx = 16;

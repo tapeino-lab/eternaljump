@@ -1,5 +1,7 @@
-export const game = {
-  state: 'intro' as 'intro' | 'play' | 'result' | 'loading' | 'title' | 'gameover' | 'clear' | 'playing' | 'intro_anim' | 'powerup_anim' | 'powerdown_anim' | 'demo',
+import type { GameState } from './types.js';
+
+export const game: GameState = {
+  state: 'intro',
   isPaused: false,
   demoMode: false,
   aiActive: false,
@@ -8,17 +10,17 @@ export const game = {
   timerStarted: false,
   shakeAmount: 0,
   introAnimTimer: 0,
-  particles: [] as any[],
-  meteors: [] as any[],
-  npcs: [] as any[],
-  birds: [] as any[],
-  player: null as any,
-  platforms: [] as any[],
-  items: [] as any[],
-  coins: [] as any[],
-  flyingCoins: [] as any[],
-  clouds: [] as any[],
-  stars: [] as any[],
+  particles: [],
+  meteors: [],
+  npcs: [],
+  birds: [],
+  player: null,
+  platforms: [],
+  items: [],
+  coins: [],
+  flyingCoins: [],
+  clouds: [],
+  stars: [],
   cameraY: 0,
   highestCameraY: 0,
   highestPlayerY: 0,
@@ -29,18 +31,18 @@ export const game = {
   baseScoreY: 0,
   goalY: 0,
   startScore: 0,
-  eventLog: [] as string[],
+  eventLog: [],
   loopCount: 0,
-  endReason: null as string | null,
-  lastScoreId: null as string | null,
-  lastRank: null as number | null,
-  lastScoreObj: null as any,
+  endReason: null,
+  lastScoreId: null,
+  lastRank: null,
+  lastScoreObj: null,
   allowAutoRank: false,
   clearTime: 0,
   lastUI: '',
   flockDir: 1,
   isNewRecord: false,
-  personalBest: null as any
+  personalBest: null
 };
 
 export const demoState = {

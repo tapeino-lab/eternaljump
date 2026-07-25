@@ -1,3 +1,4 @@
+import type { GameState } from "./types.js";
 import { config } from './config.js';
 import { FLR, RND, PI } from './utils.js';
 
@@ -108,7 +109,7 @@ class FireworksSystem {
    * @param game ゲーム状態オブジェクト
    * @param isAttractMode アトラクトモードかどうか
    */
-  update(game: any, isAttractMode: boolean) {
+  update(game: GameState, isAttractMode: boolean) {
     if (game && game.isPaused) {
       return;
     }

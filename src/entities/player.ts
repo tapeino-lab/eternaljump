@@ -8,7 +8,50 @@ import { runAI } from '../ai.js';
 import { spawnParticles } from './particles.js';
 
     export class Player {
-      [key: string]: any;
+      isNPC: boolean = false;
+      isIntro: boolean = false;
+      w: number = 0;
+      h: number = 0;
+      x: number = 0;
+      y: number = 0;
+      vx: number = 0;
+      vy: number = 0;
+      animTimer: number = 0;
+      baseY: number = 0;
+      inputDir: number = 0;
+      facingRight: boolean = true;
+      hitTimer: number = 0;
+      squatTimer: number = 0;
+      isPoweredUp: boolean = false;
+      isSuperJumping: boolean = false;
+      isSparkleJumping: boolean = false;
+      lastPlatform: any = null;
+      highestReachedY: number = 0;
+      sameBounceCount: number = 0;
+      stagnationTimer: number = 0;
+      visitedHistory: any[] = [];
+      savedIntroImg: any = null;
+      frameCount: number = 0;
+      isFalling: boolean = false;
+      apexRecalculated: boolean = false;
+      savedVx?: number;
+      savedVy?: number;
+      
+      // NPC properties
+      npcIndex?: number;
+      startDelayMs?: number;
+      waitTimer?: number;
+      active?: boolean;
+      balloonTimer?: number;
+      balloonText?: string;
+      adventureMode?: boolean;
+      history?: any[];
+      aiPath?: any[];
+      aiTarget?: any;
+      aiThinkTimer?: number;
+      prevLastPlatform?: any;
+      recentPlatforms?: any[];
+
       constructor() {
         this.isNPC = false;
         this.reset();

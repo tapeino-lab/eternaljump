@@ -1,7 +1,8 @@
 import { config } from './config.js';
 import { game } from './state.js';
+import type { Player, Platform, Item } from './types.js';
 
-export function runAI(entity: any) {
+export function runAI(entity: Player) {
   if (!entity || entity.hitTimer > 0) return;
 
   let px = entity.x + (entity.w || 16) / 2;
@@ -92,7 +93,7 @@ export function runAI(entity: any) {
   }
 }
 
-function getPlatformJumpVy(platform: any, entity: any): number {
+function getPlatformJumpVy(platform: Platform, entity: Player): number {
   let p = config.jumpPower;
   if (p < 0) p = -p;
   if (platform && platform.isGlowing) {
@@ -108,7 +109,7 @@ function getPlatformJumpVy(platform: any, entity: any): number {
   return -p;
 }
 
-function findBestTarget(entity: any, px: number, py: number, initialVy: number, isStuck: boolean): any {
+function findBestTarget(entity: Player, px: number, py: number, initialVy: number, isStuck: boolean): Platform | Item | null {
   let bestTarget = null;
   let bestScore = -Infinity;
   let history = entity.visitedHistory || entity.recentPlatforms || [];
@@ -124,7 +125,7 @@ function findBestTarget(entity: any, px: number, py: number, initialVy: number, 
   let gw = config.gameWidth;
   let hgw = gw / 2;
   
-  let processCand = (cand: any) => {
+  let processCand = (cand: any) => { 
     if (cand.broken || cand.blacklisted || cand.isGround) return;
     if (cand.collected) return;
     if (cand === entity.lastPlatform) return; 

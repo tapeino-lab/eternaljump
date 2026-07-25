@@ -16,8 +16,13 @@ import { RND, FLR } from '../utils.js';
     }
     
     export class BackgroundCloud {
-      [key: string]: any;
-      constructor(x, y) {
+      x: number;
+      y: number;
+      speed: number;
+      scale: number;
+      type: number;
+      
+      constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
         this.speed = RND() < 0.5 ? 0.6 : 0.8;

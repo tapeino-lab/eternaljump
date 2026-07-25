@@ -1,3 +1,4 @@
+import type { GameState } from "./types.js";
 import { config } from './config.js';
 import { FLR, SIN } from './utils.js';
 
@@ -52,7 +53,7 @@ class AirplaneBannerSystem {
     }
   }
 
-  update(game: any, isAttractMode: boolean) {
+  update(game: GameState, isAttractMode: boolean) {
     if (game && game.isPaused) {
       return;
     }
@@ -85,7 +86,7 @@ class AirplaneBannerSystem {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, game?: any, isAttractMode?: boolean) {
+  draw(ctx: CanvasRenderingContext2D, game?: GameState, isAttractMode?: boolean) {
     // プレイ中で、かつカメラがコウノトリの位置に戻らなくなった場合は描画スキップ
     if (game && !isAttractMode) {
       const recScreens = config.recoveryScreens ?? 1;
