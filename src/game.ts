@@ -1,6 +1,6 @@
 import { applyCoinCountUp } from './ui-effects.js';
 import { startDemoRankingScroll } from './demo-ranking.js';
-import { updateBirds, updateMeteors, updateParticles, updateNPCs, updatePlayingState, postUpdatePhysics } from "./update.js";
+import { updateBirds, updateMeteors, updateParticles, updateFlyingCoins, updateNPCs, updatePlayingState, postUpdatePhysics } from "./update.js";
 import { B64 } from './assets.js';
 import { config } from './config.js';
 import { runAI } from './ai.js';
@@ -177,7 +177,8 @@ export { dR, inputHandler };
 
     export function runAttractUICycle() {
       if (!isAttractMode) return;
-      let earned = game.scoreCoin;
+      let wasDemo = game.demoMode;
+      let earned = wasDemo ? game.scoreCoin : 0;
       tM = 4;
       tS = 0;
       config.scoreMultiplier = tM;
@@ -191,8 +192,8 @@ export { dR, inputHandler };
       initGame(false);
       resetAttractTimer();
       
-      if (earned > 0) {
-        applyCoinCountUp(earned, 'DEMO BONUS', false);
+      if (wasDemo && earned > 0) {
+        applyCoinCountUp(earned, 'DEMO BONUS', false, true);
       }
     }
 
@@ -202,7 +203,8 @@ export { dR, inputHandler };
       if (!isAttractMode) return;
       clearTimeout(attractTimer);
       isAttractMode = false;
-      let earned = demoState.active ? game.scoreCoin : 0;
+      let wasDemo = game.demoMode || demoState.active;
+      let earned = wasDemo ? game.scoreCoin : 0;
       demoState.active = false;
       document.body.classList.remove('attract-mode');
       
@@ -228,7 +230,9 @@ export { dR, inputHandler };
       game.demoMode = false;
       game.aiActive = false;
       initGame(false);
-      applyCoinCountUp(earned, 'DEMO BONUS', false);
+      if (wasDemo && earned > 0) {
+        applyCoinCountUp(earned, 'DEMO BONUS', false, true);
+      }
     }
 
     export function setAuto(isActive) {
@@ -315,6 +319,7 @@ export { dR, inputHandler };
       game.highestPlayerY = game.player.y;
       game.score = game.startScore;
       game.scoreCoin = 0;
+      game.flyingCoins = [];
       game.totalCoins = parseInt(localStorage.getItem('JUMP_TOTAL_COINS') || '0');
       
       inputHandler.active.clear();
@@ -572,6 +577,7 @@ export { dR, inputHandler };
 
     function updatePhysics() {
       updateParticles(game);
+      updateFlyingCoins(game);
       fireworksSystem.update(game, isAttractMode);
       airplaneSystem.update(game, isAttractMode);
       

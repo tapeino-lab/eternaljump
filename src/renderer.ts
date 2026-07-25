@@ -234,7 +234,7 @@ export function updateHUD(topColor) {
   let aiStatus = '';
   
   let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
-  let isTimerVisible = !(isAttractMode && !demoState.active);
+  let isTimerVisible = !isAttractMode;
   let curState = game.scoreCoin + '_' + game.totalCoins + '_' + game.state + '_' + MIN(config.goalScore, game.score) + '_' + timeStr + '_' + aiStatus + '_' + isAttractMode + '_' + isTitle + '_' + isTimerVisible;
   if (game.lastUI !== curState) {
     let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
@@ -337,6 +337,10 @@ export function render(ts) {
   drawGameEntities(ts);
   
   ctx.restore();
+  
+  if (game.flyingCoins) {
+    game.flyingCoins.forEach(function(fc) { fc.draw(); });
+  }
   
   drawOffscreenIndicators();
   updateHUD(topColor);

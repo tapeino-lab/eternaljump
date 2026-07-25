@@ -16,6 +16,7 @@ export const game = {
   platforms: [] as any[],
   items: [] as any[],
   coins: [] as any[],
+  flyingCoins: [] as any[],
   clouds: [] as any[],
   stars: [] as any[],
   cameraY: 0,

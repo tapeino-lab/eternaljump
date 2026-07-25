@@ -857,3 +857,85 @@ import { runAI } from './ai.js';
       }
     }
 
+    export class FlyingCoin {
+      [key: string]: any;
+      constructor(worldX, worldY, onArrive?: () => void) {
+        this.sx = FLR(worldX);
+        this.sy = FLR(worldY - game.cameraY);
+        this.tx = 16;
+        this.ty = 16;
+        let midX = (this.sx + this.tx) / 2;
+        let midY = (this.sy + this.ty) / 2;
+        this.cx = midX - 20;
+        this.cy = midY - 15;
+        this.progress = 0;
+        this.maxProgress = 22;
+        this.dead = false;
+        this.animTimer = 0;
+        this.onArrive = onArrive;
+      }
+
+      update() {
+        if (this.dead) return;
+        this.progress++;
+        this.animTimer++;
+
+        if (this.progress % 2 === 0) {
+          let pos = this.getPos();
+          spawnParticles(pos.x, pos.y + game.cameraY, '#ff9', 1, 1);
+        }
+
+        if (this.progress >= this.maxProgress) {
+          this.dead = true;
+          spawnParticles(this.tx, this.ty + game.cameraY, '#fd0', 8, 2.5);
+
+          if (this.onArrive) {
+            try { this.onArrive(); } catch (e) {}
+          }
+
+          let uiLayer = document.getElementById('ui');
+          if (uiLayer) {
+            let coinIcon = uiLayer.querySelector('.coin-icon');
+            let coinContainer = coinIcon ? coinIcon.parentElement : null;
+            if (coinContainer) {
+              coinContainer.animate([
+                { transform: 'scale(1)', filter: 'brightness(1)' },
+                { transform: 'scale(1.6)', filter: 'brightness(2)' },
+                { transform: 'scale(1)', filter: 'brightness(1)' }
+              ], { duration: 250, easing: 'ease-out' });
+            }
+          }
+        }
+      }
+
+      getPos() {
+        let t = this.progress / this.maxProgress;
+        let easeT = t * t;
+        let u = 1 - easeT;
+        let x = u * u * this.sx + 2 * u * easeT * this.cx + easeT * easeT * this.tx;
+        let y = u * u * this.sy + 2 * u * easeT * this.cy + easeT * easeT * this.ty;
+        return { x: FLR(x), y: FLR(y) };
+      }
+
+      draw() {
+        if (this.dead) return;
+        let pos = this.getPos();
+        let x = pos.x;
+        let y = pos.y;
+        let p = FLR(this.animTimer / 2) % 4;
+
+        if (p === 0) {
+          dR(x - 4, y - 6, 8, 12, '#fd0');
+          dR(x - 6, y - 4, 12, 8, '#fd0');
+          dR(x - 2, y - 4, 4, 8, '#ff9');
+        } else if (p === 1 || p === 3) {
+          dR(x - 2, y - 6, 4, 12, '#fd0');
+          dR(x - 4, y - 4, 8, 8, '#fd0');
+          dR(x - 2, y - 4, 2, 8, '#ff9');
+        } else {
+          dR(x - 1, y - 6, 2, 12, '#fd0');
+          dR(x - 1, y - 4, 2, 8, '#ff9');
+        }
+      }
+    }
+

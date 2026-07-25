@@ -52,7 +52,7 @@ export function setupInputListeners() {
           if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
             if (!game.demoMode) {
               let earned = game.scoreCoin;
-              initGame(false);
+              startAttractCycle();
               applyCoinCountUp(earned, 'COINS GET!', true, false);
             }
           } else if (game.isPaused) {
@@ -63,20 +63,17 @@ export function setupInputListeners() {
         return;
       }
       
-      if (game.isPaused) {
-        togglePause();
-        return;
-      }
       if (isAttractMode) {
         startRealGame();
+        let dir = (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') ? -1 : 1;
+        inputHandler.start('k_' + dir, dir);
         return;
       }
       if (game.state === 'gameover' || game.state === 'clear') {
         if (!game.demoMode) {
           if (ignoreNextTap) return;
           let earned = game.scoreCoin;
-          initGame(false);
-          $('tapToStartMsg').style.display = 'none';
+          startAttractCycle();
           applyCoinCountUp(earned, 'COINS GET!', true, false);
         }
         return;
@@ -125,7 +122,7 @@ export function setupInputListeners() {
                 startRealGame();
               } else {
                 let earned = game.scoreCoin;
-                initGame(false);
+                startAttractCycle();
                 applyCoinCountUp(earned, 'COINS GET!', true, false);
               }
             } else if (game.isPaused) {
@@ -146,9 +143,54 @@ export function setupInputListeners() {
         e.preventDefault();
         e.stopPropagation();
         startRealGame();
+
+        const targetIsCtrl = e.target && e.target.closest && e.target.closest('#controlArea');
+        if (e.changedTouches && e.changedTouches.length > 0) {
+          Array.from(e.changedTouches).forEach((t: any) => {
+            const dir = targetIsCtrl ? getCtrlDir(t.clientX) : (t.clientX < window.innerWidth / 2 ? -1 : 1);
+            inputHandler.start('g_t_' + t.identifier, dir);
+          });
+        } else {
+          const dir = targetIsCtrl ? getCtrlDir(e.clientX) : (e.clientX < window.innerWidth / 2 ? -1 : 1);
+          inputHandler.start('g_m', dir);
+        }
         return;
       }
     }, { capture: true, passive: false });
+  });
+
+  ['touchmove', 'mousemove'].forEach(ev => {
+    document.addEventListener(ev, (e: any) => {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        Array.from(e.changedTouches).forEach((t: any) => {
+          const id = 'g_t_' + t.identifier;
+          if (inputHandler.active.has(id)) {
+            const targetIsCtrl = e.target && e.target.closest && e.target.closest('#controlArea');
+            const dir = targetIsCtrl ? getCtrlDir(t.clientX) : (t.clientX < window.innerWidth / 2 ? -1 : 1);
+            inputHandler.start(id, dir);
+          }
+        });
+      } else {
+        const id = 'g_m';
+        if (inputHandler.active.has(id)) {
+          const targetIsCtrl = e.target && e.target.closest && e.target.closest('#controlArea');
+          const dir = targetIsCtrl ? getCtrlDir(e.clientX) : (e.clientX < window.innerWidth / 2 ? -1 : 1);
+          inputHandler.start(id, dir);
+        }
+      }
+    }, { passive: true });
+  });
+
+  ['touchend', 'touchcancel', 'mouseup'].forEach(ev => {
+    document.addEventListener(ev, (e: any) => {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        Array.from(e.changedTouches).forEach((t: any) => {
+          inputHandler.end('g_t_' + t.identifier);
+        });
+      } else {
+        inputHandler.end('g_m');
+      }
+    });
   });
 
   ['touchstart', 'mousedown'].forEach(function(ev) {
@@ -270,8 +312,7 @@ export function setupInputListeners() {
         if (!game.demoMode) {
           if (ignoreNextTap) return;
           let earned = game.scoreCoin;
-          initGame(false);
-          $('tapToStartMsg').style.display = 'none';
+          startAttractCycle();
           applyCoinCountUp(earned, 'COINS GET!', true, false);
         }
         return;

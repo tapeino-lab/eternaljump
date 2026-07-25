@@ -1,6 +1,6 @@
 import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL } from './entities.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
 import { initGame } from './game.js';
 import { RankingAPI } from './ranking.js';
@@ -94,6 +94,17 @@ export function updateParticles(game) {
     if (pt.life <= 0) {
       P_PT.push(pt);
       game.particles.splice(i, 1);
+    }
+  }
+}
+
+export function updateFlyingCoins(game) {
+  if (!game.flyingCoins) return;
+  for (let i = game.flyingCoins.length - 1; i >= 0; i--) {
+    let fc = game.flyingCoins[i];
+    fc.update();
+    if (fc.dead) {
+      game.flyingCoins.splice(i, 1);
     }
   }
 }
@@ -285,10 +296,9 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) 
     let ox = (c.hitW - c.w) / 2, oy = (c.hitH - c.h) / 2;
     if (!c.collected && game.player.x < c.x - ox + c.hitW && game.player.x + game.player.w > c.x - ox && game.player.y < c.y - oy + c.hitH && game.player.y + game.player.h > c.y - oy) {
       c.collected = true;
-      c.animTimer = 30;
-      c.vy = -5;
+      c.dead = true;
       if (game.scoreCoin < 999) game.scoreCoin++;
-      spawnParticles(c.x + c.w / 2, c.y + c.h / 2, '#fd0', 3, 2);
+      game.flyingCoins.push(new FlyingCoin(c.x + c.w / 2, c.y + c.h / 2));
     }
   });
 
