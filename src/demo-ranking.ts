@@ -27,6 +27,7 @@ export async function startDemoRankingScroll(isAttractMode: boolean) {
   
   s.forEach((r, idx) => {
     let i = (r.rank ? r.rank - 1 : idx);
+    let rankNum = i + 1;
     let m = '';
     let color = 'rgba(255,255,255,0.85)';
     let fw = 'normal';
@@ -56,7 +57,9 @@ export async function startDemoRankingScroll(isAttractMode: boolean) {
     if (lang.length > 3) lang = lang.substring(0, 3);
     if (name.length > 2) name = name.substring(0, 2);
 
-    let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:24px;white-space:nowrap;overflow:hidden;padding-left:4px;vertical-align:middle;">${m}${i + 1}</td><td style="padding:${pt};text-align:center;width:32px;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:${pt};text-align:center;width:32px;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(name)}</td><td style="text-align:right;padding:${pt};white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};padding-right:4px;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.coins || 0)}</td></tr>`;
+    let rankStyle = rankNum >= 100 ? 'font-size:7px;letter-spacing:-0.5px;padding-left:2px;' : '';
+
+    let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:24px;white-space:nowrap;overflow:hidden;padding-left:4px;vertical-align:middle;${rankStyle}">${m}${rankNum}</td><td style="padding:${pt};text-align:center;width:32px;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:${pt};text-align:center;width:32px;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(name)}</td><td style="text-align:right;padding:${pt};white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.alt)}m</td><td style="text-align:right;padding:${pt};padding-right:4px;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;vertical-align:middle;">${escapeHTML(r.coins || 0)}</td></tr>`;
       
     if (i < 3) t3Html += row;
     else otHtml += row;

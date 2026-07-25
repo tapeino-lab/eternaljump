@@ -233,7 +233,7 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, isAttractMode) {
 
           if (npc.lastPlatform === p) {
             npc.sameBounceCount++;
-            if (npc.sameBounceCount > 4) {
+            if (npc.sameBounceCount >= 2) {
               p.blacklisted = true;
               if (npc.aiPath.length > 0) npc.aiPath[0].blacklisted = true;
               npc.aiPath = [];
@@ -248,7 +248,8 @@ export function updateNPCs(game, setIgnoreNextTap, pBtn, isAttractMode) {
             npc.stagnationTimer = 0;
             npc.adventureMode = false;
           }
-          if (!npc.visitedHistory.includes(p)) npc.visitedHistory.push(p);
+          npc.visitedHistory.push(p);
+          if (npc.visitedHistory.length > 8) npc.visitedHistory.shift();
 
           let seg = FLR((npc.x + npc.w / 2 - p.x) / config.platformW);
           if (seg < 0) seg = 0;
@@ -366,7 +367,7 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) 
             if (game.player.aiPath.length > 0 && game.player.aiPath[0] === p) game.player.aiPath.shift();
             if (game.player.lastPlatform === p) {
               game.player.sameBounceCount++;
-              if (game.player.sameBounceCount > 4) {
+              if (game.player.sameBounceCount >= 2) {
                 p.blacklisted = true;
                 if (game.player.aiPath.length > 0) game.player.aiPath[0].blacklisted = true;
                 game.player.aiPath = [];
@@ -380,7 +381,8 @@ export function updatePlayingState(game, setIgnoreNextTap, pBtn, isAttractMode) 
               game.player.stagnationTimer = 0;
               game.player.adventureMode = false;
             }
-            if (!game.player.visitedHistory.includes(p)) game.player.visitedHistory.push(p);
+            game.player.visitedHistory.push(p);
+            if (game.player.visitedHistory.length > 8) game.player.visitedHistory.shift();
           }
           
           let seg = FLR((game.player.x + game.player.w / 2 - p.x) / config.platformW);
