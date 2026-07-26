@@ -405,7 +405,7 @@ width: 8px;
 height: 8px;
 position: relative;
 flex-shrink: 0;
-transform: translateY(-1px); /* 錯視とフォントのベースライン余白を考慮して1px上にシフト */
+transform: translateY(-1px); /* Shift 1px up for optical alignment with baseline */
 }
 .coin-icon .c-p1 { position: absolute; left: 2px; top: 0; width: 4px; height: 8px; background: #fd0; }
 .coin-icon .c-p2 { position: absolute; left: 0; top: 2px; width: 8px; height: 4px; background: #fd0; }

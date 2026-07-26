@@ -19,6 +19,18 @@
     setAppHeight();
   </script>
   <link rel="stylesheet" href="/src/game.css">
+  <style>
+    html, body {
+      background-color: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #gameContainer {
+      background-color: #000;
+    }
+  </style>
 </head>
 <body>
   <div id="gameContainer">
@@ -175,27 +187,27 @@
     <div id="tapToStartMsg" class="tap-to-start-msg">TAP TO START</div>
   </div>
 
-  <!-- 名前編集用バーチャルキーボードモーダル (ゲーム画面＋操作エリアの最前面に表示) -->
+  <!-- Virtual keyboard modal for name editing -->
   <div id="nameEditModal" class="name-edit-modal">
     <div id="nameEditModalContent" class="name-edit-content">
       <div class="name-edit-title">EDIT NAME</div>
       
       <div class="name-edit-row">
-        <!-- 左に 元に戻す -->
+        <!-- Left: Undo / Reset -->
         <button id="btnNameReset" class="modal-btn name-edit-btn-reset" title="RESET">UNDO</button>
         
-        <!-- 中央: 名前表示 -->
+        <!-- Center: Name display -->
         <div class="name-edit-val-container">
           <span id="nameEditVal" class="name-edit-val">AB</span>
         </div>
         
-        <!-- 右に サイコロ -->
+        <!-- Right: Random dice button -->
         <button id="btnNameRandom" class="modal-btn name-edit-btn-random" title="RANDOM">🎲</button>
       </div>
       
-      <!-- 中央: キーボード -->
+      <!-- Center: Keyboard -->
       <div id="virtualKeyboard" class="virtual-keyboard">
-        <!-- コンテナの高さを 260px に固定し、各ブロックは通常フロー。 -->
+        <!-- Fixed height container for keyboard keys -->
         <div id="kbContainer" class="kb-container">
           <!-- A-Z Block -->
           <div id="kbLetters" class="kb-letters"></div>
@@ -212,7 +224,7 @@
         </div>
       </div>
       
-      <!-- 下部: 確定 & キャンセル -->
+      <!-- Bottom: Confirm & Cancel -->
       <div class="name-edit-bottom-row">
         <button id="btnNameCancel" class="modal-btn name-edit-btn-cancel">CANCEL</button>
         <button id="btnNameConfirm" class="modal-btn name-edit-btn-confirm">OK</button>

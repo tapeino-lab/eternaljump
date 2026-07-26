@@ -150,7 +150,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         score += dy * 20; 
       } else {
         let absDy = dy < 0 ? -dy : dy;
-        score -= absDy * 10; // 下にある台のペナルティ強化
+        score -= absDy * 10; // Penalty for platform below
       }
       score -= dx * 2; 
 
@@ -158,7 +158,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       if (cand.type === 'super' || cand.isGlowing) bonus += 2000;
       if (cand.collected !== undefined) bonus += 5000; 
       
-      // 下にある台に対してはボーナスを大幅に減らす（刻んで上に行くことを優先）
+      // Significantly reduce bonus for lower platforms to prioritize climbing upward
       if (dy < -10) {
         bonus = Math.floor(bonus / 4);
       }

@@ -45,7 +45,7 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
     valSpan = floater.querySelector('#floater-coin-val');
   }
   
-  // 文字の点滅（0.6s * 2 = 1200ms）完了後に飛ぶ演出を開始
+  // Start flying effect after blinking text animation completes (1200ms)
   let delay = showWindow ? 1200 : 50;
   setTimeout(() => {
     let startX = 128;
@@ -62,7 +62,7 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
     }
 
     let remainingCoins = coins;
-    // コイン数が多い場合でもテンポよく完結するように最大10回に分割
+    // Split into max 10 particle bursts to complete smoothly even for large coin counts
     let totalSpawns = Math.min(coins, 10);
     let coinPerSpawn = Math.max(1, Math.ceil(coins / totalSpawns));
     let spawnInterval = 60;

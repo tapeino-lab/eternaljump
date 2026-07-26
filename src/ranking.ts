@@ -66,7 +66,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             let now = Date.now();
             let lastFetch = parseInt(localStorage.getItem('LL_LAST_FETCH') || '0');
             
-            // プレイモード（ポーズなど）は60秒、デモモード放置時は10分キャッシュ
+            // Cache for 60 seconds during play, or 10 minutes in demo mode
             let cacheDuration = (game && game.state === 'demo') ? 600000 : 60000;
 
             if (!forceNetwork && (now - lastFetch) < cacheDuration) {
@@ -404,7 +404,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             else if (rNum === 3) m = '<span class="mdl mdl-3"></span>';
             
             let nVal = r.n || '--- ??';
-            if (isC) nVal = getPlayerName(); // 常にローカルの最新の名前で上書きして表示する
+            if (isC) nVal = getPlayerName(); // Always override with latest local player name
             
             let lang = '---';
             let name = '??';

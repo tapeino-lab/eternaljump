@@ -496,7 +496,7 @@ export { dR, inputHandler };
 
       }
       
-      // アトラクトモード(タイトル画面)かつデモプレイ中ではなく一時停止もされていない時だけバージョン表示と設定ボタンを表示
+      // Show version info on title screen when not in demo mode or paused
       const tVer = $('titleVersion');
       if (tVer) {
         

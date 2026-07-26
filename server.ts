@@ -39,7 +39,7 @@ async function startServer() {
     const { lang, pid } = req.body;
     if (!pid || !lang) return res.json({ name: '???' });
     
-    // LootLockerのPlayer ID（pid）の下5桁をサフィックスとして使用し、サーバー再起動に強いステートレスで重複のない一意のIDを生成
+    // Use the last 5 digits of LootLocker Player ID (pid) as suffix to generate a unique stateless ID
     const suffix = String(pid).substring(Math.max(0, String(pid).length - 5));
     const name = `${lang}${suffix}`;
     res.json({ name });

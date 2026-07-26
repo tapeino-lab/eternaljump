@@ -38,17 +38,17 @@ export interface FireworkFlash {
 }
 
 const COLOR_PALETTES = [
-  ['#ff3366', '#ffd700'], // ピンク & ゴールド
-  ['#00f0ff', '#ffffff'], // シアン & ホワイト
-  ['#ffd700', '#ff6b08'], // ゴールド & オレンジ
-  ['#00ff66', '#00f0ff'], // ネオングリーン & シアン
-  ['#ff00ff', '#9d4edd'], // マゼンタ & パープル
-  ['#ffffff', '#ffd700'], // シルバー & ゴールド
-  // 日本の伝統和色パレット
-  ['#e64a19', '#ffb300'], // 和朱（わしゅ）& 黄金（こがね）
-  ['#00b8d4', '#ccff90'], // 浅葱（あさぎ）& 萌黄（もえぎ）
-  ['#aa00ff', '#ff80ab'], // 江戸紫（えどむらさき）& 紅（べに）
-  ['#ff6d00', '#ffd54f'], // 金茶（きんちゃ）& 黄丹（おうに）
+  ['#ff3366', '#ffd700'], // Pink & Gold
+  ['#00f0ff', '#ffffff'], // Cyan & White
+  ['#ffd700', '#ff6b08'], // Gold & Orange
+  ['#00ff66', '#00f0ff'], // Neon Green & Cyan
+  ['#ff00ff', '#9d4edd'], // Magenta & Purple
+  ['#ffffff', '#ffd700'], // Silver & Gold
+  // Traditional color palettes
+  ['#e64a19', '#ffb300'],
+  ['#00b8d4', '#ccff90'],
+  ['#aa00ff', '#ff80ab'],
+  ['#ff6d00', '#ffd54f'],
 ];
 
 class FireworksSystem {
@@ -65,18 +65,18 @@ class FireworksSystem {
   }
 
   /**
-   * 花火ロケットを打ち上げる
+   * Launch firework rocket
    */
   launch(x?: number, targetY?: number) {
-    // 中央の穴（x=96〜128）とその左右1ブロック（16pxずつ、即ち x=80〜144）を除外
+    // Exclude center hole area
     let startX: number;
     if (x !== undefined) {
       startX = x;
     } else {
       if (RND() < 0.5) {
-        startX = 16 + RND() * 64;  // 左エリア: 16 〜 80
+        startX = 16 + RND() * 64;  // Left area
       } else {
-        startX = 144 + RND() * 64; // 右エリア: 144 〜 208
+        startX = 144 + RND() * 64; // Right area
       }
     }
     const destY = targetY ?? (25 + RND() * 130);
@@ -86,10 +86,10 @@ class FireworksSystem {
     ];
     const type = types[FLR(RND() * types.length)];
 
-    // 打ち上げ開始位置（地面近く）
+    // Launch position near ground
     const startY = 240;
     const dist = Math.max(20, startY - destY);
-    // 重力 0.14 で到達高度 destY にぴったり合わせる初速 vy
+    // Initial velocity vy for target altitude destY under gravity 0.14
     const vy = -Math.sqrt(2 * 0.14 * dist);
 
     this.rockets.push({
@@ -105,9 +105,7 @@ class FireworksSystem {
   }
 
   /**
-   * 更新処理
-   * @param game ゲーム状態オブジェクト
-   * @param isAttractMode アトラクトモードかどうか
+   * Update logic
    */
   update(game: GameState, isAttractMode: boolean) {
     if (game && game.isPaused) {
@@ -118,34 +116,31 @@ class FireworksSystem {
     if (!isAttractMode && game) {
       const recScreens = config.recoveryScreens ?? 1;
       const maxReturnCamY = (game.highestCameraY ?? 0) + config.gameHeight * recScreens;
-      // カメラが地上・花火高度に戻れる範囲(maxReturnCamY >= -200)であれば打ち上げを継続
       if (maxReturnCamY >= -200) {
         allowSpawn = true;
       }
     }
 
-    // スポーン処理
+    // Spawn rockets
     if (allowSpawn) {
       this.spawnTimer--;
       if (this.spawnTimer <= 0) {
-        // 1〜2発同時に打ち上げる
         const count = RND() < 0.35 ? 2 : 1;
         for (let i = 0; i < count; i++) {
           this.launch();
         }
-        // 次の打ち上げまでのインターバル (18〜38フレーム ＝ 約0.3〜0.6秒)
         this.spawnTimer = 18 + FLR(RND() * 20);
       }
     }
 
-    // 1. ロケットの更新
+    // 1. Update rockets
     for (let i = this.rockets.length - 1; i >= 0; i--) {
       const r = this.rockets[i];
       r.x += r.vx;
       r.y += r.vy;
-      r.vy += 0.14; // 上昇に伴う減速重力
+      r.vy += 0.14; // Gravity deceleration
 
-      // 尻尾の火花 (Trail)
+      // Trail sparks
       if (RND() < 0.8) {
         this.sparks.push({
           x: r.x + (RND() - 0.5) * 1.5,
@@ -161,14 +156,14 @@ class FireworksSystem {
         });
       }
 
-      // 目標高度到達、または減速で爆発
+      // Explode at target altitude or slowdown
       if (r.y <= r.targetY || r.vy >= -0.2) {
         this.explode(r);
         this.rockets.splice(i, 1);
       }
     }
 
-    // 2. 爆発フラッシュの更新
+    // 2. Update flashes
     for (let i = this.flashes.length - 1; i >= 0; i--) {
       const f = this.flashes[i];
       f.radius += (f.maxRadius - f.radius) * 0.35;
@@ -178,7 +173,7 @@ class FireworksSystem {
       }
     }
 
-    // 3. 火花粒子の更新
+    // 3. Update sparks
     for (let i = this.sparks.length - 1; i >= 0; i--) {
       const s = this.sparks[i];
       s.x += s.vx;
@@ -188,7 +183,7 @@ class FireworksSystem {
       s.vy += s.gravity;
       s.alpha -= s.decay;
 
-      // 変化菊などの色変え処理
+      // Color shift timer
       if (s.colorShiftTimer !== undefined && s.colorShiftTimer > 0) {
         s.colorShiftTimer--;
         if (s.colorShiftTimer === 0 && s.secondColor) {
@@ -201,17 +196,17 @@ class FireworksSystem {
       }
     }
 
-    // 古いスマホ・低スペック端末向け粒子数制限（最大220個に抑制）
+    // Limit spark count for performance
     if (this.sparks.length > 220) {
       this.sparks.splice(0, this.sparks.length - 220);
     }
   }
 
   /**
-   * ロケット爆発（開花）
+   * Rocket explosion
    */
   explode(r: FireworkRocket) {
-    // 爆発の瞬間の中央フラッシュ
+    // Explosion flash
     this.flashes.push({
       x: r.x,
       y: r.y,
@@ -222,7 +217,6 @@ class FireworksSystem {
     });
 
     if (r.type === 'senrin') {
-      // 千輪（せんりん）：中央から広がる多数の小花火塊
       const petalCount = 7;
       for (let p = 0; p < petalCount; p++) {
         const pAngle = (p / petalCount) * PI * 2 + (RND() - 0.5) * 0.2;
@@ -231,7 +225,6 @@ class FireworksSystem {
         const cy = r.y + Math.sin(pAngle) * pDist;
         const pColor = COLOR_PALETTES[FLR(RND() * COLOR_PALETTES.length)][0];
 
-        // 各小花火の爆発フラッシュ
         this.flashes.push({
           x: cx,
           y: cy,
@@ -276,7 +269,6 @@ class FireworksSystem {
       let size = 2.0 + RND() * 1.2;
 
       if (r.type === 'wabika') {
-        // 和火（わび）：あたたかい橙金色の尾を引き重力で垂れる
         color = RND() < 0.7 ? '#ff6d00' : '#ffb300';
         speed = 0.9 + RND() * 1.2;
         decay = 0.012 + RND() * 0.01;
@@ -284,11 +276,10 @@ class FireworksSystem {
         size = 2.2;
         sparkle = RND() < 0.3;
       } else if (r.type === 'kiku') {
-        // 変色菊：きれいな正円状に伸び、途中で二色目に変化する
         speed = 1.8;
         color = r.color;
         secondColor = r.secondColor;
-        colorShiftTimer = 12 + FLR(RND() * 8); // 12〜20フレーム後に変色
+        colorShiftTimer = 12 + FLR(RND() * 8);
         decay = 0.016;
         size = 2.0;
         sparkle = true;
@@ -298,8 +289,8 @@ class FireworksSystem {
           color = r.secondColor;
         }
       } else if (r.type === 'willow') {
-        decay = 0.009 + RND() * 0.006; // しだれ（長持ち）
-        gravity = 0.05 + RND() * 0.03; // 重力で流れる
+        decay = 0.009 + RND() * 0.006;
+        gravity = 0.05 + RND() * 0.03;
         color = RND() < 0.6 ? '#ffd700' : '#ffffff';
         size = 1.8;
       } else if (r.type === 'ring') {
@@ -329,12 +320,12 @@ class FireworksSystem {
   }
 
   /**
-   * 描画処理
+   * Render fireworks
    */
   draw(ctx: CanvasRenderingContext2D) {
     ctx.save();
 
-    // 1. 爆発フラッシュ描画 (レトロな四角いフラッシュ)
+    // 1. Draw explosion flash
     for (let i = 0; i < this.flashes.length; i++) {
       const f = this.flashes[i];
       const screenY = FLR(f.y);
@@ -344,23 +335,21 @@ class FireworksSystem {
       ctx.fillRect(FLR(f.x - size / 2), FLR(screenY - size / 2), size, size);
     }
 
-    // 2. ロケット描画 (レトロなドット弾)
+    // 2. Draw rockets
     for (let i = 0; i < this.rockets.length; i++) {
       const r = this.rockets[i];
       const screenY = FLR(r.y);
 
-      // 外側の枠
       ctx.globalAlpha = 0.7;
       ctx.fillStyle = r.color;
       ctx.fillRect(FLR(r.x - 2), FLR(screenY - 2), 4, 4);
 
-      // 内側の白い芯
       ctx.globalAlpha = 1.0;
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(FLR(r.x - 1), FLR(screenY - 1), 2, 2);
     }
 
-    // 3. 火花粒子描画 (レトロドット)
+    // 3. Draw sparks
     for (let i = 0; i < this.sparks.length; i++) {
       const s = this.sparks[i];
       const screenY = FLR(s.y);
@@ -369,7 +358,6 @@ class FireworksSystem {
       let alpha = s.alpha;
       let color = s.color;
 
-      // きらきら点滅 (Sparkle)
       if (s.sparkle && RND() < 0.35) {
         color = '#ffffff';
         alpha = Math.min(1.0, alpha + 0.4);
