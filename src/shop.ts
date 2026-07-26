@@ -24,10 +24,32 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
 </svg>`
   },
   {
+    id: 'helmet',
+    name: 'HELMET',
+    desc: 'Protects from meteors',
+    price: 3000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="4" y="3" width="8" height="1" fill="#000"/>
+  <rect x="2" y="4" width="2" height="1" fill="#000"/>
+  <rect x="12" y="4" width="2" height="1" fill="#000"/>
+  <rect x="1" y="5" width="1" height="6" fill="#000"/>
+  <rect x="14" y="5" width="1" height="6" fill="#000"/>
+  <rect x="0" y="11" width="1" height="2" fill="#000"/>
+  <rect x="15" y="11" width="1" height="2" fill="#000"/>
+  <rect x="1" y="13" width="14" height="1" fill="#000"/>
+  <rect x="4" y="4" width="8" height="1" fill="#fd0"/>
+  <rect x="2" y="5" width="12" height="6" fill="#fd0"/>
+  <rect x="1" y="11" width="14" height="2" fill="#fd0"/>
+  <rect x="7" y="4" width="2" height="7" fill="#f80"/>
+  <rect x="3" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
+  <rect x="11" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
+</svg>`
+  },
+  {
     id: 'magnet',
     name: 'MAGNET',
     desc: 'Easy coin collect',
-    price: 3000,
+    price: 10000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <rect x="3" y="2" width="10" height="1" fill="#000"/>
   <rect x="2" y="3" width="1" height="10" fill="#000"/>
@@ -45,28 +67,6 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   <rect x="4" y="3" width="8" height="1" fill="#fff" opacity="0.5"/>
   <rect x="4" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
   <rect x="11" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
-</svg>`
-  },
-  {
-    id: 'helmet',
-    name: 'HELMET',
-    desc: 'Protects from meteors',
-    price: 10000,
-    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
-  <rect x="4" y="3" width="8" height="1" fill="#000"/>
-  <rect x="2" y="4" width="2" height="1" fill="#000"/>
-  <rect x="12" y="4" width="2" height="1" fill="#000"/>
-  <rect x="1" y="5" width="1" height="6" fill="#000"/>
-  <rect x="14" y="5" width="1" height="6" fill="#000"/>
-  <rect x="0" y="11" width="1" height="2" fill="#000"/>
-  <rect x="15" y="11" width="1" height="2" fill="#000"/>
-  <rect x="1" y="13" width="14" height="1" fill="#000"/>
-  <rect x="4" y="4" width="8" height="1" fill="#fd0"/>
-  <rect x="2" y="5" width="12" height="6" fill="#fd0"/>
-  <rect x="1" y="11" width="14" height="2" fill="#fd0"/>
-  <rect x="7" y="4" width="2" height="7" fill="#f80"/>
-  <rect x="3" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
-  <rect x="11" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
 </svg>`
   }
 ];
