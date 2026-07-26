@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI } from '../utils.js';
+import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
 import { game } from '../state.js';
 import { ctx, IMG } from '../game.js';
 import { dR } from '../renderer.js';
@@ -139,15 +139,19 @@ import { spawnParticles } from './particles.js';
         }
         
         if (game.state === 'intro' || this.isIntro) {
-          if (game.state === 'intro' && this.y >= 200 && (this.x + this.w / 2) <= 27) {
-            game.state = 'shop';
-            this.x = 27 - this.w / 2;
-            this.vx = 0;
+          if (game.state === 'intro' && this.y >= 200 && (this.x + this.w / 2) <= 17) {
+            if (hasPlayedOnce()) {
+              game.state = 'shop';
+              this.x = 17 - this.w / 2;
+              this.vx = 0;
+            } else if (this.x < 0) {
+              this.x = 0;
+            }
           } else if (this.x < 0) {
             this.x = 0;
           }
           if (this.x + this.w > 128) this.x = 128 - this.w;
-          if (this.y > 225 && (this.x + this.w / 2) > 27 && this.x < 96) this.x = 96;
+          if (hasPlayedOnce() && this.y > 225 && (this.x + this.w / 2) > 17 && this.x < 96) this.x = 96;
         } else {
           if (this.x + this.w < 0) {
             this.x = config.gameWidth;

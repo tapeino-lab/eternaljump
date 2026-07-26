@@ -5,7 +5,7 @@ import { safeStorage } from './safeStorage.js';
 
 import { $ } from './utils.js';
 import { LootLockerAPI } from './lootlocker.js';
-import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
+import { getLang, MIN, escapeHTML, getPlayerName, markHasPlayed } from './utils.js';
 
     export const RankingAPI = {
       key: 'EternalJumper_Rankings',
@@ -143,6 +143,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         return s;
       },
       saveScore: async function(a, t, c, r) {
+        markHasPlayed();
         if (game.demoMode && !game.allowAutoRank) return;
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;
         game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l };

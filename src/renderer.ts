@@ -5,7 +5,7 @@ import { airplaneSystem } from './airplane.js';
 
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
-import { RND, FLR, MIN, MAX, SIN, ABS, PI, $ } from './utils.js';
+import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from './utils.js';
 
 export function dR(x, y, w, h, c) {
   if (c !== null) ctx.fillStyle = c;
@@ -120,58 +120,59 @@ export function drawBG(ts) {
 
 export function drawHorizontalPipe(ctx: CanvasRenderingContext2D) {
   if (game.cameraY > 300) return;
+  if (!hasPlayedOnce()) return;
 
   ctx.save();
 
-  // NES Super Mario Style Horizontal Green Pipe (Mouth facing Right at x = 27)
+  // NES Super Mario Style Horizontal Green Pipe (Mouth facing Right at x = 17)
   // Y range: 210 to 241 (Lip height 32px, 1px overlap with ground at Y=240 for seamless fit)
 
   // 1. Black Outer Outline
   ctx.fillStyle = '#000000';
-  ctx.fillRect(0, 211, 18, 30);  // Body outer border
-  ctx.fillRect(18, 209, 10, 33); // Lip outer border
+  ctx.fillRect(0, 211, 8, 30);   // Body outer border (0..8)
+  ctx.fillRect(8, 209, 10, 33);  // Lip outer border (8..18)
 
-  // 2. Pipe Body (x = 0..18)
+  // 2. Pipe Body (x = 0..8)
   ctx.fillStyle = '#b8f818';
-  ctx.fillRect(0, 212, 18, 2);   // Top highlight line
+  ctx.fillRect(0, 212, 8, 2);    // Top highlight line
 
   ctx.fillStyle = '#00d800';
-  ctx.fillRect(0, 214, 18, 3);   // Bright green band
+  ctx.fillRect(0, 214, 8, 3);    // Bright green band
 
   ctx.fillStyle = '#00a800';
-  ctx.fillRect(0, 217, 18, 15);  // Base green
+  ctx.fillRect(0, 217, 8, 15);   // Base green
 
   ctx.fillStyle = '#005000';
-  ctx.fillRect(0, 232, 18, 5);   // Dark green shadow
+  ctx.fillRect(0, 232, 8, 5);    // Dark green shadow
 
   ctx.fillStyle = '#002800';
-  ctx.fillRect(0, 237, 18, 3);   // Bottom extra dark shadow
+  ctx.fillRect(0, 237, 8, 3);    // Bottom extra dark shadow
 
-  // 3. Pipe Lip / Rim (x = 18..25)
+  // 3. Pipe Lip / Rim (x = 8..15)
   ctx.fillStyle = '#b8f818';
-  ctx.fillRect(18, 210, 8, 3);   // Lip top highlight
+  ctx.fillRect(8, 210, 8, 3);    // Lip top highlight
 
   ctx.fillStyle = '#00d800';
-  ctx.fillRect(18, 213, 8, 3);   // Lip bright green
+  ctx.fillRect(8, 213, 8, 3);    // Lip bright green
 
   ctx.fillStyle = '#00a800';
-  ctx.fillRect(18, 216, 8, 17);  // Lip base green
+  ctx.fillRect(8, 216, 8, 17);   // Lip base green
 
   ctx.fillStyle = '#005000';
-  ctx.fillRect(18, 233, 8, 6);   // Lip shadow
+  ctx.fillRect(8, 233, 8, 6);    // Lip shadow
 
   ctx.fillStyle = '#002800';
-  ctx.fillRect(18, 239, 8, 2);   // Lip bottom shadow
+  ctx.fillRect(8, 239, 8, 2);    // Lip bottom shadow
 
   // Lip left bevel line for pixel depth
   ctx.fillStyle = '#002800';
-  ctx.fillRect(18, 210, 1, 31);
+  ctx.fillRect(8, 210, 1, 31);
 
-  // 4. Mouth Hole Opening on Right (x = 26..27)
+  // 4. Mouth Hole Opening on Right (x = 16..17)
   ctx.fillStyle = '#000000';
-  ctx.fillRect(26, 210, 2, 31);
+  ctx.fillRect(16, 210, 2, 31);
   ctx.fillStyle = '#002800';
-  ctx.fillRect(26, 212, 1, 27);
+  ctx.fillRect(16, 212, 1, 27);
 
   ctx.restore();
 }

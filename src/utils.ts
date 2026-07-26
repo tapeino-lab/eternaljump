@@ -1,4 +1,5 @@
 import { safeStorage } from './safeStorage.js';
+import { secureStorage } from './secureStorage.js';
 
 export const RND = Math.random;
 export const FLR = Math.floor;
@@ -8,6 +9,31 @@ export const MIN = Math.min;
 export const SIN = Math.sin;
 export const POW = Math.pow;
 export const PI = Math.PI;
+
+export const hasPlayedOnce = (): boolean => {
+  if (safeStorage.getItem('JUMP_HAS_PLAYED') === 'true') {
+    return true;
+  }
+  try {
+    const pb = secureStorage.getItem<any>('EternalJumper_PB', null);
+    if (pb && typeof pb.alt === 'number' && pb.alt > 0) {
+      safeStorage.setItem('JUMP_HAS_PLAYED', 'true');
+      return true;
+    }
+    const coins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+    if (coins > 0) {
+      safeStorage.setItem('JUMP_HAS_PLAYED', 'true');
+      return true;
+    }
+  } catch (e) {}
+  return false;
+};
+
+export const markHasPlayed = (): void => {
+  try {
+    safeStorage.setItem('JUMP_HAS_PLAYED', 'true');
+  } catch (e) {}
+};
 
 export const getLang = (): string => {
   try {
