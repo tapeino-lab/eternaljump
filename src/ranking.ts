@@ -227,15 +227,9 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           titleColor = '#fff';
           titleAnim = 'superBlink 0.1s steps(1) infinite';
         } else if (state === 'gameover') {
-          if (game.isNewRecord) {
-            title = 'NEW RECORD!';
-            titleColor = '#f0f';
-            titleAnim = 'superBlink 0.3s steps(1) infinite';
-          } else {
-            title = 'TRY AGAIN!';
-            titleColor = '#fff';
-            titleAnim = '';
-          }
+          title = 'TRY AGAIN!';
+          titleColor = '#fff';
+          titleAnim = '';
         } else if (state === 'demo') {
           title = 'DEMO RESULT';
           titleColor = '#fff';
