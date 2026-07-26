@@ -9,12 +9,17 @@ export async function startDemoRankingScroll(isAttractMode: boolean) {
   $('demoRankingContainer').style.opacity = '1';
   $('demoRankingContainer').style.transition = 'none';
   $('demoRankingContainer').style.background = 'rgba(0,0,0,0.3)';
-  $('demoHeader').innerHTML = '<div style="color:#fff;font-size:10px;text-align:center;margin-top:20px;">LOADING...</div>';
+  $('demoLoading').style.display = 'block';
+  $('demoHeader').innerHTML = '';
   $('demoTop3').innerHTML = '';
   $('demoOthers').innerHTML = '';
   
   let s = await RankingAPI.getScores();
-  if (!isAttractMode) return;
+  if (!isAttractMode) {
+    $('demoLoading').style.display = 'none';
+    return;
+  }
+  $('demoLoading').style.display = 'none';
   
   let curLen = s.length;
   for (let i = 0; i < 100 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });

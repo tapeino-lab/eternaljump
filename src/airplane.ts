@@ -44,12 +44,26 @@ class AirplaneBannerSystem {
       this.offCtx.fillStyle = '#ffffff';
       this.offCtx.fillRect(0, 0, w, h);
 
-      // 黒文字
-      this.offCtx.fillStyle = '#000000';
       this.offCtx.font = '8px "Press Start 2P", monospace';
-      this.offCtx.textAlign = 'center';
+      this.offCtx.textAlign = 'left';
       this.offCtx.textBaseline = 'middle';
-      this.offCtx.fillText(this.text, w / 2, h / 2 + 1);
+
+      const part1 = '2026';
+      const space = ' ';
+      const part2 = 'VILNIUS';
+      const fullText = part1 + space + part2;
+
+      const totalW = this.offCtx.measureText(fullText).width;
+      const startX = (w - totalW) / 2;
+      const part1W = this.offCtx.measureText(part1 + space).width;
+
+      // 2026: #0E6FA4
+      this.offCtx.fillStyle = '#0E6FA4';
+      this.offCtx.fillText(part1, startX, h / 2 + 1);
+
+      // VILNIUS: #80B740
+      this.offCtx.fillStyle = '#80B740';
+      this.offCtx.fillText(part2, startX + part1W, h / 2 + 1);
     }
   }
 

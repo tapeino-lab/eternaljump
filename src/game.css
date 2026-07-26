@@ -747,6 +747,18 @@ transform: scale(0.9);
   font-family: 'Press Start 2P', sans-serif;
 }
 
+.demo-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 10px;
+  z-index: 10;
+  display: none;
+  white-space: nowrap;
+}
+
 .demo-header {
   position: absolute;
   left: 5%;
