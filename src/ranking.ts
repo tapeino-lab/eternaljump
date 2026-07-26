@@ -245,10 +245,23 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         $('resultTitle').style.animation = titleAnim;
         
         if (game.lastScoreObj) {
-          if (game.isNewRecord && state === 'clear') {
-            $('newRecordBadge').style.display = 'block';
+          const scoreLabel = document.querySelector('.result-score-label') as HTMLElement;
+          if (game.isNewRecord) {
+            if (scoreLabel) {
+              scoreLabel.innerText = 'NEW RECORD!';
+              scoreLabel.style.color = '#ff00ff';
+              scoreLabel.style.animation = 'superBlink 0.25s steps(1) infinite';
+              scoreLabel.style.textShadow = '0 0 8px #f0f, 0 0 16px #ff0';
+            }
+            if ($('newRecordBadge')) $('newRecordBadge').style.display = 'none';
           } else {
-            $('newRecordBadge').style.display = 'none';
+            if (scoreLabel) {
+              scoreLabel.innerText = 'SCORE';
+              scoreLabel.style.color = '#0f0';
+              scoreLabel.style.animation = '';
+              scoreLabel.style.textShadow = '';
+            }
+            if ($('newRecordBadge')) $('newRecordBadge').style.display = 'none';
           }
           
           $('resultScoreAlt').innerText = game.lastScoreObj.alt + 'm';
@@ -262,7 +275,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             elCoins.innerHTML = '&times; ' + baseCoins;
             
             setTimeout(() => {
-              // x2 floater
+              // x2 floater (longer display duration & slower upward float)
               let rect = elCoins.getBoundingClientRect();
               let x2 = document.createElement('div');
               x2.innerHTML = 'x2';
@@ -270,8 +283,8 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
               x2.style.left = (rect.right + 10) + 'px';
               x2.style.top = rect.top + 'px';
               x2.style.color = '#fd0';
-              x2.style.textShadow = '2px 2px 0 #000';
-              x2.style.fontSize = '20px';
+              x2.style.textShadow = '2px 2px 0 #000, 0 0 8px #ff0';
+              x2.style.fontSize = '22px';
               x2.style.fontFamily = '"Press Start 2P", sans-serif';
               x2.style.pointerEvents = 'none';
               x2.style.zIndex = '2000';
@@ -279,11 +292,12 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
               
               x2.animate([
                 { transform: 'translate(0, 0)', opacity: 0 },
-                { transform: 'translate(0, -10px)', opacity: 1, offset: 0.2 },
-                { transform: 'translate(0, -40px)', opacity: 0 }
-              ], { duration: 1500, easing: 'ease-out' });
+                { transform: 'translate(0, -8px)', opacity: 1, offset: 0.12 },
+                { transform: 'translate(0, -35px)', opacity: 1, offset: 0.75 },
+                { transform: 'translate(0, -55px)', opacity: 0 }
+              ], { duration: 2800, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
               
-              setTimeout(() => x2.remove(), 1500);
+              setTimeout(() => x2.remove(), 2800);
               
               // Particles
               let cx = rect.left + rect.width / 2;
