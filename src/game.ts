@@ -1,4 +1,5 @@
 import { applyCoinCountUp } from './ui-effects.js';
+import { secureStorage } from './secureStorage.js';
 import { startDemoRankingScroll } from './demo-ranking.js';
 import { updateBirds, updateMeteors, updateParticles, updateFlyingCoins, updateNPCs, updatePlayingState, postUpdatePhysics } from "./update.js";
 import { updatePhysicsMain } from './update.js';
@@ -305,16 +306,7 @@ export { dR, inputHandler };
       game.lastRank = null;
       game.lastScoreObj = null;
       game.isNewRecord = false;
-      let storedPB = localStorage.getItem('EternalJumper_PB');
-      if (storedPB) {
-        try {
-          game.personalBest = JSON.parse(storedPB);
-        } catch (e) {
-          game.personalBest = null;
-        }
-      } else {
-        game.personalBest = null;
-      }
+      game.personalBest = secureStorage.getItem<any>('EternalJumper_PB', null);
       game.clearTime = 0;
       game.lastUI = '';
     }
@@ -332,7 +324,7 @@ export { dR, inputHandler };
       game.score = game.startScore;
       game.scoreCoin = 0;
       game.flyingCoins = [];
-      game.totalCoins = parseInt(localStorage.getItem('JUMP_TOTAL_COINS') || '0');
+      game.totalCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
       
       inputHandler.active.clear();
     }
@@ -557,20 +549,15 @@ export { dR, inputHandler };
         }
         const pb = document.getElementById('pauseBest');
         if (pb) {
-            let pbData = localStorage.getItem(RankingAPI.pbKey);
-            if (pbData) {
-                try {
-                    let d = JSON.parse(pbData);
-                    pb.innerHTML = `<div style="text-align:center; margin-top:4px;">
-                      <div style="color:#ddd; font-size:12px; font-weight:bold; margin-bottom:4px;">${d.alt}m</div>
-                      <div class="coin-align" style="font-size:9px; color:#dd8;">
-                        <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
-                        <span>&times; ${d.coins || 0}</span>
-                      </div>
-                    </div>`;
-                } catch(e) {
-                    localStorage.removeItem(RankingAPI.pbKey);
-                }
+            let d = secureStorage.getItem<any>(RankingAPI.pbKey, null);
+            if (d && typeof d.alt === 'number') {
+                pb.innerHTML = `<div style="text-align:center; margin-top:4px;">
+                  <div style="color:#ddd; font-size:12px; font-weight:bold; margin-bottom:4px;">${d.alt}m</div>
+                  <div class="coin-align" style="font-size:9px; color:#dd8;">
+                    <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
+                    <span>&times; ${d.coins || 0}</span>
+                  </div>
+                </div>`;
             } else {
                 pb.innerHTML = '';
             }

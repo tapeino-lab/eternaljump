@@ -1,6 +1,7 @@
 import { $ } from './utils.js';
 import { game } from './state.js';
 import { FlyingCoin } from './entities/index.js';
+import { secureStorage } from './secureStorage.js';
 
 export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', alreadyAddedToTotal: boolean = false, showWindow: boolean = true) {
   if (coins <= 0) return;
@@ -125,7 +126,7 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
       anim.onfinish = () => {
         if (fc.parentNode) fc.remove();
         game.totalCoins += amt;
-        localStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins.toString());
+        secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
         if (uiIcon && uiIcon.parentElement) {
             uiIcon.parentElement.animate([
                { transform: 'scale(1)', filter: 'brightness(1)' },

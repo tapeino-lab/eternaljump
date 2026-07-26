@@ -1,5 +1,6 @@
 import { game } from './state.js';
 import { setIgnoreNextTap } from './game.js';
+import { secureStorage } from './secureStorage.js';
 
 import { $ } from './utils.js';
 import { LootLockerAPI } from './lootlocker.js';
@@ -31,9 +32,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           }
 
           if (onlinePB && typeof onlinePB.alt === 'number') {
-            let storedPB = localStorage.getItem(pbKey);
-            let localPB = null;
-            try { if (storedPB) localPB = JSON.parse(storedPB); } catch(e) { localStorage.removeItem(pbKey); }
+            let localPB = secureStorage.getItem<any>(pbKey, null);
             
             let onlineIsBetter = false;
             if (!localPB || 
@@ -44,11 +43,11 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             }
 
             if (onlineIsBetter || pending.length === 0) {
-              localStorage.setItem(pbKey, JSON.stringify(onlinePB));
+              secureStorage.setItem(pbKey, onlinePB);
             }
           } else if (onlinePB && onlinePB.notFound) {
             if (pending.length === 0) {
-              localStorage.removeItem(pbKey);
+              secureStorage.removeItem(pbKey);
               if (game.personalBest) {
                 game.personalBest = null;
               }
@@ -124,13 +123,11 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             return scores;
           } else {
             try {
-              let d = localStorage.getItem(this.key);
-              if (!d) return [];
-              let s = JSON.parse(d);
+              let s = secureStorage.getItem<any[]>(this.key, []);
               s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
               return s.map((r, i) => ({ ...r, rank: i + 1 }));
             } catch (e) {
-              localStorage.removeItem(this.key);
+              secureStorage.removeItem(this.key);
               return [];
             }
           }
@@ -149,30 +146,23 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;
         game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l };
         game.lastScoreId = pid;
-        let pbKey = this.pbKey, storedPB = localStorage.getItem(pbKey);
+        let pbKey = this.pbKey;
         game.isNewRecord = false;
         game.personalBest = null;
         let cObj = { alt: game.lastScoreObj.alt, coins: game.lastScoreObj.coins, time: game.lastScoreObj.time };
         
-        let localPB = null;
-        if (storedPB) {
-          try {
-            localPB = JSON.parse(storedPB);
-            if (typeof localPB.alt !== 'number') {
-              localPB = null; // Ignore malformed PB
-            } else {
-              game.personalBest = localPB;
-            }
-          } catch(e) {
-            localStorage.removeItem(pbKey);
-          }
+        let localPB = secureStorage.getItem<any>(pbKey, null);
+        if (localPB && typeof localPB.alt === 'number') {
+          game.personalBest = localPB;
+        } else {
+          localPB = null;
         }
 
         let isNewRecordLocal = false;
         if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins) || (cObj.alt === localPB.alt && cObj.coins === localPB.coins && cObj.time < localPB.time)) {
           isNewRecordLocal = true;
           game.isNewRecord = true;
-          localStorage.setItem(pbKey, JSON.stringify(cObj));
+          secureStorage.setItem(pbKey, cObj);
           game.personalBest = cObj;
         }
 
@@ -198,7 +188,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
             game.lastRank = s.findIndex(x => x.id === pid) + 1;
             s = s.slice(0, 100);
-            localStorage.setItem(this.key, JSON.stringify(s));
+            secureStorage.setItem(this.key, s);
           } catch (e) {}
         }
         // Start background prefetch of scores immediately for latest values
@@ -217,7 +207,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           let c = game.lastScoreObj.coins || 0;
           if (state === 'clear') c *= 2;
           game.totalCoins += c;
-          localStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins.toString());
+          secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
         }
 
         this.isShowingResult = true;
@@ -475,8 +465,8 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
       },
       reset: function() {
         try {
-          localStorage.removeItem(this.key);
-          localStorage.removeItem(this.pbKey);
+          secureStorage.removeItem(this.key);
+          secureStorage.removeItem(this.pbKey);
           alert('RANKING CLEARED!')
         } catch (e) {}
       }
