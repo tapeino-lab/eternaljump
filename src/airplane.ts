@@ -40,6 +40,8 @@ class AirplaneBannerSystem {
       this.offCtx = this.offCanvas.getContext('2d');
     }
     if (this.offCtx) {
+      this.offCtx.imageSmoothingEnabled = false;
+
       // White background
       this.offCtx.fillStyle = '#ffffff';
       this.offCtx.fillRect(0, 0, w, h);
@@ -53,17 +55,20 @@ class AirplaneBannerSystem {
       const part2 = 'VILNIUS';
       const fullText = part1 + space + part2;
 
-      const totalW = this.offCtx.measureText(fullText).width;
-      const startX = (w - totalW) / 2;
-      const part1W = this.offCtx.measureText(part1 + space).width;
+      const totalW = Math.round(this.offCtx.measureText(fullText).width);
+      const startX = Math.round((w - totalW) / 2);
+      const part1W = Math.round(this.offCtx.measureText(part1 + space).width);
+      const textY = Math.round(h / 2) + 1;
 
-      // 2026: #0E6FA4
+      // 2026: #0E6FA4 (Bold text by 1px offset without blurring)
       this.offCtx.fillStyle = '#0E6FA4';
-      this.offCtx.fillText(part1, startX, h / 2 + 1);
+      this.offCtx.fillText(part1, startX, textY);
+      this.offCtx.fillText(part1, startX + 1, textY);
 
-      // VILNIUS: #80B740
+      // VILNIUS: #80B740 (Bold text by 1px offset without blurring)
       this.offCtx.fillStyle = '#80B740';
-      this.offCtx.fillText(part2, startX + part1W, h / 2 + 1);
+      this.offCtx.fillText(part2, startX + part1W, textY);
+      this.offCtx.fillText(part2, startX + part1W + 1, textY);
     }
   }
 
@@ -158,6 +163,7 @@ class AirplaneBannerSystem {
 
     // 2. Banner waving animation
     if (this.offCanvas) {
+      ctx.imageSmoothingEnabled = false;
       for (let i = 0; i < slices; i++) {
         const sx = i * sliceWidth;
         const sw = Math.min(sliceWidth, bannerW - sx);
