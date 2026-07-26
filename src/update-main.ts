@@ -11,10 +11,14 @@ import { RankingAPI } from './ranking.js';
 
     export function updatePhysicsMain(args: { game: GameState, isAttractMode: boolean, demoState: any, config: any, inputHandler: any, IMG: any, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, initGame: any, spawnPlatform: any, fireworksSystem: any, airplaneSystem: any, runAI: any, FLR: any, spawnParticles: any }) {
   const { game, isAttractMode, demoState, config, inputHandler, IMG, setIgnoreNextTap, pBtn, initGame, spawnPlatform, fireworksSystem, airplaneSystem, runAI, FLR, spawnParticles } = args;
+
+  if (game.state === 'shop') return;
       updateParticles(game);
       updateFlyingCoins(game);
       fireworksSystem.update(game, isAttractMode);
       airplaneSystem.update(game, isAttractMode);
+      
+      
       
       if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
         updateStateAnimations(game, config, FLR);

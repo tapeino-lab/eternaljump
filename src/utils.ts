@@ -1,3 +1,5 @@
+import { safeStorage } from './safeStorage.js';
+
 export const RND = Math.random;
 export const FLR = Math.floor;
 export const ABS = Math.abs;
@@ -29,7 +31,7 @@ export const escapeHTML = (str: string | number): string => {
 };
 
 export const getPlayerName = (): string => {
-  let n = localStorage.getItem('JUMP_PLAYER_NAME');
+  let n = safeStorage.getItem('JUMP_PLAYER_NAME');
   
   // Validate if player name matches "LANG XX" format (3-letter country code + space + 2 chars)
   // Migrate/reset legacy name formats automatically if invalid
@@ -40,7 +42,7 @@ export const getPlayerName = (): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randName = chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
     n = `${lang} ${randName}`;
-    localStorage.setItem('JUMP_PLAYER_NAME', n);
+    safeStorage.setItem('JUMP_PLAYER_NAME', n);
   }
   return n;
 };

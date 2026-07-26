@@ -8,32 +8,91 @@ import { RankingAPI } from './ranking.js';
 
 export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean) {
   game.items.forEach(function(i) {
-    if (!i.collected && game.player.x < i.x + i.w && game.player.x + game.player.w > i.x && game.player.y < i.y + i.h && game.player.y + game.player.h > i.y) {
-      i.collected = true;
-      game.player.powerUp();
-      spawnParticles(i.x + i.w / 2, i.y + i.h, '#ccc', 6);
-      if (game.demoMode && game.aiActive) {
-        if (game.player.aiPath.length > 0 && game.player.aiPath[0] === i) game.player.aiPath.shift();
-        game.player.stagnationTimer = 0;
-        game.player.adventureMode = false;
+    if (game.player.x < i.x + i.w && game.player.x + game.player.w > i.x && game.player.y < i.y + i.h && game.player.y + game.player.h > i.y) {
+      if (i.type === 'green') {
+        let superPower = config.superJumpPower * config.glowingMovingJumpMultiplier;
+        game.player.jump(superPower);
+        game.player.isSparkleJumping = true;
+        game.player.squatTimer = 3;
+        game.shakeAmount = 10;
+        spawnParticles(i.x + i.w / 2, i.y, '#2c2', 8, 3);
+        spawnParticles(i.x + i.w / 2, i.y, '#fff', 6, 2);
+        if (game.demoMode && game.aiActive) {
+          if (game.player.aiPath.length > 0 && game.player.aiPath[0] === i) game.player.aiPath.shift();
+          game.player.stagnationTimer = 0;
+          game.player.adventureMode = false;
+        }
+      } else if (!i.collected) {
+        i.collected = true;
+        game.player.powerUp();
+        spawnParticles(i.x + i.w / 2, i.y + i.h, '#ccc', 6);
+        if (game.demoMode && game.aiActive) {
+          if (game.player.aiPath.length > 0 && game.player.aiPath[0] === i) game.player.aiPath.shift();
+          game.player.stagnationTimer = 0;
+          game.player.adventureMode = false;
+        }
       }
     }
-    if (!i.collected) {
-      game.npcs.forEach(function(npc) {
-        if (npc.active && npc.vy > 0 && npc.x < i.x + i.w && npc.x + npc.w > i.x && npc.y < i.y + i.h && npc.y + npc.h > i.y) {
-          npc.y = i.y - npc.h;
-          npc.jump(config.superJumpPower);
-          npc.isSparkleJumping = true;
-          npc.squatTimer = 3;
-          spawnParticles(npc.x + npc.w / 2, i.y + i.h, '#ccc', 3);
-          if (npc.aiPath.length > 0 && npc.aiPath[0] === i) npc.aiPath.shift();
+
+    game.npcs.forEach(function(npc) {
+      if (npc.active && (npc.vy > 0 || i.type === 'green') && npc.x < i.x + i.w && npc.x + npc.w > i.x && npc.y < i.y + i.h && npc.y + npc.h > i.y) {
+        let ap = (i.type === 'green') ? config.superJumpPower * config.glowingMovingJumpMultiplier : config.superJumpPower;
+        npc.y = i.y - npc.h;
+        npc.jump(ap);
+        npc.isSparkleJumping = true;
+        npc.squatTimer = 3;
+        spawnParticles(npc.x + npc.w / 2, i.y, i.type === 'green' ? '#2c2' : '#ccc', 6, 2);
+        if (i.type === 'green') {
+          spawnParticles(npc.x + npc.w / 2, i.y, '#fff', 4, 2);
         }
-      });
-    }
+        if (npc.aiPath.length > 0 && npc.aiPath[0] === i) npc.aiPath.shift();
+      }
+    });
   });
 
   game.coins.forEach(function(c) {
     c.update();
+    
+    if (!c.collected) {
+      if (game.equipped?.['magnet']) {
+        let px = game.player.x + game.player.w / 2;
+        let py = game.player.y + game.player.h / 2;
+        let cx = c.x + c.w / 2;
+        let cy = c.y + c.h / 2;
+        let dx = px - cx;
+        let dy = py - cy;
+        let dist = Math.hypot(dx, dy);
+        let magnetRadius = 64;
+        
+        if (dist < magnetRadius && dist > 1) {
+          let pullAccel = 0.18;
+          c.mvx += (dx / dist) * pullAccel;
+          c.mvy += (dy / dist) * pullAccel;
+          
+          let curSpeed = Math.hypot(c.mvx, c.mvy);
+          let maxSpeed = 1.6;
+          if (curSpeed > maxSpeed) {
+            c.mvx = (c.mvx / curSpeed) * maxSpeed;
+            c.mvy = (c.mvy / curSpeed) * maxSpeed;
+          }
+          
+          if (Math.random() < 0.2) {
+            spawnParticles(c.x + c.w / 2, c.y + c.h / 2, '#80eec0', 1, 1);
+          }
+        }
+      }
+
+      if (Math.abs(c.mvx) > 0.01 || Math.abs(c.mvy) > 0.01) {
+        c.x += c.mvx;
+        c.y += c.mvy;
+        let friction = 0.82;
+        c.mvx *= friction;
+        c.mvy *= friction;
+        if (Math.abs(c.mvx) < 0.02) c.mvx = 0;
+        if (Math.abs(c.mvy) < 0.02) c.mvy = 0;
+      }
+    }
+
     let ox = (c.hitW - c.w) / 2, oy = (c.hitH - c.h) / 2;
     if (!c.collected && game.player.x < c.x - ox + c.hitW && game.player.x + game.player.w > c.x - ox && game.player.y < c.y - oy + c.hitH && game.player.y + game.player.h > c.y - oy) {
       c.collected = true;

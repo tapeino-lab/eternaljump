@@ -1,6 +1,6 @@
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
-import { config } from './config.js';
+import { config, SCORE_THRESHOLDS } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
 import { initGame } from './game.js';
@@ -16,7 +16,7 @@ export function updateBirds(game: GameState) {
     }
   }
 
-  if (game.score > game.startScore + 1000 && game.score < 52000) {
+  if (game.score > game.startScore + 1000 && game.score < SCORE_THRESHOLDS.MEDIUM) {
     if (RND() < 0.012 && game.birds.filter(b => b.type === 2).length < 1) {
       let dir = RND() < 0.85 ? game.flockDir : -game.flockDir;
       let startX = dir === 1 ? -20 : config.gameWidth + 20;
@@ -61,7 +61,7 @@ export function updateMeteors(game: GameState) {
         if (m.hitTimer > 0) continue;
         m.hitTimer = 60;
         if (game.demoMode && game.aiActive) game.player.aiPath = [];
-        if (game.player.isPoweredUp) {
+        if (game.player.isPoweredUp && !game.equipped?.['helmet']) {
           game.player.history = [];
           game.player.savedVy = game.player.vy;
           game.player.savedVx = game.player.vx;
@@ -73,13 +73,17 @@ export function updateMeteors(game: GameState) {
           game.player.vy = 0;
           game.player.vx = game.player.x < m.x ? -1.5 : 1.5;
           game.shakeAmount = m.isLarge ? 8 : 4;
+          if (game.equipped?.['helmet']) {
+            spawnParticles(game.player.x + game.player.w / 2, game.player.y + game.player.h / 2, '#ffd700', 8, 2);
+          }
         }
       }
     }
   }
 
-  if (game.score >= 80000 && game.score <= 120000 && game.state === 'playing') {
-    let dF = (game.score - 80000) / 40000;
+  if (game.score >= SCORE_THRESHOLDS.MID_HIGH && game.score <= SCORE_THRESHOLDS.METEOR_END && game.state === 'playing') {
+    let meteorSpan = SCORE_THRESHOLDS.METEOR_END - SCORE_THRESHOLDS.MID_HIGH;
+    let dF = (game.score - SCORE_THRESHOLDS.MID_HIGH) / meteorSpan;
     let mM = dF < 0.33 ? 1 : (dF < 0.66 ? 2 : 3);
     if (game.meteors.length < mM && RND() < (0.015 + dF * 0.015) * config.scoreMultiplier) {
       game.meteors.push(getMt(10 + RND() * (config.gameWidth - 40), game.cameraY - 40, (RND() - 0.5) * 1.0, 0.8 + dF * 0.7));

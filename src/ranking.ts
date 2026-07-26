@@ -1,6 +1,7 @@
 import { game } from './state.js';
 import { setIgnoreNextTap } from './game.js';
 import { secureStorage } from './secureStorage.js';
+import { safeStorage } from './safeStorage.js';
 
 import { $ } from './utils.js';
 import { LootLockerAPI } from './lootlocker.js';
@@ -26,9 +27,9 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           
           let pending = [];
           try {
-            pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+            pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
           } catch(e) {
-            localStorage.removeItem('LL_PENDING_SCORES');
+            safeStorage.removeItem('LL_PENDING_SCORES');
           }
 
           if (onlinePB && typeof onlinePB.alt === 'number') {
@@ -63,38 +64,38 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
             await this.syncPersonalBest();
             let scores = null;
             let now = Date.now();
-            let lastFetch = parseInt(localStorage.getItem('LL_LAST_FETCH') || '0');
+            let lastFetch = parseInt(safeStorage.getItem('LL_LAST_FETCH') || '0');
             
             // Cache for 60 seconds during play, or 10 minutes in demo mode
             let cacheDuration = (game && game.state === 'demo') ? 600000 : 60000;
 
             if (!forceNetwork && (now - lastFetch) < cacheDuration) {
               try {
-                let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
+                let cached = safeStorage.getItem('LL_CACHED_LEADERBOARD');
                 if (cached) scores = JSON.parse(cached);
               } catch(e) {
-                localStorage.removeItem('LL_CACHED_LEADERBOARD');
+                safeStorage.removeItem('LL_CACHED_LEADERBOARD');
               }
             }
             
             if (!scores) {
               scores = await LootLockerAPI.getScores(100);
               if (scores && scores.length > 0) {
-                localStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
-                localStorage.setItem('LL_LAST_FETCH', now.toString());
+                safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
+                safeStorage.setItem('LL_LAST_FETCH', now.toString());
               } else {
                 try {
-                  let cached = localStorage.getItem('LL_CACHED_LEADERBOARD');
+                  let cached = safeStorage.getItem('LL_CACHED_LEADERBOARD');
                   if (cached) scores = JSON.parse(cached);
                 } catch(e) {
-                  localStorage.removeItem('LL_CACHED_LEADERBOARD');
+                  safeStorage.removeItem('LL_CACHED_LEADERBOARD');
                 }
               }
             }
             
             // Merge pending offline scores
             try {
-              let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+              let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
               if (pending.length > 0) {
                 let pid = LootLockerAPI.playerIdentifier;
                 let playerName = getPlayerName();
@@ -117,7 +118,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
                 scores.forEach((s, i) => s.rank = i + 1);
               }
             } catch(e) {
-              localStorage.removeItem('LL_PENDING_SCORES');
+              safeStorage.removeItem('LL_PENDING_SCORES');
             }
             
             return scores;
@@ -172,7 +173,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           if (isNewRecordLocal) {
             let res = await LootLockerAPI.submitScore(a, c, t, l);
             if (res) {
-              localStorage.setItem('LL_LAST_FETCH', '0'); // Force fetch next time
+              safeStorage.setItem('LL_LAST_FETCH', '0'); // Force fetch next time
             }
           }
         } else {
@@ -446,11 +447,16 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
       const newKey = 'EternalJumper_Rankings';
       const newPBKey = 'EternalJumper_PB';
       
-      if (localStorage.getItem(oldKey) && !localStorage.getItem(newKey)) {
-        localStorage.setItem(newKey, localStorage.getItem(oldKey));
+      const oldVal = safeStorage.getItem(oldKey);
+      const newVal = safeStorage.getItem(newKey);
+      if (oldVal && !newVal) {
+        safeStorage.setItem(newKey, oldVal);
       }
-      if (localStorage.getItem(oldPBKey) && !localStorage.getItem(newPBKey)) {
-        localStorage.setItem(newPBKey, localStorage.getItem(oldPBKey));
+
+      const oldPBVal = safeStorage.getItem(oldPBKey);
+      const newPBVal = safeStorage.getItem(newPBKey);
+      if (oldPBVal && !newPBVal) {
+        safeStorage.setItem(newPBKey, oldPBVal);
       }
     } catch (e) {}
 

@@ -440,6 +440,9 @@ export function setupInputListeners() {
     const t = (e.target as HTMLElement).closest('button');
     if (t) {
       if (t.id === 'closeRankBtn') $('rankingModal').style.display = 'none';
+      if (t.id === 'btnShopCancel' || t.id === 'btnShopOk') {
+        startAttractCycle();
+      }
     }
   });
 }

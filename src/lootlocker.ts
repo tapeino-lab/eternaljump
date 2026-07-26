@@ -1,5 +1,6 @@
 import { FLR, getPlayerName, escapeHTML, getLang } from './utils.js';
 import { game } from './state.js';
+import { safeStorage } from './safeStorage.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -20,7 +21,7 @@ export const LootLockerAPI = {
   apiKey: import.meta.env.VITE_LOOTLOCKER_API_KEY || '',
   domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '',
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
-  playerIdentifier: localStorage.getItem('LL_PID'),
+  playerIdentifier: safeStorage.getItem('LL_PID'),
   
   sessionToken: null,
   playerId: null,
@@ -30,9 +31,9 @@ export const LootLockerAPI = {
   log: function(msg, type = 'info') {
     const timestamp = new Date().toLocaleTimeString();
     this.logs.push({ timestamp, msg, type });
-    console.log(`[LootLocker ${type.toUpperCase()}] ${msg}`);
-    
-    
+    if (type === 'error' || type === 'warning') {
+      console.warn(`[LootLocker ${type.toUpperCase()}] ${msg}`);
+    }
   },
 
 
@@ -82,7 +83,7 @@ export const LootLockerAPI = {
 
   submitPendingScores: async function() {
     try {
-      let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+      let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
       if (pending && pending.length > 0) {
         this.log(`Found ${pending.length} pending scores, attempting to submit...`, 'info');
         let remaining = [];
@@ -90,10 +91,10 @@ export const LootLockerAPI = {
            let success = await this.submitScore(s.alt, s.coins, s.t, s.lang, true);
            if (!success) remaining.push(s);
         }
-        localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(remaining));
+        safeStorage.setItem('LL_PENDING_SCORES', JSON.stringify(remaining));
       }
     } catch(e) {
-      localStorage.removeItem('LL_PENDING_SCORES');
+      safeStorage.removeItem('LL_PENDING_SCORES');
     }
   },
   init: async function() {
@@ -106,7 +107,7 @@ export const LootLockerAPI = {
     
     if (!this.playerIdentifier) {
       this.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
-      localStorage.setItem('LL_PID', this.playerIdentifier);
+      safeStorage.setItem('LL_PID', this.playerIdentifier);
       this.log(`Generated new Player Identifier: ${this.playerIdentifier}`, 'info');
       
     } else {
@@ -158,7 +159,7 @@ export const LootLockerAPI = {
         this.sessionToken = d.session_token;
         setTimeout(() => this.submitPendingScores(), 2000);
         this.playerId = d.player_id;
-        localStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
+        safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
         this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
         
         // Use client-generated or loaded customizable player name (e.g., "JPN XY")
@@ -297,14 +298,14 @@ export const LootLockerAPI = {
       this.log(`Score submission failed (offline?): ${e.message}`, 'error');
       if (!isRetry) {
         try {
-          let pending = JSON.parse(localStorage.getItem('LL_PENDING_SCORES') || '[]');
+          let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
           pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
           pending.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.t - B.t);
           pending = pending.slice(0, 1);
-          localStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
+          safeStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
           this.log('Score saved locally for offline queue (PB only).', 'warning');
         } catch (err) {
-          localStorage.removeItem('LL_PENDING_SCORES');
+          safeStorage.removeItem('LL_PENDING_SCORES');
         }
       }
       return false;
@@ -403,8 +404,8 @@ export const LootLockerAPI = {
 
   resetPlayerSession: function() {
     this.log('Resetting player identifier and session...', 'warning');
-    localStorage.removeItem('LL_PID');
-    localStorage.removeItem('LL_SYS_PLAYER_ID');
+    safeStorage.removeItem('LL_PID');
+    safeStorage.removeItem('LL_SYS_PLAYER_ID');
     this.playerIdentifier = null;
     this.sessionToken = null;
     this.playerId = null;
@@ -416,7 +417,7 @@ export const LootLockerAPI = {
 // Auto generate pid if missing
 if (!LootLockerAPI.playerIdentifier) {
   LootLockerAPI.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
-  localStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
+  safeStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
   
 }
 

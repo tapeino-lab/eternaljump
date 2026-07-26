@@ -139,11 +139,19 @@ import { spawnParticles } from './particles.js';
         }
         
         if (game.state === 'intro' || this.isIntro) {
-          if (this.x < 0) this.x = 0;
+          if (game.state === 'intro' && this.y >= 200 && (this.x + this.w / 2) <= 27) {
+            game.state = 'shop';
+            this.x = 27 - this.w / 2;
+            this.vx = 0;
+          } else if (this.x < 0) {
+            this.x = 0;
+          }
           if (this.x + this.w > 128) this.x = 128 - this.w;
-          if (this.y > 225 && this.x < 96) this.x = 96;
+          if (this.y > 225 && (this.x + this.w / 2) > 27 && this.x < 96) this.x = 96;
         } else {
-          if (this.x + this.w < 0) this.x = config.gameWidth;
+          if (this.x + this.w < 0) {
+            this.x = config.gameWidth;
+          }
           if (this.x > config.gameWidth) this.x = -this.w;
         }
         
@@ -217,6 +225,7 @@ import { spawnParticles } from './particles.js';
                 ctx.translate(0, dH / 2);
               }
               ctx.drawImage(cImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
+              this.drawHelmet(dH, vS, vOy, cImg);
               ctx.restore();
             } else {
               dR(pos.x, pos.y, this.w, dH, c);
@@ -235,11 +244,71 @@ import { spawnParticles } from './particles.js';
             ctx.translate(0, dH / 2);
           }
           ctx.drawImage(cImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
+          this.drawHelmet(dH, vS, vOy, cImg);
           ctx.restore();
         } else {
           dR(this.x, dY, this.w, dH, c);
         }
         ctx.globalAlpha = 1.0;
+      }
+
+      drawHelmet(dH: number, vS: number, vOy: number, cImg?: HTMLImageElement) {
+        if (this.isNPC || !game.equipped?.['helmet']) return;
+        
+        // 巨大化してもヘルメットのサイズは変えない (固定のコンパクトサイズ)
+        let helmW = 10;
+        let helmH = 5;
+        
+        // 基本位置：頭の上にセット (yShift = -2)
+        let yShift = -2;
+        
+        // 巨大化時は頭の位置に合わせてさらに1px下げる (+2px)
+        if (this.isPoweredUp) {
+          yShift += 2;
+        }
+        
+        // 速度による慣性ずらし (明確かつシンプルな一元化ルール)
+        if (this.vy < -1.5) {
+          // 上昇中：押し付けられて1px下にずれる
+          yShift += 1;
+        } else if (this.vy > 3.5) {
+          // 急落下中：風圧で上に浮き上がる (チビの時はさらに2px上げる)
+          yShift -= this.isPoweredUp ? 2 : 4;
+        } else if (this.vy > 0) {
+          // 通常落下中：風圧で1px上に浮き上がる
+          yShift -= 1;
+        }
+
+        let topY = -dH * vS + vOy + yShift;
+        let startX = -Math.floor(helmW / 2);
+
+        // 落ちる画像（IMG.fal）などで正面を向いているか
+        let isFrontFalling = (cImg === IMG.fal);
+
+        // 1. 黄色ドームベース (#ffdd00) - 上部左右を削って丸みを持たせる
+        ctx.fillStyle = '#ffdd00';
+        ctx.fillRect(startX + 2, topY, helmW - 4, 1); // 頂点部 (丸み)
+        ctx.fillRect(startX, topY + 1, helmW, helmH - 1); // 本体
+
+        // 2. ツバ (正面落下の時はツバなし)
+        if (!isFrontFalling) {
+          // 右向き（進行方向）に2pxツバを出す
+          ctx.fillRect(startX, topY + helmH - 1, helmW + 2, 1);
+          ctx.fillStyle = '#d4a000'; // ツバ影
+          ctx.fillRect(startX + helmW, topY + helmH, 2, 1);
+        } else {
+          ctx.fillStyle = '#d4a000'; // 底面影
+          ctx.fillRect(startX, topY + helmH, helmW, 1);
+        }
+
+        // 3. オレンジのリブ (正面時は中央、横向き時は進行方向寄り)
+        ctx.fillStyle = '#ff8800';
+        let ribX = isFrontFalling ? (startX + Math.floor(helmW / 2) - 1) : (startX + Math.floor(helmW * 0.4));
+        ctx.fillRect(ribX, topY, 2, helmH);
+
+        // 4. 白いハイライト (丸みのツヤ)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fillRect(startX + 2, topY + 1, 2, 1);
       }
       jump(p) {
         let fp = p;

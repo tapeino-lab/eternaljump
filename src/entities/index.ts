@@ -1,3 +1,4 @@
+export * from './pool.js';
 export * from './particles.js';
 export * from './platform.js';
 export * from './items.js';

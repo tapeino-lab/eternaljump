@@ -1,4 +1,4 @@
-import { config } from './config.js';
+import { config, SCORE_THRESHOLDS } from './config.js';
 import { game } from './state.js';
 import type { Player, Platform, Item } from './types.js';
 
@@ -83,7 +83,9 @@ export function runAI(entity: Player) {
     let dist = dx < 0 ? -dx : dx;
     let targetDir = dx > 0 ? 1 : -1;
 
-    if (dist > 12) {
+    let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= SCORE_THRESHOLDS.MID_HIGH);
+    let stopDist = isMushroomMode ? 2 : 12;
+    if (dist > stopDist) {
       entity.inputDir = targetDir;
     } else {
       entity.inputDir = 0;
@@ -125,6 +127,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   let gw = config.gameWidth;
   let hgw = gw / 2;
   
+  let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= 80000);
+
   let processCand = (cand: any) => { 
     if (cand.broken || cand.blacklisted || cand.isGround) return;
     if (cand.collected) return;
@@ -142,7 +146,30 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
     let score = 0;
     
-    if (isStuck) {
+    if (isMushroomMode) {
+      if (cand.type === 'green') {
+        score += 2000000;
+        if (dy > 0) score += dy * 100;
+        score -= dx * 5;
+      } else if (cand.type === 'red') {
+        score -= 200000;
+      } else {
+        if (dy > 0) {
+          score += dy * 40;
+        } else {
+          score -= Math.abs(dy) * 30;
+        }
+        score -= dx * 5;
+        let distCenter = Math.abs(candPx - hgw);
+        score -= distCenter * 15;
+
+        let historyIdx = history.lastIndexOf(cand);
+        if (historyIdx !== -1) {
+          let recency = history.length - historyIdx;
+          score -= (20000 / recency);
+        }
+      }
+    } else if (isStuck) {
       score += dx * 10; 
       if (dy > 0) score += dy * 5; 
     } else {
@@ -156,7 +183,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
       let bonus = 0;
       if (cand.type === 'super' || cand.isGlowing) bonus += 2000;
-      if (cand.collected !== undefined) bonus += 5000; 
+      if (cand.type === 'green') bonus += 500000;
+      else if (cand.collected !== undefined) bonus += 5000; 
       
       // Significantly reduce bonus for lower platforms to prioritize climbing upward
       if (dy < -10) {
@@ -190,7 +218,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     }
 
     let fbScore = score;
-    if (initialVy > 0) { 
+    if (initialVy > 0 && !(isMushroomMode && cand.type === 'green')) { 
        if (dy > 0) {
            fbScore -= 50000; 
        } else {

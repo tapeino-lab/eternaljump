@@ -1,17 +1,19 @@
-import { config } from '../config.js';
+import { config, SCORE_THRESHOLDS } from '../config.js';
 import { RND, FLR, ABS, PI, MAX, MIN } from '../utils.js';
 import { ctx, IMG, groundCache, groundCached } from '../game.js';
 import { game } from '../state.js';
 import { getPt } from './particles.js';
 import { dR } from '../renderer.js';
+import { ObjectPool } from './pool.js';
 
-export const P_PL: Platform[] = [];
+export const P_PL = new ObjectPool<Platform>(() => new Platform());
 
-    export function getPl(y, t = 'normal', ig = false, cx = null, cw = null, ch = null, c = 1, icy = false) {
-      let p = P_PL.length ? P_PL.pop() : new Platform();
-      p.init(y, t, ig, cx, cw, ch, c, icy);
-      return p;
-    }
+export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any = null, ch: any = null, c = 1, icy = false) {
+  let p = P_PL.get();
+  p.init(y, t, ig, cx, cw, ch, c, icy);
+  return p;
+}
+
     export class Platform {
       x: number = 0;
       y: number = 0;
@@ -64,7 +66,7 @@ export const P_PL: Platform[] = [];
           if (t === 'h-slide') {
             minX = config.gameWidth / 6;
             maxX = config.gameWidth - this.w - config.gameWidth / 6;
-          } else if ((game.baseScoreY - this.y) * config.scoreMultiplier < 20000 && game.platforms.length > 0) {
+          } else if ((game.baseScoreY - this.y) * config.scoreMultiplier < SCORE_THRESHOLDS.EASY && game.platforms.length > 0) {
             let lp = game.platforms[game.platforms.length - 1];
             minX = MAX(0, lp.x + lp.w / 2 - 90 - this.w / 2);
             maxX = MIN(config.gameWidth - this.w, lp.x + lp.w / 2 + 90 - this.w / 2);

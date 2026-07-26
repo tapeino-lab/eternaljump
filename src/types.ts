@@ -14,7 +14,7 @@ export interface Star {
 }
 
 export interface GameState {
-  state: 'intro' | 'play' | 'result' | 'loading' | 'title' | 'gameover' | 'clear' | 'playing' | 'intro_anim' | 'powerup_anim' | 'powerdown_anim' | 'demo';
+  state: 'intro' | 'play' | 'result' | 'loading' | 'title' | 'gameover' | 'clear' | 'playing' | 'intro_anim' | 'powerup_anim' | 'powerdown_anim' | 'demo' | 'shop';
   isPaused: boolean;
   demoMode: boolean;
   aiActive: boolean;
@@ -40,7 +40,11 @@ export interface GameState {
   score: number;
   scoreCoin: number;
   totalCoins: number;
+  inventory: Record<string, boolean>;
+  equipped: Record<string, boolean>;
   lastCoinY: number;
+  lastGreenMushroomY?: number | null;
+  greenMushroomCount?: number;
   baseScoreY: number;
   goalY: number;
   startScore: number;

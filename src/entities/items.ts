@@ -3,34 +3,43 @@ import { RND, FLR, ABS } from '../utils.js';
 import { game } from '../state.js';
 import { dR } from '../renderer.js';
 import { spawnParticles } from './particles.js';
+import { ObjectPool } from './pool.js';
 
-export const P_CN: Coin[] = [];
-export const P_IT: Item[] = [];
+export const P_CN = new ObjectPool<Coin>(() => new Coin());
+export const P_IT = new ObjectPool<Item>(() => new Item());
 
-    export function getCn(x, y) {
-      let c = P_CN.length ? P_CN.pop() : new Coin();
-      c.init(x, y);
-      return c;
-    }
-    export function getIt(y) {
-      let i = P_IT.length ? P_IT.pop() : new Item();
-      i.init(y);
-      return i;
-    }
+export function getCn(x: number, y: number) {
+  let c = P_CN.get();
+  c.init(x, y);
+  return c;
+}
+
+export function getIt(y: number, type: 'red' | 'green' = 'red', overrideX?: number) {
+  let i = P_IT.get();
+  i.init(y, type, overrideX);
+  return i;
+}
+
     export class Item {
       x: number = 0;
       y: number = 0;
       w: number = 16;
       h: number = 16;
+      type: 'red' | 'green' = 'red';
       collected: boolean = false;
       blacklisted: boolean = false;
       
-      init(y: number) {
+      init(y: number, type: 'red' | 'green' = 'red', overrideX?: number) {
         this.w = 16;
         this.h = 16;
         this.y = FLR(y);
+        this.type = type;
         this.collected = false;
         this.blacklisted = false;
+        if (overrideX !== undefined) {
+          this.x = FLR(overrideX);
+          return;
+        }
         let ol = true, at = 0, nx = 0;
         while (ol && at < 20) {
           nx = RND() * (config.gameWidth - this.w);
@@ -59,7 +68,7 @@ export const P_IT: Item[] = [];
       draw() {
         if (this.collected) return;
         dR(this.x + 4, this.y + 8, 8, 8, '#fcc');
-        dR(this.x, this.y, 16, 8, '#f33');
+        dR(this.x, this.y, 16, 8, this.type === 'green' ? '#2c2' : '#f33');
         dR(this.x + 2, this.y + 2, 4, 4, '#fff');
         dR(this.x + 10, this.y + 2, 4, 4, '#fff');
       }
@@ -76,6 +85,8 @@ export const P_IT: Item[] = [];
       animTimer: number = 0;
       dead: boolean = false;
       vy: number = 0;
+      mvx: number = 0;
+      mvy: number = 0;
 
       init(x: number, y: number) {
         this.w = 12;
@@ -88,6 +99,8 @@ export const P_IT: Item[] = [];
         this.animTimer = 0;
         this.dead = false;
         this.vy = 0;
+        this.mvx = 0;
+        this.mvy = 0;
       }
       update() {
         if (this.collected && !this.dead) {

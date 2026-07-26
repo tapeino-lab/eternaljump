@@ -4,7 +4,7 @@ import { FLR, SIN } from './utils.js';
 
 class AirplaneBannerSystem {
   x: number = 0;
-  y: number = 62; // Sky area above title logo (y=95)
+  y: number = 70; // Sky area above title logo (y=95)
   speed: number = 0.55;
   flapFrame: number = 0;
   flapTimer: number = 0;
@@ -23,7 +23,7 @@ class AirplaneBannerSystem {
   reset() {
     // Start offscreen to the right
     this.x = config.gameWidth + 30;
-    this.y = 62;
+    this.y = 70;
     this.flapFrame = 0;
     this.flapTimer = 0;
     this.waveTimer = 0;

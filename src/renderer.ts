@@ -118,6 +118,64 @@ export function drawBG(ts) {
   return getColorAtScore(scoreTop);
 }
 
+export function drawHorizontalPipe(ctx: CanvasRenderingContext2D) {
+  if (game.cameraY > 300) return;
+
+  ctx.save();
+
+  // NES Super Mario Style Horizontal Green Pipe (Mouth facing Right at x = 27)
+  // Y range: 210 to 241 (Lip height 32px, 1px overlap with ground at Y=240 for seamless fit)
+
+  // 1. Black Outer Outline
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 211, 18, 30);  // Body outer border
+  ctx.fillRect(18, 209, 10, 33); // Lip outer border
+
+  // 2. Pipe Body (x = 0..18)
+  ctx.fillStyle = '#b8f818';
+  ctx.fillRect(0, 212, 18, 2);   // Top highlight line
+
+  ctx.fillStyle = '#00d800';
+  ctx.fillRect(0, 214, 18, 3);   // Bright green band
+
+  ctx.fillStyle = '#00a800';
+  ctx.fillRect(0, 217, 18, 15);  // Base green
+
+  ctx.fillStyle = '#005000';
+  ctx.fillRect(0, 232, 18, 5);   // Dark green shadow
+
+  ctx.fillStyle = '#002800';
+  ctx.fillRect(0, 237, 18, 3);   // Bottom extra dark shadow
+
+  // 3. Pipe Lip / Rim (x = 18..25)
+  ctx.fillStyle = '#b8f818';
+  ctx.fillRect(18, 210, 8, 3);   // Lip top highlight
+
+  ctx.fillStyle = '#00d800';
+  ctx.fillRect(18, 213, 8, 3);   // Lip bright green
+
+  ctx.fillStyle = '#00a800';
+  ctx.fillRect(18, 216, 8, 17);  // Lip base green
+
+  ctx.fillStyle = '#005000';
+  ctx.fillRect(18, 233, 8, 6);   // Lip shadow
+
+  ctx.fillStyle = '#002800';
+  ctx.fillRect(18, 239, 8, 2);   // Lip bottom shadow
+
+  // Lip left bevel line for pixel depth
+  ctx.fillStyle = '#002800';
+  ctx.fillRect(18, 210, 1, 31);
+
+  // 4. Mouth Hole Opening on Right (x = 26..27)
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(26, 210, 2, 31);
+  ctx.fillStyle = '#002800';
+  ctx.fillRect(26, 212, 1, 27);
+
+  ctx.restore();
+}
+
 export function drawGameEntities(ts) {
   airplaneSystem.draw(ctx, game, isAttractMode);
   game.birds.forEach(function(b) {
@@ -153,6 +211,7 @@ export function drawGameEntities(ts) {
     n.draw();
   });
   game.player.draw();
+  drawHorizontalPipe(ctx);
 }
 
 export function drawOffscreenIndicators() {
@@ -216,6 +275,44 @@ export function drawOffscreenIndicators() {
   });
 }
 
+function getEquippedIconSVG(id: string | null): string {
+  if (id === 'magnet') {
+    return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
+      <rect x="2" y="2" width="4" height="10" fill="#f33"/>
+      <rect x="10" y="2" width="4" height="10" fill="#f33"/>
+      <rect x="2" y="10" width="12" height="4" fill="#f33"/>
+      <rect x="6" y="6" width="4" height="8" fill="#000"/>
+      <rect x="2" y="2" width="4" height="3" fill="#eee"/>
+      <rect x="10" y="2" width="4" height="3" fill="#eee"/>
+    </svg>`;
+  } else if (id === 'helmet') {
+    return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
+      <rect x="4" y="3" width="8" height="1" fill="#000"/>
+      <rect x="2" y="4" width="2" height="1" fill="#000"/>
+      <rect x="12" y="4" width="2" height="1" fill="#000"/>
+      <rect x="1" y="5" width="1" height="6" fill="#000"/>
+      <rect x="14" y="5" width="1" height="6" fill="#000"/>
+      <rect x="0" y="11" width="1" height="2" fill="#000"/>
+      <rect x="15" y="11" width="1" height="2" fill="#000"/>
+      <rect x="1" y="13" width="14" height="1" fill="#000"/>
+      <rect x="4" y="4" width="8" height="1" fill="#fd0"/>
+      <rect x="2" y="5" width="12" height="6" fill="#fd0"/>
+      <rect x="1" y="11" width="14" height="2" fill="#fd0"/>
+      <rect x="7" y="4" width="2" height="7" fill="#f80"/>
+      <rect x="3" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
+      <rect x="11" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
+    </svg>`;
+  } else if (id === 'mushroom') {
+    return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
+      <rect x="4" y="8" width="8" height="8" fill="#fcc"/>
+      <rect x="0" y="0" width="16" height="8" fill="#2c2"/>
+      <rect x="2" y="2" width="4" height="4" fill="#fff"/>
+      <rect x="10" y="2" width="4" height="4" fill="#fff"/>
+    </svg>`;
+  }
+  return '';
+}
+
 export function updateHUD(topColor) {
   let lum = topColor.r * 0.299 + topColor.g * 0.587 + topColor.b * 0.114;
   let wrap = $('canvasWrapper');
@@ -239,14 +336,28 @@ export function updateHUD(topColor) {
   
   if (!ui.querySelector('#hud-coin')) {
     let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
-    ui.innerHTML = '<span style="flex:1;text-align:left;display:flex;align-items:center;">' + cI + '<span id="hud-coin"></span></span><span id="hud-score" style="flex:1;text-align:center;"></span><span id="hud-time" style="flex:1;text-align:right;"></span>';
+    ui.innerHTML = `
+      <div style="flex:1; display:flex; flex-direction:column; align-items:flex-start;">
+        <div style="display:flex; align-items:center;">
+          ${cI}<span id="hud-coin"></span>
+        </div>
+        <div id="hud-equipped-badge" style="display:none; margin-top:3px; padding:2px; background:rgba(0,0,0,0.75); border:1px solid #00e676; border-radius:3px; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.5); pointer-events:none;">
+          <div id="hud-equipped-icon" style="display:flex; align-items:center; justify-content:center; gap:2px;"></div>
+        </div>
+      </div>
+      <span id="hud-score" style="flex:1;text-align:center;"></span>
+      <span id="hud-time" style="flex:1;text-align:right;"></span>
+    `;
   }
 
   let coinDisplay = isTitle ? game.totalCoins : game.scoreCoin;
   let centerHtml = isTitle ? '' : MIN(config.goalScore, game.score) + 'm' + aiStatus;
   let timeHtml = isTimerVisible ? 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>' : '';
 
-  let curState = coinDisplay + '_' + centerHtml + '_' + timeHtml;
+  let eqList = game.equipped ? Object.keys(game.equipped).filter(k => game.equipped[k]) : [];
+  let eqKey = eqList.slice().sort().join(',');
+
+  let curState = coinDisplay + '_' + centerHtml + '_' + timeHtml + '_' + eqKey;
   if (game.lastUI !== curState) {
     let hc = document.getElementById('hud-coin');
     let hs = document.getElementById('hud-score');
@@ -254,6 +365,21 @@ export function updateHUD(topColor) {
     if (hc && hc.innerHTML !== coinDisplay.toString()) hc.innerHTML = coinDisplay.toString();
     if (hs && hs.innerHTML !== centerHtml) hs.innerHTML = centerHtml;
     if (ht && ht.innerHTML !== timeHtml) ht.innerHTML = timeHtml;
+
+    let badge = document.getElementById('hud-equipped-badge');
+    let iconContainer = document.getElementById('hud-equipped-icon');
+    if (badge && iconContainer) {
+      if (eqList.length > 0) {
+        badge.style.display = 'inline-flex';
+        let iconsHtml = eqList.map(id => getEquippedIconSVG(id)).join('');
+        if (iconContainer.innerHTML !== iconsHtml) {
+          iconContainer.innerHTML = iconsHtml;
+        }
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
     game.lastUI = curState;
   }
 
@@ -325,8 +451,34 @@ export function updateDemoRanking(ts) {
   }
 }
 
-export function render(ts) {
-  let topColor = drawBG(ts);
+export function drawBackgroundLayer(ts: number) {
+  return drawBG(ts);
+}
+
+export function drawWorldLayer(ts: number) {
+  fireworksSystem.draw(ctx);
+  if (IMG.title && IMG.title.complete && IMG.title.naturalWidth > 0) {
+    ctx.drawImage(IMG.title, FLR((config.gameWidth - IMG.title.naturalWidth) / 2), 95);
+  }
+}
+
+export function drawEntitiesLayer(ts: number) {
+  drawGameEntities(ts);
+}
+
+export function drawUILayer(topColor: any, ts: number) {
+  if (game.flyingCoins) {
+    game.flyingCoins.forEach(function(fc) { fc.draw(); });
+  }
+  
+  drawOffscreenIndicators();
+  updateHUD(topColor);
+  updateDemoRanking(ts);
+}
+
+export function render(ts: number) {
+  let topColor = drawBackgroundLayer(ts);
+
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   
@@ -339,22 +491,11 @@ export function render(ts) {
   }
   ctx.translate(FLR(sX), FLR(-game.cameraY + sY));
   
-  fireworksSystem.draw(ctx);
-  
-  if (IMG.title && IMG.title.complete && IMG.title.naturalWidth > 0) {
-    ctx.drawImage(IMG.title, FLR((config.gameWidth - IMG.title.naturalWidth) / 2), 95);
-  }
-  
-  drawGameEntities(ts);
+  drawWorldLayer(ts);
+  drawEntitiesLayer(ts);
   
   ctx.restore();
   
-  if (game.flyingCoins) {
-    game.flyingCoins.forEach(function(fc) { fc.draw(); });
-  }
-  
-  drawOffscreenIndicators();
-  updateHUD(topColor);
-  updateDemoRanking(ts);
+  drawUILayer(topColor, ts);
 }
 

@@ -1,3 +1,5 @@
+import { safeStorage } from './safeStorage.js';
+
 /**
  * Secure Storage Utility
  * Provides XOR obfuscation + FNV-1a checksum verification for sensitive local storage values
@@ -64,9 +66,9 @@ export const secureStorage = {
       const checksum = computeChecksum(payload + APP_SALT);
       const record = JSON.stringify({ payload, checksum });
       const encrypted = encode(record);
-      localStorage.setItem(key, encrypted);
+      safeStorage.setItem(key, encrypted);
     } catch (e) {
-      console.warn('Failed to set secure storage item:', key, e);
+      // Ignore storage errors in restricted contexts
     }
   },
 
@@ -75,46 +77,49 @@ export const secureStorage = {
    * If corrupted or tampered, returns fallback default value.
    */
   getItem<T>(key: string, defaultValue: T): T {
-    const raw = localStorage.getItem(key);
-    if (!raw) return defaultValue;
-
-    // 1. Try reading as secure obfuscated record
     try {
-      const decoded = decode(raw);
-      if (decoded) {
-        const parsed = JSON.parse(decoded);
-        if (parsed && typeof parsed.payload === 'string' && typeof parsed.checksum === 'string') {
-          const expectedChecksum = computeChecksum(parsed.payload + APP_SALT);
-          if (parsed.checksum === expectedChecksum) {
-            return JSON.parse(parsed.payload) as T;
-          } else {
-            console.warn(`[SecureStorage] Checksum mismatch for key "${key}". Tampering detected! Resetting value.`);
-            return defaultValue;
+      const raw = safeStorage.getItem(key);
+      if (!raw) return defaultValue;
+
+      // 1. Try reading as secure obfuscated record
+      try {
+        const decoded = decode(raw);
+        if (decoded) {
+          const parsed = JSON.parse(decoded);
+          if (parsed && typeof parsed.payload === 'string' && typeof parsed.checksum === 'string') {
+            const expectedChecksum = computeChecksum(parsed.payload + APP_SALT);
+            if (parsed.checksum === expectedChecksum) {
+              return JSON.parse(parsed.payload) as T;
+            } else {
+              return defaultValue;
+            }
+          }
+        }
+      } catch (e) {
+        // Decode or parse failed, move to fallback check
+      }
+
+      // 2. Legacy fallback check (for unencrypted existing saved data)
+      try {
+        // Try parsing raw as direct JSON
+        const legacyParsed = JSON.parse(raw);
+        if (legacyParsed !== null && legacyParsed !== undefined) {
+          // Automatically migrate legacy value to secure format
+          this.setItem(key, legacyParsed);
+          return legacyParsed as T;
+        }
+      } catch (e) {
+        // If raw is a legacy plain string/number (e.g. "150")
+        if (typeof defaultValue === 'number') {
+          const num = parseInt(raw, 10);
+          if (!isNaN(num)) {
+            this.setItem(key, num as unknown as T);
+            return num as unknown as T;
           }
         }
       }
     } catch (e) {
-      // Decode or parse failed, move to fallback check
-    }
-
-    // 2. Legacy fallback check (for unencrypted existing saved data)
-    try {
-      // Try parsing raw as direct JSON
-      const legacyParsed = JSON.parse(raw);
-      if (legacyParsed !== null && legacyParsed !== undefined) {
-        // Automatically migrate legacy value to secure format
-        this.setItem(key, legacyParsed);
-        return legacyParsed as T;
-      }
-    } catch (e) {
-      // If raw is a legacy plain string/number (e.g. "150")
-      if (typeof defaultValue === 'number') {
-        const num = parseInt(raw, 10);
-        if (!isNaN(num)) {
-          this.setItem(key, num as unknown as T);
-          return num as unknown as T;
-        }
-      }
+      return defaultValue;
     }
 
     // Unrecognized or invalid format -> fallback to defaultValue
@@ -125,6 +130,6 @@ export const secureStorage = {
    * Remove item from localStorage
    */
   removeItem(key: string): void {
-    localStorage.removeItem(key);
+    safeStorage.removeItem(key);
   }
 };

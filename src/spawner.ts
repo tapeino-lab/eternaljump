@@ -1,4 +1,4 @@
-import { config } from './config.js';
+import { config, SCORE_THRESHOLDS } from './config.js';
 import { getLevelConfig } from './level.js';
 import { getPl, getCn, getIt, trySpawnBirdsOnPlatform, P_PL } from './entities/index.js';
 import { RND, FLR, MAX, MIN, SIN, PI } from './utils.js';
@@ -37,11 +37,11 @@ export function spawnGuideCoins(sX, sY) {
 
 export function spawnCoins(y) {
   let pR = config.coinSpawnProb;
-  if (game.score >= 120000 && game.score <= 135000) pR = 0.8;
+  if (game.score >= SCORE_THRESHOLDS.METEOR_END && game.score <= SCORE_THRESHOLDS.DARK_PRE) pR = 0.8;
   if (RND() > pR) return;
   
   let tp = FLR(RND() * 3);
-  if (game.score >= 120000 && game.score <= 135000) tp = RND() < 0.5 ? 1 : 2;
+  if (game.score >= SCORE_THRESHOLDS.METEOR_END && game.score <= SCORE_THRESHOLDS.DARK_PRE) tp = RND() < 0.5 ? 1 : 2;
   
   let bw = 12, bh = 12;
   if (tp === 0) bh = 108;
@@ -90,6 +90,29 @@ export function spawnCoins(y) {
   }
 }
 
+export function getSafetyLineY(): number {
+  return 416 - (config.superJumpPower * config.superJumpPower) / (2 * config.jumpGravity) + 100;
+}
+
+export const MUSHROOM_FORBIDDEN_ZONE_HEIGHT = 260;
+export const FIRST_GREEN_MUSHROOM_OFFSET = 128; // 8 blocks (~128px) above safety line
+
+export function isInMushroomForbiddenZone(y: number, sNY: number = getSafetyLineY()): boolean {
+  if (!game.equipped?.['mushroom']) return false;
+  return y > (sNY - MUSHROOM_FORBIDDEN_ZONE_HEIGHT) && y < sNY;
+}
+
+export function adjustYForMushroomForbiddenZone(y: number, sNY: number = getSafetyLineY()): number {
+  if (isInMushroomForbiddenZone(y, sNY)) {
+    return sNY - MUSHROOM_FORBIDDEN_ZONE_HEIGHT;
+  }
+  return y;
+}
+
+export function getFirstGreenMushroomY(sNY: number = getSafetyLineY()): number {
+  return sNY - FIRST_GREEN_MUSHROOM_OFFSET;
+}
+
 export function spawnPlatform() {
   let lP = game.platforms[game.platforms.length - 1];
   if (lP && lP.type === 'goal') return;
@@ -98,6 +121,9 @@ export function spawnPlatform() {
   if (lP && lP.count > 1) gap += 30;
   if (lP && lP.type === 'super') gap += 80;
   let y = lP.y - gap;
+  
+  let sNY = getSafetyLineY();
+  y = adjustYForMushroomForbiddenZone(y, sNY);
   
   if (y <= game.goalY + 170) {
     game.platforms.push(getPl(game.goalY + 170, 'normal', false, null, null, null, 1, true));
@@ -124,15 +150,44 @@ export function spawnPlatform() {
   }
   
   let hasM = false, mx = 0, my = 0;
-  if (config.itemsEnabled && game.score >= config.mushroomMinScore && spS < 120000 && RND() < config.mushroomSpawnProb) {
-    let it = getIt(y - 50 - RND() * 150);
-    game.items.push(it);
-    hasM = true;
-    mx = it.x;
-    my = it.y;
+  if (game.equipped?.['mushroom'] && spS <= SCORE_THRESHOLDS.MUSHROOM_MAX) {
+    let firstGreenY = getFirstGreenMushroomY(sNY);
+    let greenCount = game.greenMushroomCount || 0;
+    // First 3 mushrooms have longer interval (~1580px, near max reach limit)
+    // Subsequent mushrooms have faster/rhythmic interval (~1300px) for smooth continuous launch
+    let targetInterval = (greenCount < 3) ? 1580 : 1300;
+    let itemX = config.gameWidth / 2 - 8;
+    if (game.lastGreenMushroomY === null || game.lastGreenMushroomY === undefined) {
+      if (y <= firstGreenY) {
+        let it = getIt(firstGreenY, 'green', itemX);
+        game.items.push(it);
+        game.lastGreenMushroomY = firstGreenY;
+        game.greenMushroomCount = 1;
+        hasM = true;
+        mx = it.x;
+        my = it.y;
+      }
+    } else if (y <= game.lastGreenMushroomY - targetInterval) {
+      let greenY = game.lastGreenMushroomY - targetInterval;
+      let it = getIt(greenY, 'green', itemX);
+      game.items.push(it);
+      game.lastGreenMushroomY = greenY;
+      game.greenMushroomCount = greenCount + 1;
+      hasM = true;
+      mx = it.x;
+      my = it.y;
+    }
+  } else {
+    if (config.itemsEnabled && game.score >= config.mushroomMinScore && spS < SCORE_THRESHOLDS.METEOR_END && RND() < config.mushroomSpawnProb) {
+      let it = getIt(y - 50 - RND() * 150, 'red');
+      game.items.push(it);
+      hasM = true;
+      mx = it.x;
+      my = it.y;
+    }
   }
   
-  let sc = false, cD = (game.score >= 120000 && game.score <= 135000) ? 0.3 : config.coinMinDistance;
+  let sc = false, cD = (game.score >= SCORE_THRESHOLDS.METEOR_END && game.score <= SCORE_THRESHOLDS.DARK_PRE) ? 0.3 : config.coinMinDistance;
   if (y - 300 < game.lastCoinY - config.gameHeight * cD) {
     if (t === 'super' && RND() < 0.5) {
       let shift = spawnGuideCoins(np.x + np.w / 2 - 6, y - 60);

@@ -1,30 +1,32 @@
-import { config } from '../config.js';
+import { config, SCORE_THRESHOLDS } from '../config.js';
 import { RND, FLR, MAX, MIN, SIN, PI } from '../utils.js';
 import { game } from '../state.js';
 import { IMG, ctx } from '../game.js';
 import { dR } from '../renderer.js';
 import { spawnParticles, spawnDebris, getPt } from './particles.js';
+import { ObjectPool } from './pool.js';
 
-export const P_BD: Bird[] = [];
-export const P_MT: Meteor[] = [];
+export const P_BD = new ObjectPool<Bird>(() => new Bird());
+export const P_MT = new ObjectPool<Meteor>(() => new Meteor());
 
-    export function getBd(t, x, y, ip, p = null, ib = false) {
-      let b = P_BD.length ? P_BD.pop() : new Bird();
-      b.init(t, x, y, ip, p, ib);
-      return b;
-    }
+export function getBd(t: number, x: number, y: number, ip: boolean, p: any = null, ib = false) {
+  let b = P_BD.get();
+  b.init(t, x, y, ip, p, ib);
+  return b;
+}
 
-    export function getMt(x, y, vx, vy) {
-      let m = P_MT.length ? P_MT.pop() : new Meteor();
-      m.init(x, y, vx, vy);
-      return m;
-    }
+export function getMt(x: number, y: number, vx: number, vy: number) {
+  let m = P_MT.get();
+  m.init(x, y, vx, vy);
+  return m;
+}
+
     export function trySpawnBirdsOnPlatform(np, sc) {
-      if (np.type === 'normal' && sc > game.startScore + 1000 && sc < 52000) {
+      if (np.type === 'normal' && sc > game.startScore + 1000 && sc < SCORE_THRESHOLDS.MEDIUM) {
         let prob = 0, maxB = 0;
         if (sc < 15000) { prob = 0.3; maxB = 2; }
         else if (sc < 40000) { prob = 0.15; maxB = 1; }
-        else if (sc < 52000) { prob = 0.5; maxB = 5; }
+        else if (sc < SCORE_THRESHOLDS.MEDIUM) { prob = 0.5; maxB = 5; }
         if (RND() < prob) {
           let bT = RND() < 0.8 ? 0 : 1;
           let platX = np.x, platW = np.w, bSp = bT === 0 ? 4 : 5;

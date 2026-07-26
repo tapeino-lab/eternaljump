@@ -1,3 +1,17 @@
+export const SCORE_THRESHOLDS = {
+  EASY: 20000,            // 初級フェーズ
+  MEDIUM: 52000,          // 中級フェーズ
+  UPPER_MEDIUM: 55000,    // 移動足場増加フェーズ
+  MUSHROOM_MAX: 75000,    // 緑キノコ装備時出現上限スコア
+  MID_HIGH: 80000,        // メテオ開始・高難易度開始スコア
+  HIGH: 100000,           // アイス領域1
+  VERY_HIGH: 105000,      // アイス領域2
+  METEOR_END: 120000,     // メテオ終了スコア
+  DARK_PRE: 135000,       // 暗闇直前フェーズ
+  FINAL_STAIRS: 140000,   // 最終階段フェーズ
+  GOAL: 144000            // ゴールスコア
+} as const;
+
 type BGPhase = { score: number; color: { r: number; g: number; b: number } };
 
 export const config = {

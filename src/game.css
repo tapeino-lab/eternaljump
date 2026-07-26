@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+@keyframes yellowGlow {
+  0% { box-shadow: 0 0 4px 1px rgba(255, 255, 0, 0.4); border-color: rgba(255, 255, 0, 0.6); }
+  50% { box-shadow: 0 0 10px 2px rgba(255, 255, 0, 0.8); border-color: rgba(255, 255, 0, 1); }
+  100% { box-shadow: 0 0 4px 1px rgba(255, 255, 0, 0.4); border-color: rgba(255, 255, 0, 0.6); }
+}
+
+
 body {
 margin: 0;
 padding: 0;
@@ -377,7 +384,7 @@ font-family: "Press Start 2P", sans-serif;
 }
 
 #pauseScreen h1 {
-font-size: 16px;
+font-size: 20px;
 margin: 0;
 color: #fff;
 letter-spacing: 2px;
@@ -561,7 +568,7 @@ transform: scale(0.9);
 
 .pause-title {
   margin-bottom: 15px;
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .pause-box {
@@ -1001,7 +1008,7 @@ transform: scale(0.9);
   box-sizing: border-box;
 }
 .name-edit-btn-reset { font-size: 10px; }
-.name-edit-btn-random { font-size: 16px; }
+.name-edit-btn-random { font-size: 20px; }
 
 .name-edit-val-container {
   display: flex;
@@ -1161,7 +1168,7 @@ transform: scale(0.9);
 
 .result-coin-label {
   display: inline-block;
-  width: 50px;
+  width: 65px;
   text-align: right;
   margin-right: 6px;
   font-size: 9px;
@@ -1267,4 +1274,330 @@ transform: scale(0.9);
 }
 .c-icon-no-margin {
   margin-top: 0;
+}
+
+.shop-screen {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: rgba(0,0,0,0.95);
+  color: white;
+  display: none;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.shop-title {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 16px;
+  color: #fff;
+  margin: 0;
+}
+
+.shop-coin-display {
+  display: flex;
+  align-items: center;
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 10px;
+  color: #fff;
+}
+
+.shop-items-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.shop-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 15, 20, 0.9);
+  border: 1px solid #ffffff;
+  padding: 6px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  width: 98%;
+  transition: all 0.2s ease;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.shop-item:hover {
+  background: rgba(30, 35, 45, 0.95);
+}
+
+.shop-item.owned {
+  border-color: #ffffff;
+  background: rgba(15, 20, 25, 0.9);
+}
+
+.shop-item.owned:hover {
+  background: rgba(20, 35, 30, 0.95);
+}
+
+.shop-item.equipped {
+  border: 2px solid #00e676;
+  background: linear-gradient(135deg, rgba(0, 230, 118, 0.18) 0%, rgba(10, 25, 18, 0.95) 100%);
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+}
+
+.shop-item.equipped:hover {
+  background: linear-gradient(135deg, rgba(0, 230, 118, 0.28) 0%, rgba(15, 35, 25, 0.95) 100%);
+}
+
+.shop-item-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 4px;
+}
+
+.shop-item-desc {
+  font-size: 8px;
+  color: #aaa;
+  font-family: 'Press Start 2P', sans-serif;
+  line-height: 1.3;
+  text-align: left;
+  width: 100%;
+  padding: 2px 0 0 0;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-item.equipped .shop-item-desc {
+  color: #80eec0;
+}
+
+.shop-item-icon {
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.shop-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.shop-item-name {
+  font-size: 8px;
+  color: #fff;
+  white-space: normal;
+  font-family: 'Press Start 2P', sans-serif;
+  line-height: 1.4;
+}
+
+.shop-item-buy {
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 6px 2px;
+  font-size: 7px;
+  font-family: 'Press Start 2P', sans-serif;
+  cursor: pointer;
+  border-radius: 4px;
+  width: 66px;
+  text-align: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.shop-item-buy.btn-get:not(:disabled) {
+  border-color: #00e676;
+  color: #00e676;
+}
+
+.shop-item-buy.btn-equip {
+  border-color: #ffffff;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.shop-item-buy.btn-equipped {
+  border-color: #00e676;
+  color: #00e676;
+  background: rgba(0, 230, 118, 0.2);
+  font-size: 6px;
+}
+
+.shop-item-buy:disabled {
+  background: #111;
+  color: #666;
+  border-color: #444;
+  cursor: not-allowed;
+}
+
+.shop-item-buy:disabled .btn-get-label {
+  color: #666;
+}
+
+.shop-item-buy:disabled .shop-price-tag,
+.shop-item-buy:disabled .shop-price-val {
+  color: #ffffff;
+  opacity: 1;
+}
+
+.shop-item-buy:disabled .coin-icon {
+  filter: none;
+  opacity: 1;
+}
+
+.shop-item-buy:active:not(:disabled) {
+  background: #555;
+}
+
+.shop-actions {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  flex-shrink: 0;
+}
+
+.shop-btn-cancel, .shop-btn-ok {
+  width: 45%;
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 16px;
+  padding: 16px 0;
+  border-radius: 8px;
+  box-sizing: border-box;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #fff;
+  transition: all 0.05s ease;
+}
+.shop-btn-cancel {
+  background: #333 !important;
+  color: #fff !important;
+  border-color: #666 !important;
+}
+.shop-btn-cancel:hover {
+  background: #444 !important;
+  border-color: #aaa !important;
+}
+.shop-btn-ok {
+  background: #2a2 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+.shop-btn-ok:hover {
+  background: #3c3 !important;
+  border-color: #fff !important;
+}
+.shop-btn-cancel:active, .shop-btn-ok:active {
+  transform: scale(0.95);
+}
+
+.confirm-modal {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  pointer-events: auto;
+}
+.confirm-modal-content {
+  background: #222;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  padding: 16px 14px;
+  width: 210px;
+  transform: scale(var(--game-scale));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+}
+.confirm-icon {
+  width: 44px; height: 44px;
+  background: transparent;
+  display: flex; justify-content: center; align-items: center;
+  border-radius: 4px;
+}
+.confirm-name {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 11px; color: #fff; text-align: center; line-height: 1.4;
+}
+.confirm-desc {
+  font-family: 'Press Start 2P', sans-serif;
+  font-size: 8px; color: #aaa; text-align: center; line-height: 1.6;
+}
+.confirm-actions {
+  display: flex; width: 100%; gap: 10px; margin-top: 8px;
+}
+.confirm-btn {
+  flex: 1;
+  padding: 10px 0; font-size: 10px; font-family: 'Press Start 2P', sans-serif;
+  border-radius: 4px;
+}
+.confirm-btn:active { background: #555; }
+
+#confirmOkBtn {
+  background: #2a2 !important;
+  border-color: #fff !important;
+}
+#confirmOkBtn:hover {
+  background: #3c3 !important;
+}
+#confirmOkBtn:active {
+  background: #181 !important;
+}
+
+.flying-shop-coin {
+  position: fixed;
+  width: 16px;
+  height: 16px;
+  z-index: 20000;
+  pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.5s ease;
+  will-change: transform, opacity;
+}
+
+@keyframes shopFlash {
+  0% { filter: brightness(1); }
+  25% { filter: brightness(2.5) drop-shadow(0 0 10px #fff); }
+  50% { filter: brightness(3) drop-shadow(0 0 16px #ffd700); }
+  100% { filter: brightness(1); }
+}
+
+.shop-flash-effect {
+  animation: shopFlash 0.55s ease-out;
 }

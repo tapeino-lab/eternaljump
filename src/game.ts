@@ -4,21 +4,22 @@ import { startDemoRankingScroll } from './demo-ranking.js';
 import { updateBirds, updateMeteors, updateParticles, updateFlyingCoins, updateNPCs, updatePlayingState, postUpdatePhysics } from "./update.js";
 import { updatePhysicsMain } from './update.js';
 import { B64 } from './assets.js';
-import { config } from './config.js';
+import { config, SCORE_THRESHOLDS } from './config.js';
 import { runAI } from './ai.js';
 import { getLevelConfig } from './level.js';
 import { Particle, Bird, Meteor, Player, NPC, Platform, Item, Coin, BackgroundCloud, getPt, getPl, getCn, getBd, getMt, getIt, getCl, spawnParticles, spawnDebris, trySpawnBirdsOnPlatform, P_PT, P_PL, P_CN, P_BD, P_MT, P_IT, P_CL } from './entities/index.js';
 import { LootLockerAPI } from "./lootlocker.js";
 import { RankingAPI } from "./ranking.js";
 import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang, $, escapeHTML, getPlayerName } from "./utils.js";
-import { initSpawner, spawnGuideCoins, spawnCoins, spawnPlatform } from './spawner.js';
+import { initSpawner, spawnGuideCoins, spawnCoins, spawnPlatform, getSafetyLineY, isInMushroomForbiddenZone } from './spawner.js';
 import { render, resetBGScore, dR } from './renderer.js';
 import { inputHandler, setupInputListeners } from './input.js';
 import { checkUpdateAndReload } from './pwa.js';
-import { game, demoState } from './state.js';
+import { game, demoState, resetGameStateData } from './state.js';
 import { setupKeyboardUI, openNameEditModal } from './keyboard.js';
 import { fireworksSystem } from './fireworks.js';
 import { airplaneSystem } from './airplane.js';
+import { initShop, updateShopUI, onEnterShop } from './shop.js';
 export { dR, inputHandler };
     
         
@@ -27,6 +28,7 @@ export { dR, inputHandler };
       IMG[k] = new Image();
       IMG[k].src = B64[k];
     }
+
     let isFirstPlay = true;
     
     const cvs = $('gameCanvas') as HTMLCanvasElement;
@@ -95,6 +97,14 @@ export { dR, inputHandler };
     (window as any).gameScale = 1;
     export let ctrlCenterX = 0;
     
+    function updateCtrlCenter() {
+      let ca = $('controlArea');
+      if (ca) {
+        let r = ca.getBoundingClientRect();
+        ctrlCenterX = r.left + r.width / 2;
+      }
+    }
+
     function resize() {
       let winW = window.innerWidth, winH = window.innerHeight;
       let ratio = config.gameWidth / config.gameHeight;
@@ -104,26 +114,57 @@ export { dR, inputHandler };
         tW = tH * ratio;
       }
       let cH = winH - tH;
-      let gc = $('gameContainer'), ca = $('controlArea');
-      gc.style.width = tW + 'px';
-      gc.style.height = tH + 'px';
-      ca.style.width = tW + 'px';
-      ca.style.height = cH + 'px';
+      let gc = $('gameContainer'), ca = $('controlArea'), ac = $('appContainer');
+      if (ac) {
+        ac.style.width = tW + 'px';
+        ac.style.height = (tH + cH) + 'px';
+      }
+      if (gc) {
+        gc.style.width = tW + 'px';
+        gc.style.height = tH + 'px';
+      }
+      if (ca) {
+        ca.style.width = tW + 'px';
+        ca.style.height = cH + 'px';
+      }
       (window as any).gameScale = tW / config.gameWidth;
-      wrap.style.width = config.gameWidth + 'px';
-      wrap.style.height = config.gameHeight + 'px';
-      wrap.style.transform = `scale(${(window as any).gameScale})`;
-      wrap.style.transformOrigin = 'center center';
-      cvs.width = config.gameWidth;
-      cvs.height = config.gameHeight;
-      cvs.style.width = '100%';
-      cvs.style.height = '100%';
-      $('tapToStartMsg').style.fontSize = MAX(10, FLR(10 * (window as any).gameScale)) + 'px';
-      let r = ca.getBoundingClientRect();
-      ctrlCenterX = r.left + r.width / 2;
+      document.documentElement.style.setProperty("--game-scale", (window as any).gameScale);
+      document.documentElement.style.setProperty("--game-height", tH + "px");
+      document.documentElement.style.setProperty("--control-height", cH + "px");
+      if (wrap) {
+        wrap.style.width = config.gameWidth + 'px';
+        wrap.style.height = config.gameHeight + 'px';
+        wrap.style.transform = `scale(${(window as any).gameScale})`;
+        wrap.style.transformOrigin = 'center center';
+      }
+      if (cvs) {
+        cvs.width = config.gameWidth;
+        cvs.height = config.gameHeight;
+        cvs.style.width = '100%';
+        cvs.style.height = '100%';
+      }
+      let tapMsg = $('tapToStartMsg');
+      if (tapMsg) {
+        tapMsg.style.fontSize = MAX(10, FLR(10 * (window as any).gameScale)) + 'px';
+      }
+      updateCtrlCenter();
+      requestAnimationFrame(updateCtrlCenter);
     }
     
     window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(resize, 100);
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', resize);
+    }
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(() => {
+        resize();
+      });
+      let ac = $('appContainer');
+      if (ac) observer.observe(ac);
+    }
     resize();
 
     game.player = new Player();
@@ -263,52 +304,31 @@ export { dR, inputHandler };
     }
 
     function resetGameState(isConsecutive) {
-      game.isConsecutive = isConsecutive;
-      game.state = 'intro';
-      game.isPaused = false;
       document.body.classList.remove('game-paused');
-      game.playTime = 0;
-      game.timerStarted = isConsecutive;
       pScreen.style.display = 'none';
       $('rankingModal').style.display = 'none';
-      game.shakeAmount = 0;
-      game.flockDir = RND() < 0.5 ? 1 : -1;
       
-      if (game.platforms) game.platforms.forEach(p => P_PL.push(p));
-      if (game.particles) game.particles.forEach(p => P_PT.push(p));
-      if (game.coins) game.coins.forEach(c => P_CN.push(c));
-      if (game.birds) game.birds.forEach(b => P_BD.push(b));
-      if (game.meteors) game.meteors.forEach(m => P_MT.push(m));
-      if (game.items) game.items.forEach(i => P_IT.push(i));
-      
-      game.particles = [];
-      game.meteors = [];
-      game.npcs = [];
-      game.birds = [];
-      
-      
-        for (let i = 0; i < 3; i++) {
-          game.npcs.push(new NPC(140 + i * 16, 240 - config.playerSize, (i + 1) * 1000, i));
+      // オブジェクトプールへの返却 (メモリ効率向上)
+      if (game.platforms) P_PL.releaseAll(game.platforms);
+      if (game.particles) P_PT.releaseAll(game.particles);
+      if (game.coins) P_CN.releaseAll(game.coins);
+      if (game.birds) P_BD.releaseAll(game.birds);
+      if (game.meteors) P_MT.releaseAll(game.meteors);
+      if (game.items) P_IT.releaseAll(game.items);
+      if (game.clouds && game.clouds.length > 0) P_CL.releaseAll(game.clouds);
+
+      const flockDir = RND() < 0.5 ? 1 : -1;
+      const pb = secureStorage.getItem<any>('EternalJumper_PB', null);
+
+      resetGameStateData(game, isConsecutive, flockDir, pb);
+
+      for (let i = 0; i < 3; i++) {
+        game.npcs.push(new NPC(140 + i * 16, 240 - config.playerSize, (i + 1) * 1000, i));
       }
-      
-      game.player.reset();
-      game.platforms = [];
-      game.items = [];
-      game.coins = [];
-      if (game.clouds && game.clouds.length > 0) {
-        game.clouds.forEach(c => P_CL.push(c));
+
+      if (game.player) {
+        game.player.reset();
       }
-      game.clouds = [];
-      game.stars = [];
-      game.loopCount = 0;
-      game.endReason = null;
-      game.lastScoreId = null;
-      game.lastRank = null;
-      game.lastScoreObj = null;
-      game.isNewRecord = false;
-      game.personalBest = secureStorage.getItem<any>('EternalJumper_PB', null);
-      game.clearTime = 0;
-      game.lastUI = '';
     }
 
     function setupGameCameraAndPlayer(isConsecutive) {
@@ -325,6 +345,15 @@ export { dR, inputHandler };
       game.scoreCoin = 0;
       game.flyingCoins = [];
       game.totalCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+      game.inventory = secureStorage.getItem<Record<string, boolean>>('JUMP_INVENTORY', {});
+      let loadedEq = secureStorage.getItem<any>('JUMP_EQUIPPED', {});
+      if (typeof loadedEq === 'string') {
+        game.equipped = loadedEq ? { [loadedEq]: true } : {};
+      } else if (loadedEq && typeof loadedEq === 'object') {
+        game.equipped = loadedEq;
+      } else {
+        game.equipped = {};
+      }
       
       inputHandler.active.clear();
     }
@@ -353,18 +382,21 @@ export { dR, inputHandler };
       pl4.noEffect = true;
       game.platforms.push(pl4);
       
-      let sNY = 416 - POW(ABS(config.superJumpPower), 2) / (2 * config.jumpGravity) + 100;
+      let sNY = getSafetyLineY();
       game.platforms.push(getPl(sNY, 'normal', false, config.gameWidth / 2 - (config.platformW * 9) / 2, null, null, 9, false));
       
       for (let i = 0; i < config.basePlatforms; i++) {
         let py = sNY - 80 - (i * (config.gameHeight / config.basePlatforms));
+        if (isInMushroomForbiddenZone(py, sNY)) {
+          continue;
+        }
         let sc = (game.baseScoreY - py) * config.scoreMultiplier;
-        let tc = (sc < 20000 && i % 3 === 0) ? MAX(2, 3 - FLR(sc / 8000)) : 1;
+        let tc = (sc < SCORE_THRESHOLDS.EASY && i % 3 === 0) ? MAX(2, 3 - FLR(sc / 8000)) : 1;
         let np = getPl(py, 'normal', false, null, null, null, tc, false);
         game.platforms.push(np);
         trySpawnBirdsOnPlatform(np, sc);
         
-        if (sc < 20000) {
+        if (sc < SCORE_THRESHOLDS.EASY) {
           let np2 = getPl(py + (RND() * 40 - 20), 'normal', false, null, null, null, MAX(1, tc), false);
           if (np2.isOverlapping) {
             P_PL.push(np2);
@@ -372,8 +404,9 @@ export { dR, inputHandler };
             game.platforms.push(np2);
             trySpawnBirdsOnPlatform(np2, (game.baseScoreY - np2.y) * config.scoreMultiplier);
           }
-        } else if (sc < 52000) {
-          if (RND() < (1 - (sc - 20000) / 32000) * 0.7) {
+        } else if (sc < SCORE_THRESHOLDS.MEDIUM) {
+          let mediumSpan = SCORE_THRESHOLDS.MEDIUM - SCORE_THRESHOLDS.EASY;
+          if (RND() < (1 - (sc - SCORE_THRESHOLDS.EASY) / mediumSpan) * 0.7) {
             let np2 = getPl(py + (RND() * 40 - 20), 'normal', false, null, null, null, MAX(1, tc - 1), false);
             if (np2.isOverlapping) {
               P_PL.push(np2);
@@ -491,9 +524,19 @@ export { dR, inputHandler };
       // Show version info on title screen when not in demo mode or paused
       const tVer = $('titleVersion');
       if (tVer) {
-        
         let nDisp = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
         if (tVer.style.display !== nDisp) tVer.style.display = nDisp;
+      }
+      
+      const shopScreen = $('shopScreen');
+      if (shopScreen) {
+        let sDisp = (game.state === 'shop') ? 'flex' : 'none';
+        if (shopScreen.style.display !== sDisp) {
+          shopScreen.style.display = sDisp;
+          if (game.state === 'shop') {
+            onEnterShop();
+          }
+        }
       }
       
       render(ts);
@@ -578,6 +621,7 @@ export { dR, inputHandler };
     }
 
     setupKeyboardUI();
+    initShop();
 
     startAttractCycle();
 

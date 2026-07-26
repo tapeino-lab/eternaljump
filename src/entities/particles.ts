@@ -2,11 +2,12 @@ import { RND, FLR, MAX, MIN } from "../utils.js";
 import { ctx } from '../game.js';
 import { dR } from '../renderer.js';
 import { game } from '../state.js';
+import { ObjectPool } from './pool.js';
 
-export const P_PT: Particle[] = [];
+export const P_PT = new ObjectPool<Particle>(() => new Particle());
 
 export function getPt(x: number, y: number, vx: number, vy: number, c: string, s: number, l: number, g = 0.2, sp = false) {
-  let p = P_PT.length ? P_PT.pop()! : new Particle();
+  let p = P_PT.get();
   p.init(x, y, vx, vy, c, s, l, g, sp);
   return p;
 }
