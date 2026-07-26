@@ -27,6 +27,7 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
       blacklisted: boolean = false;
       blink: boolean = false;
       breakOnSquish: boolean[] = [];
+      hits: number[] = [];
       direction: number = 1;
       isCrumbling: boolean = false;
       isGlowing: boolean = false;
@@ -51,6 +52,7 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
         this.direction = RND() < 0.5 ? 1 : -1;
         this.squishTimers = new Array(count).fill(0);
         this.breakOnSquish = new Array(count).fill(false);
+        this.hits = new Array(count).fill(0);
         this.isGlowing = ((t === 'h-slide' || t === 'v-slide') && !ig && RND() < config.glowingMovingProb);
         this.broken = false;
         this.blacklisted = false;
@@ -161,10 +163,36 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
           if (this.squishTimers[i] > 0) {
             this.squishTimers[i]--;
             if (this.squishTimers[i] === 0 && this.isIcy && !this.broken && this.breakOnSquish[i]) {
-              this.broken = true;
-              let cX = this.x + i * config.platformW + 8, cY = this.y + 15, iC = ['#fff', '#e0ffff', '#b0e0e6', '#f0ffff'];
-              for (let p = 0; p < 8; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 8, cY + (RND() - 0.5) * 8, (RND() - 0.5) * 6, (RND() - 0.5) * 4 - 1, '#fff', 2 + RND() * 2, 15 + RND() * 10, 0.2 + RND() * 0.1));
-              for (let p = 0; p < 20; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 12, cY + (RND() - 0.5) * 12, (RND() - 0.5) * 1.5, (RND() - 0.8) * 1, iC[FLR(RND() * 4)], RND() * 1.5, 30 + RND() * 45, 0.005 + RND() * 0.015));
+              this.hits[i]++;
+              let req = game.equipped?.['skates'] ? 2 : 1;
+              if (this.hits[i] >= req) {
+                this.broken = true;
+                let cX = this.x + i * config.platformW + 8, cY = this.y + 15, iC = ['#fff', '#e0ffff', '#b0e0e6', '#f0ffff'];
+                for (let p = 0; p < 8; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 8, cY + (RND() - 0.5) * 8, (RND() - 0.5) * 6, (RND() - 0.5) * 4 - 1, '#fff', 2 + RND() * 2, 15 + RND() * 10, 0.2 + RND() * 0.1));
+                for (let p = 0; p < 20; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 12, cY + (RND() - 0.5) * 12, (RND() - 0.5) * 1.5, (RND() - 0.8) * 1, iC[FLR(RND() * 4)], RND() * 1.5, 30 + RND() * 45, 0.005 + RND() * 0.015));
+              } else {
+                this.breakOnSquish[i] = false; // Reset for next jump
+                let cX = this.x + i * config.platformW + 8, cY = this.y + 15;
+                for (let p = 0; p < 5; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 12, cY + (RND() - 0.5) * 12, (RND() - 0.5) * 2, (RND() - 0.5) * 2 - 1, '#e0ffff', RND() * 2, 20 + RND() * 20, 0.01));
+              }
+            }
+          }
+        }
+        if (this.isIcy && !this.broken) {
+          for (let i = 0; i < this.count; i++) {
+            if (this.hits[i] > 0) {
+              if (RND() < 0.28) {
+                let px = this.x + i * config.platformW + RND() * config.platformW;
+                let py = this.y + RND() * 4;
+                let vx = (RND() - 0.5) * 0.08;
+                let vy = RND() * 0.3 + 0.1;
+                let size = 0.9 + RND() * 0.9 + (RND() < 0.25 ? RND() * 1.6 : 0);
+                let life = 45 + RND() * 35;
+                let color = RND() < 0.6 ? '#e2ffff' : '#b6f2f7';
+                let pt = getPt(px, py, vx, vy, color, size, life);
+                pt.g = 0.01 + RND() * 0.01;
+                game.particles.push(pt);
+              }
             }
           }
         }
@@ -222,6 +250,11 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
           }
           if (cImg.complete && cImg.naturalWidth > 0) ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
           else dR(px, dY, config.platformW, dH, '#A0522D');
+
+          if (this.isIcy && this.hits[i] > 0) {
+            ctx.fillStyle = 'rgba(0, 16, 40, 0.35)';
+            ctx.fillRect(FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
+          }
         }
       }
     }
