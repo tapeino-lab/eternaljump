@@ -1148,6 +1148,10 @@ transform: scale(0.9);
   margin-bottom: 10px;
 }
 
+.result-coin-container:not(.single-row) {
+  transform: translateX(-14px);
+}
+
 .result-coin-row {
   display: flex;
   align-items: center;
@@ -1157,9 +1161,9 @@ transform: scale(0.9);
 
 .result-coin-label {
   display: inline-block;
-  width: 58px;
+  width: 50px;
   text-align: right;
-  margin-right: 8px;
+  margin-right: 6px;
   font-size: 9px;
   font-family: 'Press Start 2P', sans-serif;
 }
@@ -1179,6 +1183,14 @@ transform: scale(0.9);
     opacity: 0.25;
     text-shadow: none;
   }
+}
+
+.result-coin-container.single-row .result-coin-label {
+  display: none;
+}
+
+.result-coin-container.single-row .result-coin-align {
+  justify-content: center;
 }
 
 .result-coin-align {

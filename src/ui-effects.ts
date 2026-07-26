@@ -87,54 +87,17 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
         valSpan.textContent = remainingCoins.toString();
       }
 
-            let domStartX = 50;
-      let domStartY = 50;
-      let domEndX = 10;
-      let domEndY = 10;
+      game.totalCoins += amt;
+      secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+
       let uiIcon = document.querySelector('#ui .coin-icon');
-      let floaterIcon = floater ? floater.querySelector('.coin-icon') : null;
-      let cwEl = document.getElementById('canvasWrapper');
-
-      if (cwEl && uiIcon) {
-          let cwRect = cwEl.getBoundingClientRect();
-          if (floaterIcon) {
-            let fRect = floaterIcon.getBoundingClientRect();
-            domStartX = ((fRect.left + fRect.width/2 - cwRect.left) / cwRect.width) * 100;
-            domStartY = ((fRect.top + fRect.height/2 - cwRect.top) / cwRect.height) * 100;
-          } else {
-            domStartX = 50;
-            domStartY = (250 / 360) * 100;
-          }
-          let uRect = uiIcon.getBoundingClientRect();
-          domEndX = ((uRect.left + uRect.width/2 - cwRect.left) / cwRect.width) * 100;
-          domEndY = ((uRect.top + uRect.height/2 - cwRect.top) / cwRect.height) * 100;
+      if (uiIcon && uiIcon.parentElement) {
+        uiIcon.parentElement.animate([
+          { transform: 'scale(1)', filter: 'brightness(1)' },
+          { transform: 'scale(1.4)', filter: 'brightness(2)' },
+          { transform: 'scale(1)', filter: 'brightness(1)' }
+        ], { duration: 220, easing: 'ease-out' });
       }
-
-      let fc = document.createElement('div');
-      fc.className = 'coin-icon';
-      fc.innerHTML = '<div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div>';
-      fc.style.position = 'absolute';
-      fc.style.zIndex = '3000';
-      fc.style.pointerEvents = 'none';
-      if (cwEl) cwEl.appendChild(fc);
-
-      let anim = fc.animate([
-        { left: domStartX + '%', top: domStartY + '%', transform: 'translate(-50%, -50%) scale(1.5)', opacity: 1 },
-        { left: domEndX + '%', top: domEndY + '%', transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }
-      ], { duration: 400, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
-
-      anim.onfinish = () => {
-        if (fc.parentNode) fc.remove();
-        game.totalCoins += amt;
-        secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
-        if (uiIcon && uiIcon.parentElement) {
-            uiIcon.parentElement.animate([
-               { transform: 'scale(1)', filter: 'brightness(1)' },
-               { transform: 'scale(1.4)', filter: 'brightness(2)' },
-               { transform: 'scale(1)', filter: 'brightness(1)' }
-            ], { duration: 250, easing: 'ease-out' });
-        }
-      };
 
     }, spawnInterval);
 

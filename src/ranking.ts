@@ -273,7 +273,10 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           
           if (elCoins) elCoins.innerHTML = '&times; ' + baseCoins;
           
+          let elCoinContainer = document.querySelector('.result-coin-container');
+          
           if (state === 'clear' && !game.demoMode && baseCoins > 0) {
+            if (elCoinContainer) elCoinContainer.classList.remove('single-row');
             if (elBonusRow && elBonusCoins) {
               elBonusRow.style.display = 'flex';
               elBonusCoins.innerHTML = '&times; 0';
@@ -300,6 +303,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
               }, 500);
             }
           } else {
+            if (elCoinContainer) elCoinContainer.classList.add('single-row');
             if (elBonusRow) {
               elBonusRow.style.display = 'none';
             }
