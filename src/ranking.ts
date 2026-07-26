@@ -395,7 +395,7 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
                 hl = true;
                 isPlayerInList = true;
             }
-            let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;color:#fff;' : '';
+            let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';
             let idAttr = isC ? ' id="myRankRow"' : '';
             let m = '';
             let rNum = r.rank || (i + 1);
