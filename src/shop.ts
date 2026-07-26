@@ -49,7 +49,7 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     id: 'magnet',
     name: 'MAGNET',
     desc: 'Easy coin collect',
-    price: 10000,
+    price: 5000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <rect x="3" y="2" width="10" height="1" fill="#000"/>
   <rect x="2" y="3" width="1" height="10" fill="#000"/>
