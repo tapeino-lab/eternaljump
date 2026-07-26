@@ -121,9 +121,21 @@
             <div id="newRecordBadge" class="new-record-badge">NEW RECORD!</div>
             <h2 class="result-score-label">SCORE</h2>
             <div id="resultScoreAlt" class="result-score-val">0m</div>
-            <div class="coin-align result-coin-align">
-              <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
-              <span id="resultScoreCoins">&times; 0</span>
+            <div class="result-coin-container">
+              <div class="result-coin-row">
+                <span class="result-coin-label"></span>
+                <div class="coin-align result-coin-align">
+                  <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
+                  <span id="resultScoreCoins">&times; 0</span>
+                </div>
+              </div>
+              <div id="resultBonusRow" class="result-coin-row" style="display: none;">
+                <span class="result-coin-label bonus-label">BONUS</span>
+                <div class="coin-align result-coin-align">
+                  <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
+                  <span id="resultBonusCoins">&times; 0</span>
+                </div>
+              </div>
             </div>
             <div id="bestScoreContainer" class="best-score-container">
               <h2 class="best-score-label">YOUR BEST</h2>

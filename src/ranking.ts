@@ -266,94 +266,43 @@ import { getLang, MIN, escapeHTML, getPlayerName } from './utils.js';
           
           $('resultScoreAlt').innerText = game.lastScoreObj.alt + 'm';
           
-          let finalCoins = game.lastScoreObj.coins || 0;
+          let baseCoins = game.lastScoreObj.coins || 0;
           let elCoins = $('resultScoreCoins');
+          let elBonusRow = $('resultBonusRow');
+          let elBonusCoins = $('resultBonusCoins');
           
-          if (state === 'clear' && !game.demoMode && finalCoins > 0) {
-            let baseCoins = finalCoins;
-            finalCoins = baseCoins * 2;
-            elCoins.innerHTML = '&times; ' + baseCoins;
-            
-            setTimeout(() => {
-              // x2 floater (longer display duration & slower upward float)
-              let rect = elCoins.getBoundingClientRect();
-              let x2 = document.createElement('div');
-              x2.innerHTML = 'x2';
-              x2.style.position = 'fixed';
-              x2.style.left = (rect.right + 10) + 'px';
-              x2.style.top = rect.top + 'px';
-              x2.style.color = '#fd0';
-              x2.style.textShadow = '2px 2px 0 #000, 0 0 8px #ff0';
-              x2.style.fontSize = '22px';
-              x2.style.fontFamily = '"Press Start 2P", sans-serif';
-              x2.style.pointerEvents = 'none';
-              x2.style.zIndex = '2000';
-              document.body.appendChild(x2);
+          if (elCoins) elCoins.innerHTML = '&times; ' + baseCoins;
+          
+          if (state === 'clear' && !game.demoMode && baseCoins > 0) {
+            if (elBonusRow && elBonusCoins) {
+              elBonusRow.style.display = 'flex';
+              elBonusCoins.innerHTML = '&times; 0';
               
-              x2.animate([
-                { transform: 'translate(0, 0)', opacity: 0 },
-                { transform: 'translate(0, -8px)', opacity: 1, offset: 0.12 },
-                { transform: 'translate(0, -35px)', opacity: 1, offset: 0.75 },
-                { transform: 'translate(0, -55px)', opacity: 0 }
-              ], { duration: 2800, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-              
-              setTimeout(() => x2.remove(), 2800);
-              
-              // Particles
-              let cx = rect.left + rect.width / 2;
-              let cy = rect.top + rect.height / 2;
-              for (let i = 0; i < 30; i++) {
-                let p = document.createElement('div');
-                p.style.position = 'fixed';
-                p.style.left = cx + 'px';
-                p.style.top = cy + 'px';
-                let size = 6 + Math.random() * 10;
-                p.style.width = size + 'px';
-                p.style.height = size + 'px';
-                p.style.backgroundColor = '#fd0';
-                p.style.borderRadius = '0';
-                p.style.pointerEvents = 'none';
-                p.style.zIndex = '2000';
-                document.body.appendChild(p);
+              setTimeout(() => {
+                if (!elBonusRow || !elBonusCoins) return;
                 
-                let ang = Math.random() * Math.PI * 2;
-                let spd = Math.random() * 200 + 50;
-                let tx = Math.cos(ang) * spd;
-                let ty = Math.sin(ang) * spd;
-                let rot = Math.random() * 720 - 360;
+                let count = 0;
+                let duration = 600; // ms
+                let steps = Math.min(baseCoins, 20);
+                let stepTime = Math.max(25, Math.floor(duration / steps));
+                let stepVal = baseCoins / steps;
                 
-                p.animate([
-                  { transform: 'translate(-50%, -50%) rotate(0deg) scale(1)', opacity: 1 },
-                  { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rot}deg) scale(0)`, opacity: 0 }
-                ], { duration: 800, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
-                
-                setTimeout(() => p.remove(), 800);
-              }
-              
-              elCoins.animate([
-                { transform: 'scale(1)', filter: 'brightness(1)', color: 'inherit' },
-                { transform: 'scale(1.8)', filter: 'brightness(2)', color: '#fd0', offset: 0.1 },
-                { transform: 'scale(1)', filter: 'brightness(1)', color: 'inherit' }
-              ], { duration: 600, easing: 'ease-out' });
-              
-              // Count up
-              let cur = baseCoins;
-              let step = Math.max(1, Math.floor((finalCoins - baseCoins) / 10));
-              let countTimer = setInterval(() => {
-                cur += step;
-                if (cur >= finalCoins) {
-                  cur = finalCoins;
-                  clearInterval(countTimer);
-                }
-                elCoins.innerHTML = '&times; ' + cur;
-                // Update header UI total coins visual if possible
-                let headCoins = game.totalCoins - finalCoins + cur;
-                game.scoreCoin = cur; // Update game state for header to catch up during UI render loop
-              }, 50);
-              
-            }, 600);
+                let timer = setInterval(() => {
+                  count += stepVal;
+                  if (count >= baseCoins) {
+                    count = baseCoins;
+                    clearInterval(timer);
+                    elBonusCoins.innerHTML = '&times; ' + baseCoins;
+                  } else {
+                    elBonusCoins.innerHTML = '&times; ' + Math.floor(count);
+                  }
+                }, stepTime);
+              }, 500);
+            }
           } else {
-            elCoins.innerHTML = '&times; ' + finalCoins;
+            if (elBonusRow) {
+              elBonusRow.style.display = 'none';
+            }
           }
           
           let showBest = (!game.isNewRecord && game.personalBest);
