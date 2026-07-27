@@ -2,8 +2,34 @@
 
 import { registerSW } from 'virtual:pwa-register';
 
+declare const __APP_VERSION__: string;
+
 let updatePending = false;
-let reloadSW = null;
+let reloadSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
+let currentSwRegistration: ServiceWorkerRegistration | null = null;
+
+export async function checkVersionJsonDirectly(): Promise<boolean> {
+  try {
+    const basePath = import.meta.env.BASE_URL || './';
+    const normalizedBase = basePath.endsWith('/') ? basePath : basePath + '/';
+    const versionUrl = `${normalizedBase}version.json?t=${Date.now()}`;
+    const res = await fetch(versionUrl, { cache: 'no-store' });
+    if (!res.ok) return false;
+    const data = await res.json();
+    if (data && data.version && data.version !== __APP_VERSION__) {
+      console.log(`[VersionCheck] New version detected via version.json: ${data.version} (current: ${__APP_VERSION__})`);
+      updatePending = true;
+      document.dispatchEvent(new Event('pwa-update-available'));
+      if (currentSwRegistration) {
+        currentSwRegistration.update().catch(() => {});
+      }
+      return true;
+    }
+  } catch (err) {
+    console.warn('[VersionCheck] Direct version check failed:', err);
+  }
+  return false;
+}
 
 if ('serviceWorker' in navigator) {
   reloadSW = registerSW({
@@ -14,21 +40,35 @@ if ('serviceWorker' in navigator) {
     },
     onRegistered(swRegistration) {
       if (swRegistration) {
-        document.addEventListener('visibilitychange', () => {
+        currentSwRegistration = swRegistration;
+        const triggerUpdate = () => {
           if (document.visibilityState === 'visible') {
             swRegistration.update().catch(() => {});
+            checkVersionJsonDirectly();
           }
-        });
+        };
+        document.addEventListener('visibilitychange', triggerUpdate);
+        window.addEventListener('focus', triggerUpdate);
       }
     }
   });
 }
 
-export function checkUpdateAndReload() {
-  if (updatePending && reloadSW) {
+// Initial check on load
+checkVersionJsonDirectly();
+
+export async function checkUpdateAndReload() {
+  if (!updatePending) {
+    await checkVersionJsonDirectly();
+  }
+  if (updatePending) {
     console.log('Update found, applying and reloading...');
     updatePending = false;
-    reloadSW(true);
+    if (reloadSW) {
+      reloadSW(true);
+    } else {
+      window.location.reload();
+    }
   }
 }
 
@@ -36,3 +76,4 @@ export function checkUpdateAndReload() {
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
 });
+

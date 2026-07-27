@@ -6,6 +6,30 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
 
+function versionJsonPlugin() {
+  return {
+    name: 'generate-version-json',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: JSON.stringify({ version: packageJson.version, timestamp: Date.now() }, null, 2)
+      });
+    },
+    configureServer(server: any) {
+      server.middlewares.use((req: any, res: any, next: any) => {
+        if (req.url && (req.url.startsWith('/version.json') || req.url === './version.json')) {
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+          res.end(JSON.stringify({ version: packageJson.version, timestamp: Date.now() }));
+          return;
+        }
+        next();
+      });
+    }
+  };
+}
+
 export default defineConfig(() => {
   return {
     define: {
@@ -14,10 +38,11 @@ export default defineConfig(() => {
     base: process.env.VITE_BASE_PATH || './',
     plugins: [
       tailwindcss(),
+      versionJsonPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',
-        includeAssets: ['icon.svg'],
+        includeAssets: ['icon.svg', 'version.json'],
         manifest: {
           name: 'Eternal Jumper',
           short_name: 'Eternal Jumper',
@@ -38,6 +63,10 @@ export default defineConfig(() => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf,cjs}'],
           runtimeCaching: [
+            {
+              urlPattern: /.*version\.json/i,
+              handler: 'NetworkOnly'
+            },
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',
