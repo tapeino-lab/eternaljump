@@ -1,6 +1,8 @@
 import { RND, FLR, MAX, MIN } from "../utils.js";
-import { ctx } from '../game.js';
-import { dR } from '../renderer.js';
+import { ctx } from '../display.js';
+
+import { dR } from '../renderer/core.js';
+
 import { game } from '../state.js';
 import { ObjectPool } from './pool.js';
 
@@ -58,6 +60,8 @@ export class Particle {
 }
 
 export function spawnParticles(x: number, y: number, color: string, count: number, speed = 4, effectType = 'burst') {
+  if (game.particles.length > 150) count = MIN(count, 1);
+  if (game.particles.length > 250) return;
   for (let i = 0; i < count; i++) {
     let vx, vy;
     if (effectType === 'collapse') {
@@ -72,6 +76,8 @@ export function spawnParticles(x: number, y: number, color: string, count: numbe
 }
 
 export function spawnDebris(x: number, y: number, w: number, h: number, color: string, count: number) {
+  if (game.particles.length > 200) count = MIN(count, 1);
+  if (game.particles.length > 300) return;
   for (let i = 0; i < count; i++) {
     let px = x + RND() * w;
     let py = y + RND() * h;

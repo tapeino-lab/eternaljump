@@ -2,8 +2,9 @@ import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
-import { RND, FLR, MAX, MIN, $ } from './utils.js';
-import { initGame } from './game.js';
+import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
+import { initGame } from './lifecycle.js';
+
 import { RankingAPI } from './ranking.js';
 
 export function updateBirds(game: GameState) {
@@ -165,20 +166,22 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
 
     let onG = false;
     if (npc.isIntro && npc.vy > 0) {
-      game.platforms.forEach(p => {
+      for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
+    let p = game.platforms[_idx_plats];
         if (p.isGround && p.y === 240 && npc.x + npc.w > p.x && npc.x < p.x + p.w && npc.y + npc.h >= p.y && npc.y + npc.h < p.y + 15) {
           npc.y = p.y - npc.h;
           npc.vy = 0;
           onG = true;
         }
-      });
+      }
     }
 
     if (!onG && npc.vy > 0) {
-      game.platforms.forEach(p => {
-        if (p.broken || p.isCrumbling) return;
-        if (npc.isIntro && p.isGround) return;
-        if (npc.x + npc.w > p.x && npc.x < p.x + p.w && npc.y + npc.h >= p.y && npc.y + npc.h < p.y + p.h + npc.vy) {
+      for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
+    let p = game.platforms[_idx_plats];
+        if (p.broken || p.isCrumbling) continue;
+        if (npc.isIntro && p.isGround) continue;
+        if (npc.y + npc.h >= p.y && npc.y + npc.h < p.y + p.h + npc.vy && npc.x + npc.w > p.x && npc.x < p.x + p.w) {
           if (p.type === 'goal') {
             npc.y = p.y - npc.h;
             npc.vy = -npc.vy * 0.1;
@@ -213,7 +216,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
                 }, 5000);
               }
             }
-            return;
+            continue;
           }
 
           if (npc.isIntro && !p.isGround) npc.isIntro = false;
@@ -266,7 +269,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
           npc.isSparkleJumping = (p.type === 'super' || p.isGlowing) && !p.noEffect;
           npc.jump(ap);
         }
-      });
+      }
     }
   }
 }

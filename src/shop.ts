@@ -101,6 +101,29 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   <rect x="2" y="14" width="12" height="1" fill="#ddd"/>
   <rect x="13" y="13" width="1" height="1" fill="#ddd"/>
 </svg>`
+  },
+  {
+    id: 'autocruise',
+    name: 'AUTO CRUISE',
+    desc: '"I\'ll take care of it."',
+    price: 20000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+      <rect x="7" y="0" width="2" height="2" fill="#f33"/>
+      <rect x="7" y="2" width="2" height="2" fill="#888"/>
+      <rect x="1" y="6" width="1" height="4" fill="#777"/>
+      <rect x="14" y="6" width="1" height="4" fill="#777"/>
+      <rect x="2" y="4" width="12" height="11" fill="#888"/>
+      <rect x="3" y="5" width="10" height="9" fill="#ccc"/>
+      <rect x="3" y="5" width="9" height="1" fill="#eee"/>
+      <rect x="3" y="5" width="1" height="8" fill="#eee"/>
+      <rect x="4" y="7" width="8" height="3" fill="#111"/>
+      <rect x="5" y="8" width="2" height="1" fill="#00f0ff"/>
+      <rect x="9" y="8" width="2" height="1" fill="#00f0ff"/>
+      <rect x="5" y="11" width="6" height="2" fill="#555"/>
+      <rect x="6" y="11" width="1" height="2" fill="#222"/>
+      <rect x="8" y="11" width="1" height="2" fill="#222"/>
+      <rect x="10" y="11" width="1" height="2" fill="#222"/>
+    </svg>`
   }
 ];
 
@@ -190,23 +213,18 @@ export function onEnterShop() {
 export function initShop() {
   renderShopItemsDOM();
 
-  const shopOk = $('btnShopOk');
-  const shopCancel = $('btnShopCancel');
-
-  if (shopOk) {
-    shopOk.addEventListener('click', () => {
-      game.state = 'intro';
-      game.player.x = 44;
-      game.player.facingRight = true;
-      secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
-    });
-  }
-  if (shopCancel) {
-    shopCancel.addEventListener('click', () => {
-      game.equipped = { ...shopState.initialEquipped };
-      game.state = 'intro';
-      game.player.x = 44;
-      game.player.facingRight = true;
+  const shopControlArea = $('shopControlArea');
+  if (shopControlArea) {
+    ['touchstart', 'mousedown'].forEach(ev => {
+      shopControlArea.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        game.state = 'intro';
+        game.player.x = 44;
+        game.player.facingRight = true;
+        secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
+        import('./lifecycle.js').then(m => m.startAttractCycle());
+      }, { passive: false });
     });
   }
 

@@ -1,5 +1,6 @@
 import { config, SCORE_THRESHOLDS } from './config.js';
 import { game } from './state.js';
+import { isAttractMode } from './lifecycle.js';
 import type { Player, Platform, Item } from './types.js';
 
 export function runAI(entity: Player) {
@@ -8,7 +9,7 @@ export function runAI(entity: Player) {
   let px = entity.x + (entity.w || 16) / 2;
   let py = entity.y + (entity.h || 16); 
 
-  if ((entity.isNPC && entity.isIntro) || (entity === game.player && game.state === 'intro')) {
+  if ((entity.isNPC && entity.isIntro) || (entity === game.player && game.state === 'intro' && (game.demoMode || isAttractMode))) {
     if (px < 100) entity.inputDir = 1;
     else if (px > 124) entity.inputDir = -1;
     else entity.inputDir = 0;

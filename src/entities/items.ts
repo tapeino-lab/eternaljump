@@ -1,7 +1,8 @@
 import { config } from '../config.js';
 import { RND, FLR, ABS } from '../utils.js';
 import { game } from '../state.js';
-import { dR } from '../renderer.js';
+import { dR } from '../renderer/core.js';
+
 import { spawnParticles } from './particles.js';
 import { ObjectPool } from './pool.js';
 
@@ -23,15 +24,15 @@ export function getIt(y: number, type: 'red' | 'green' = 'red', overrideX?: numb
     export class Item {
       x: number = 0;
       y: number = 0;
-      w: number = 16;
-      h: number = 16;
+      w: number = 20;
+      h: number = 20;
       type: 'red' | 'green' = 'red';
       collected: boolean = false;
       blacklisted: boolean = false;
       
       init(y: number, type: 'red' | 'green' = 'red', overrideX?: number) {
-        this.w = 16;
-        this.h = 16;
+        this.w = 20;
+        this.h = 20;
         this.y = FLR(y);
         this.type = type;
         this.collected = false;
@@ -67,10 +68,10 @@ export function getIt(y: number, type: 'red' | 'green' = 'red', overrideX?: numb
       }
       draw() {
         if (this.collected) return;
-        dR(this.x + 5, this.y + 8, 6, 6, '#fcc');
-        dR(this.x + 2, this.y + 2, 12, 6, this.type === 'green' ? '#2c2' : '#f33');
-        dR(this.x + 4, this.y + 4, 3, 3, '#fff');
-        dR(this.x + 9, this.y + 4, 3, 3, '#fff');
+        dR(this.x + 6, this.y + 10, 8, 8, '#fcc');
+        dR(this.x + 2, this.y + 2, 16, 9, this.type === 'green' ? '#2c2' : '#f33');
+        dR(this.x + 5, this.y + 4, 4, 4, '#fff');
+        dR(this.x + 11, this.y + 4, 4, 4, '#fff');
       }
     }
 

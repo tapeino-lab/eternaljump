@@ -1,6 +1,6 @@
 import type { GameState } from "./types.js";
 import { config } from './config.js';
-import { FLR, RND, PI } from './utils.js';
+import { FLR, RND, PI, swapRemove } from './utils.js';
 
 export interface FireworkRocket {
   x: number;
@@ -159,7 +159,7 @@ class FireworksSystem {
       // Explode at target altitude or slowdown
       if (r.y <= r.targetY || r.vy >= -0.2) {
         this.explode(r);
-        this.rockets.splice(i, 1);
+        swapRemove(this.rockets, i);
       }
     }
 
@@ -169,7 +169,7 @@ class FireworksSystem {
       f.radius += (f.maxRadius - f.radius) * 0.35;
       f.alpha -= 0.12;
       if (f.alpha <= 0) {
-        this.flashes.splice(i, 1);
+        swapRemove(this.flashes, i);
       }
     }
 
@@ -192,13 +192,13 @@ class FireworksSystem {
       }
 
       if (s.alpha <= 0 || s.y > config.gameHeight + 250 || s.y < -350) {
-        this.sparks.splice(i, 1);
+        swapRemove(this.sparks, i);
       }
     }
 
     // Limit spark count for performance
     if (this.sparks.length > 220) {
-      this.sparks.splice(0, this.sparks.length - 220);
+      this.sparks = this.sparks.slice(this.sparks.length - 220);
     }
   }
 

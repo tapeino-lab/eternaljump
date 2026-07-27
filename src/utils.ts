@@ -10,6 +10,14 @@ export const SIN = Math.sin;
 export const POW = Math.pow;
 export const PI = Math.PI;
 
+export const swapRemove = <T>(arr: T[], index: number): void => {
+  if (index < 0 || index >= arr.length) return;
+  const last = arr.pop()!;
+  if (index < arr.length) {
+    arr[index] = last;
+  }
+};
+
 export const hasPlayedOnce = (): boolean => {
   if (safeStorage.getItem('JUMP_HAS_PLAYED') === 'true') {
     return true;

@@ -2,204 +2,10 @@ import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
-import { RND, FLR, MAX, MIN, $ } from './utils.js';
-import { initGame } from './game.js';
+import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
+import { initGame } from './lifecycle.js';
+
 import { RankingAPI } from './ranking.js';
-
-export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean) {
-  game.items.forEach(function(i) {
-    if (game.player.x < i.x + i.w && game.player.x + game.player.w > i.x && game.player.y < i.y + i.h && game.player.y + game.player.h > i.y) {
-      if (i.type === 'green') {
-        let superPower = config.superJumpPower * config.glowingMovingJumpMultiplier;
-        game.player.jump(superPower);
-        game.player.isSparkleJumping = true;
-        game.player.squatTimer = 3;
-        game.shakeAmount = 10;
-        spawnParticles(i.x + i.w / 2, i.y, '#2c2', 8, 3);
-        spawnParticles(i.x + i.w / 2, i.y, '#fff', 6, 2);
-        if (game.demoMode && game.aiActive) {
-          if (game.player.aiPath.length > 0 && game.player.aiPath[0] === i) game.player.aiPath.shift();
-          game.player.stagnationTimer = 0;
-          game.player.adventureMode = false;
-        }
-      } else if (!i.collected) {
-        i.collected = true;
-        game.player.powerUp();
-        spawnParticles(i.x + i.w / 2, i.y + i.h, '#ccc', 6);
-        if (game.demoMode && game.aiActive) {
-          if (game.player.aiPath.length > 0 && game.player.aiPath[0] === i) game.player.aiPath.shift();
-          game.player.stagnationTimer = 0;
-          game.player.adventureMode = false;
-        }
-      }
-    }
-
-    game.npcs.forEach(function(npc) {
-      if (npc.active && (npc.vy > 0 || i.type === 'green') && npc.x < i.x + i.w && npc.x + npc.w > i.x && npc.y < i.y + i.h && npc.y + npc.h > i.y) {
-        let ap = (i.type === 'green') ? config.superJumpPower * config.glowingMovingJumpMultiplier : config.superJumpPower;
-        npc.y = i.y - npc.h;
-        npc.jump(ap);
-        npc.isSparkleJumping = true;
-        npc.squatTimer = 3;
-        spawnParticles(npc.x + npc.w / 2, i.y, i.type === 'green' ? '#2c2' : '#ccc', 6, 2);
-        if (i.type === 'green') {
-          spawnParticles(npc.x + npc.w / 2, i.y, '#fff', 4, 2);
-        }
-        if (npc.aiPath.length > 0 && npc.aiPath[0] === i) npc.aiPath.shift();
-      }
-    });
-  });
-
-  game.coins.forEach(function(c) {
-    c.update();
-    
-    if (!c.collected) {
-      if (game.equipped?.['magnet']) {
-        let px = game.player.x + game.player.w / 2;
-        let py = game.player.y + game.player.h / 2;
-        let cx = c.x + c.w / 2;
-        let cy = c.y + c.h / 2;
-        let dx = px - cx;
-        let dy = py - cy;
-        let dist = Math.hypot(dx, dy);
-        let magnetRadius = 64;
-        
-        if (dist < magnetRadius && dist > 1) {
-          let pullAccel = 0.18;
-          c.mvx += (dx / dist) * pullAccel;
-          c.mvy += (dy / dist) * pullAccel;
-          
-          let curSpeed = Math.hypot(c.mvx, c.mvy);
-          let maxSpeed = 1.6;
-          if (curSpeed > maxSpeed) {
-            c.mvx = (c.mvx / curSpeed) * maxSpeed;
-            c.mvy = (c.mvy / curSpeed) * maxSpeed;
-          }
-          
-          if (Math.random() < 0.2) {
-            spawnParticles(c.x + c.w / 2, c.y + c.h / 2, '#80eec0', 1, 1);
-          }
-        }
-      }
-
-      if (Math.abs(c.mvx) > 0.01 || Math.abs(c.mvy) > 0.01) {
-        c.x += c.mvx;
-        c.y += c.mvy;
-        let friction = 0.82;
-        c.mvx *= friction;
-        c.mvy *= friction;
-        if (Math.abs(c.mvx) < 0.02) c.mvx = 0;
-        if (Math.abs(c.mvy) < 0.02) c.mvy = 0;
-      }
-    }
-
-    let ox = (c.hitW - c.w) / 2, oy = (c.hitH - c.h) / 2;
-    if (!c.collected && game.player.x < c.x - ox + c.hitW && game.player.x + game.player.w > c.x - ox && game.player.y < c.y - oy + c.hitH && game.player.y + game.player.h > c.y - oy) {
-      c.collected = true;
-      c.dead = true;
-      if (game.scoreCoin < 999) game.scoreCoin++;
-      game.flyingCoins.push(new FlyingCoin(c.x + c.w / 2, c.y + c.h / 2));
-    }
-  });
-
-  if (game.player.vy > 0) {
-    game.platforms.forEach(function(p) {
-      if (p.broken || p.isCrumbling) return;
-      if (game.player.x + game.player.w > p.x && game.player.x < p.x + p.w && game.player.y + game.player.h >= p.y && game.player.y + game.player.h < p.y + p.h + game.player.vy) {
-        if (p.type === 'goal') {
-          let impact = game.player.vy;
-          game.player.vy = -impact * 0.1;
-          game.state = 'clear';
-          document.body.classList.add('game-ended');
-          game.endReason = 'CLEAR';
-          if (!isAttractMode && !game.demoMode) {
-          }
-          game.clearTime = game.playTime;
-          game.shakeAmount = 0;
-          if (!isAttractMode && pBtn) {
-            pBtn.style.display = 'none';
-          }
-          $('tapToStartMsg').style.display = 'none';
-          setIgnoreNextTap(true);
-          
-          let fA = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
-          RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'CLEAR');
-          if (true) {
-            setTimeout(() => {
-              if (game.state === 'clear') {
-                if (!isAttractMode) RankingAPI.show('clear');
-                else {
-                  setIgnoreNextTap(false);
-                  $('tapToStartMsg').style.display = 'block';
-                }
-              }
-            }, 800);
-          }
-          
-          if (game.demoMode && !game.isBenchmarking) {
-            setTimeout(function() {
-              if (game.state === 'gameover' || game.state === 'clear') {
-                let earned = game.scoreCoin;
-                initGame();
-                if (isAttractMode) applyCoinCountUp(earned, 'DEMO BONUS', false);
-              }
-            }, isAttractMode ? 2000 : 5000);
-          }
-        } else {
-          if (p.y < game.player.highestReachedY - 5) {
-            game.player.highestReachedY = p.y;
-            game.player.visitedHistory = [];
-            game.player.stagnationTimer = 0;
-            game.player.adventureMode = false;
-            game.player.sameBounceCount = 0;
-          } else {
-            game.player.stagnationTimer++;
-          }
-          
-          game.player.y = p.y - game.player.h;
-          let ap = config.jumpPower;
-          if (p.isGlowing) ap = config.superJumpPower * config.glowingMovingJumpMultiplier;
-          else if (p.type === 'super') ap = config.superJumpPower;
-          else if (p.type === 'h-slide' || p.type === 'v-slide') ap = config.jumpPower * config.movingPlatformJumpMultiplier;
-          
-          if (game.demoMode && game.aiActive) {
-            if (game.player.aiPath.length > 0 && game.player.aiPath[0] === p) game.player.aiPath.shift();
-            if (game.player.lastPlatform === p) {
-              game.player.sameBounceCount++;
-              if (game.player.sameBounceCount >= 2) {
-                p.blacklisted = true;
-                if (game.player.aiPath.length > 0) game.player.aiPath[0].blacklisted = true;
-                game.player.aiPath = [];
-                game.player.sameBounceCount = 0;
-              }
-            } else {
-              game.player.sameBounceCount = 0;
-              game.player.lastPlatform = p;
-            }
-            if (ap <= config.superJumpPower) {
-              game.player.stagnationTimer = 0;
-              game.player.adventureMode = false;
-            }
-            game.player.visitedHistory.push(p);
-            if (game.player.visitedHistory.length > 8) game.player.visitedHistory.shift();
-          }
-          
-          let seg = FLR((game.player.x + game.player.w / 2 - p.x) / config.platformW);
-          if (seg < 0) seg = 0;
-          if (seg >= p.count) seg = p.count - 1;
-          p.squishTimers[seg] = 12;
-          p.breakOnSquish[seg] = true;
-          game.player.squatTimer = 3;
-          if (!p.isIcy && !p.noEffect) {
-            spawnParticles(game.player.x + game.player.w / 2, p.y, '#ccc', 5);
-          }
-          game.player.isSparkleJumping = (p.type === 'super' || p.isGlowing) && !p.noEffect;
-          game.player.jump(ap);
-        }
-      }
-    });
-  }
-}
 
 export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean, initGame: any, spawnPlatform: any) {
   let upB = game.cameraY + config.gameHeight * 0.4, lowB = game.cameraY + config.gameHeight * 0.6, nY = game.cameraY;
@@ -216,9 +22,10 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
   game.score = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
   
   let lowestY = game.player.y;
-  game.npcs.forEach(n => {
+  for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {
+    let n = game.npcs[_idx_npcs];
     if (n.y > lowestY && n.y < 1500) lowestY = n.y;
-  });
+  }
   
   let dL = Math.max(game.cameraY, lowestY) + config.gameHeight * (1 + config.recoveryScreens);
   for (let i = game.platforms.length - 1; i >= 0; i--) {
@@ -250,7 +57,8 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
     }
   }
   
-  while (game.platforms.length > 0 && game.platforms[game.platforms.length - 1].type !== 'goal' && game.platforms[game.platforms.length - 1].y > game.cameraY - config.gameHeight) {
+  let hp = null;
+  while (game.platforms.length > 0 && (hp = game.platforms.reduce((min, p) => p.y < min.y ? p : min, game.platforms[0])) && hp.type !== 'goal' && hp.y > game.cameraY - config.gameHeight) {
     spawnPlatform();
   }
   
@@ -418,7 +226,8 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
     export function updateIntroState(game: GameState, config: any, FLR: any, isAttractMode: boolean, demoState: any, IMG: any, inputHandler: any, spawnParticles: any) {
       let plX = game.player.x, plW = game.player.w, onG = false;
       if (game.player.vy > 0) {
-        game.platforms.forEach(function(p) {
+        for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
+    let p = game.platforms[_idx_plats];
           if (p.isGround && p.y === 240 && plX + plW > p.x && plX < p.x + p.w && game.player.y + game.player.h >= p.y && game.player.y + game.player.h < p.y + 15) {
             game.player.y = p.y - game.player.h;
             game.player.vy = 0;
@@ -428,7 +237,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
               game.playTime = 0;
             }
           }
-        });
+        }
       }
       if (!game.isConsecutive && onG) {
         let cover = game.platforms.find(p => p.isIntroCover && !p.broken);
@@ -446,7 +255,8 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
         }
       }
       if (!onG) {
-        game.platforms.forEach(function(p) {
+        for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
+    let p = game.platforms[_idx_plats];
           if (!p.isGround && !p.broken && plX + plW > p.x && plX < p.x + p.w && game.player.y + game.player.h > p.y && game.player.y + game.player.h < p.y + p.h + game.player.vy) {
             game.player.y = p.y - game.player.h;
             let seg = FLR((plX + plW / 2 - p.x) / config.platformW);
@@ -464,7 +274,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
               game.playTime = 0;
             }
           }
-        });
+        }
       }
     }
 

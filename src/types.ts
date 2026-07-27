@@ -1,4 +1,4 @@
-import type { Player, NPC } from './entities/player.js';
+import type { Player, NPC } from './entities/index.js';
 import type { Platform } from './entities/platform.js';
 import type { Particle } from './entities/particles.js';
 import type { Item, Coin, FlyingCoin } from './entities/items.js';

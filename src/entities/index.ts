@@ -5,3 +5,4 @@ export * from './items.js';
 export * from './obstacles.js';
 export * from './player.js';
 export * from './background.js';
+export * from './npc.js';

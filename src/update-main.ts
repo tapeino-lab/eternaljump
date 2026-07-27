@@ -1,12 +1,15 @@
 
 import { updateParticles, updateFlyingCoins, updateNPCs, updateBirds, updateMeteors } from "./update-entities.js";
-import { updatePlayingState, postUpdatePhysics, updateStateAnimations, updateIntroState } from "./update-states.js";
+import { updatePlayingState } from './update-playing.js';
+import { postUpdatePhysics, updateStateAnimations, updateIntroState } from './update-post.js';
+
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $ } from './utils.js';
-import { initGame } from './game.js';
+import { initGame } from './lifecycle.js';
+
 import { RankingAPI } from './ranking.js';
 
     export function updatePhysicsMain(args: { game: GameState, isAttractMode: boolean, demoState: any, config: any, inputHandler: any, IMG: any, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, initGame: any, spawnPlatform: any, fireworksSystem: any, airplaneSystem: any, runAI: any, FLR: any, spawnParticles: any }) {
@@ -23,7 +26,7 @@ import { RankingAPI } from './ranking.js';
       if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
         updateStateAnimations(game, config, FLR);
       } else if (game.state !== 'gameover') {
-        if (game.demoMode && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player);
+        if ((game.demoMode || (game.equipped && game.equipped['autocruise'])) && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player);
         game.player.update();
         
         updateBirds(game);
@@ -37,7 +40,8 @@ import { RankingAPI } from './ranking.js';
           if (game.player.y < game.goalY && game.player.vy > 1.5) game.player.vy = 1.5;
         }
         
-        game.platforms.forEach(function(p) { p.update(); });
+        for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
+    let p = game.platforms[_idx_plats]; p.update(); }
         
         updateMeteors(game);
         

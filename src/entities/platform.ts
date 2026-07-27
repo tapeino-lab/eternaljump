@@ -1,9 +1,11 @@
 import { config, SCORE_THRESHOLDS } from '../config.js';
 import { RND, FLR, ABS, PI, MAX, MIN } from '../utils.js';
-import { ctx, IMG, groundCache, groundCached } from '../game.js';
+import { ctx, IMG, groundCache, groundCached } from '../display.js';
+
 import { game } from '../state.js';
 import { getPt } from './particles.js';
-import { dR } from '../renderer.js';
+import { dR } from '../renderer/core.js';
+
 import { ObjectPool } from './pool.js';
 
 export const P_PL = new ObjectPool<Platform>(() => new Platform());
@@ -50,9 +52,14 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
         this.w = cw !== null ? cw : (ig ? config.gameWidth : config.platformW * count);
         this.y = this.startY = FLR(y);
         this.direction = RND() < 0.5 ? 1 : -1;
-        this.squishTimers = new Array(count).fill(0);
-        this.breakOnSquish = new Array(count).fill(false);
-        this.hits = new Array(count).fill(0);
+        this.squishTimers.length = count;
+        this.breakOnSquish.length = count;
+        this.hits.length = count;
+        for (let i = 0; i < count; i++) {
+          this.squishTimers[i] = 0;
+          this.breakOnSquish[i] = false;
+          this.hits[i] = 0;
+        }
         this.isGlowing = ((t === 'h-slide' || t === 'v-slide') && !ig && RND() < config.glowingMovingProb);
         this.broken = false;
         this.blacklisted = false;
@@ -69,7 +76,7 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
             minX = config.gameWidth / 6;
             maxX = config.gameWidth - this.w - config.gameWidth / 6;
           } else if ((game.baseScoreY - this.y) * config.scoreMultiplier < SCORE_THRESHOLDS.EASY && game.platforms.length > 0) {
-            let lp = game.platforms[game.platforms.length - 1];
+            let lp = game.platforms.reduce((min, p) => p.y < min.y ? p : min, game.platforms[0]);
             minX = MAX(0, lp.x + lp.w / 2 - 90 - this.w / 2);
             maxX = MIN(config.gameWidth - this.w, lp.x + lp.w / 2 + 90 - this.w / 2);
             if (maxX < minX) maxX = minX;

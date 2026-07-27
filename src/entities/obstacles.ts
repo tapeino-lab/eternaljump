@@ -1,8 +1,10 @@
 import { config, SCORE_THRESHOLDS } from '../config.js';
 import { RND, FLR, MAX, MIN, SIN, PI } from '../utils.js';
 import { game } from '../state.js';
-import { IMG, ctx } from '../game.js';
-import { dR } from '../renderer.js';
+import { IMG, ctx } from '../display.js';
+
+import { dR } from '../renderer/core.js';
+
 import { spawnParticles, spawnDebris, getPt } from './particles.js';
 import { ObjectPool } from './pool.js';
 

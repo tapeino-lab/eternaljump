@@ -113,8 +113,19 @@ export function getFirstGreenMushroomY(sNY: number = getSafetyLineY()): number {
   return sNY - FIRST_GREEN_MUSHROOM_OFFSET;
 }
 
+export function getHighestPlatform() {
+  if (game.platforms.length === 0) return null;
+  let lP = game.platforms[0];
+  for (let i = 1; i < game.platforms.length; i++) {
+    if (game.platforms[i].y < lP.y) {
+      lP = game.platforms[i];
+    }
+  }
+  return lP;
+}
+
 export function spawnPlatform() {
-  let lP = game.platforms[game.platforms.length - 1];
+  let lP = getHighestPlatform();
   if (lP && lP.type === 'goal') return;
   
   let gap = 50 + RND() * (MIN(80, 50 + game.score / 100) - 50);
@@ -150,12 +161,25 @@ export function spawnPlatform() {
   }
   
   let hasM = false, mx = 0, my = 0;
-  if (game.equipped?.['mushroom'] && spS <= SCORE_THRESHOLDS.MUSHROOM_MAX) {
+  const isMushroomEquipped = !(!game.equipped?.['mushroom']);
+  let greenCount = game.greenMushroomCount || 0;
+  if (isMushroomEquipped && greenCount < 18) {
     let firstGreenY = getFirstGreenMushroomY(sNY);
-    let greenCount = game.greenMushroomCount || 0;
-    // First 3 mushrooms have longer interval (~1580px, near max reach limit)
-    // Subsequent mushrooms have faster/rhythmic interval (~1300px) for smooth continuous launch
-    let targetInterval = (greenCount < 3) ? 1580 : 1300;
+    // Step-wise intervals: 3 mushrooms per set, reducing interval by ~200px each step for smooth and gradual acceleration
+    let targetInterval = 1580; // 1st Set (0-2): standard tight timing
+    if (greenCount >= 3 && greenCount < 6) {
+      targetInterval = 1380;   // 2nd Set (3-5)
+    } else if (greenCount >= 6 && greenCount < 9) {
+      targetInterval = 1180;   // 3rd Set (6-8)
+    } else if (greenCount >= 9 && greenCount < 12) {
+      targetInterval = 980;    // 4th Set (9-11)
+    } else if (greenCount >= 12 && greenCount < 15) {
+      targetInterval = 780;    // 5th Set (12-14)
+    } else if (greenCount >= 15 && greenCount < 17) {
+      targetInterval = 580;    // 6th Set
+    } else if (greenCount >= 17) {
+      targetInterval = 345;    // Final mushroom (index 17) at 75000m (+345px = +1380 score from 73620)
+    }
     let itemX = config.gameWidth / 2 - 8;
     if (game.lastGreenMushroomY === null || game.lastGreenMushroomY === undefined) {
       if (y <= firstGreenY) {
@@ -178,7 +202,9 @@ export function spawnPlatform() {
       my = it.y;
     }
   } else {
-    if (config.itemsEnabled && game.score >= config.mushroomMinScore && spS < SCORE_THRESHOLDS.METEOR_END && RND() < config.mushroomSpawnProb) {
+    // If mushroom is equipped, do not spawn red mushrooms below 80000m. Above 80000m spawn normally.
+    const allowRedMushroom = !isMushroomEquipped || spS > 80000;
+    if (allowRedMushroom && config.itemsEnabled && game.score >= config.mushroomMinScore && spS < SCORE_THRESHOLDS.METEOR_END && RND() < config.mushroomSpawnProb) {
       let it = getIt(y - 50 - RND() * 150, 'red');
       game.items.push(it);
       hasM = true;
