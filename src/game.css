@@ -1331,7 +1331,7 @@ transform: scale(0.9);
   border-radius: 6px;
   box-sizing: border-box;
   width: 98%;
-  transition: all 0.2s ease;
+  transition: none;
   gap: 4px;
   cursor: pointer;
   user-select: none;
@@ -1387,8 +1387,8 @@ transform: scale(0.9);
 }
 
 .shop-item-icon {
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   background: transparent;
   display: flex;
   justify-content: center;
