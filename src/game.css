@@ -1181,6 +1181,8 @@ transform: scale(0.9);
   margin-right: 6px;
   font-size: 9px;
   font-family: 'Press Start 2P', sans-serif;
+  line-height: 1;
+  height: 9px;
 }
 
 .result-coin-label.bonus-label {
@@ -1211,8 +1213,15 @@ transform: scale(0.9);
 .result-coin-align {
   font-size: 11px;
   color: #ffb;
+  display: inline-flex;
+  align-items: center;
   justify-content: flex-start;
   margin-bottom: 0;
+  line-height: 1;
+}
+
+.result-coin-align .coin-icon {
+  margin-right: 4px;
 }
 .best-score-container {
   margin-top: 12px;

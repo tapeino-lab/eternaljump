@@ -5,7 +5,7 @@ import { render } from './renderer/index.js';
 import { config } from './config.js';
 import { inputHandler } from './input.js';
 import { IMG, pBtn } from './display.js';
-import { setIgnoreNextTap, initGame, isAttractMode, updatePauseButton } from './lifecycle.js';
+import { setIgnoreNextTap, initGame, isAttractMode, updatePauseButton, updateAutoCruiseBtnVisibility } from './lifecycle.js';
 import { FLR, $ } from './utils.js';
 import { spawnPlatform } from './spawner.js';
 import { fireworksSystem } from './fireworks.js';
@@ -67,6 +67,7 @@ export function loop(ts: number) {
   }
 
   updatePauseButton();
+  updateAutoCruiseBtnVisibility();
 
   render(ts);
   if (loopRunning) requestAnimationFrame(loop);

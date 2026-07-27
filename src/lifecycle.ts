@@ -172,11 +172,37 @@ export function setAuto(isActive) {
     inputHandler.active.clear();
     game.player.inputDir = 0;
   }
-  const autoBtn = document.getElementById('autoCruiseBtn');
-  if (autoBtn && !game.demoMode) {
-      autoBtn.innerHTML = 'AUTO';
-      autoBtn.style.color = isActive ? '#a0f020' : '#fff';
-      autoBtn.style.borderColor = isActive ? '#a0f020' : 'rgba(255, 255, 255, 0.7)';
+  updateAutoCruiseBtnVisibility();
+}
+
+export function updateAutoCruiseBtnVisibility() {
+  const autoCruiseBtn = document.getElementById('autoCruiseBtn');
+  if (!autoCruiseBtn) return;
+
+  const isModalOpen = 
+    game.isPaused ||
+    ($('rankingModal') && $('rankingModal').style.display === 'flex') ||
+    ($('shopScreen') && $('shopScreen').style.display === 'flex') ||
+    game.state === 'gameover' ||
+    game.state === 'clear' ||
+    game.state === 'shop';
+
+  const canShow = 
+    !isModalOpen &&
+    !game.demoMode &&
+    !isAttractMode &&
+    (game.state === 'playing' || game.state === 'intro') &&
+    !!(game.equipped && game.equipped['autocruise']);
+
+  const nextDisplay = canShow ? 'block' : 'none';
+  if (autoCruiseBtn.style.display !== nextDisplay) {
+    autoCruiseBtn.style.display = nextDisplay;
+  }
+
+  if (canShow) {
+    autoCruiseBtn.innerHTML = 'AUTO';
+    autoCruiseBtn.style.color = game.aiActive ? '#a0f020' : '#fff';
+    autoCruiseBtn.style.borderColor = game.aiActive ? '#a0f020' : 'rgba(255, 255, 255, 0.7)';
   }
 }
 
@@ -353,17 +379,7 @@ export function initGame(isConsecutive = false) {
   } else {
     game.aiActive = false;
   }
-  const autoCruiseBtn = document.getElementById('autoCruiseBtn');
-  if (autoCruiseBtn) {
-    if (!game.demoMode && game.equipped && game.equipped['autocruise']) {
-      autoCruiseBtn.style.display = 'block';
-      autoCruiseBtn.innerHTML = 'AUTO';
-      autoCruiseBtn.style.color = game.aiActive ? '#a0f020' : '#fff';
-      autoCruiseBtn.style.borderColor = game.aiActive ? '#a0f020' : 'rgba(255, 255, 255, 0.7)';
-    } else {
-      autoCruiseBtn.style.display = 'none';
-    }
-  }
+  updateAutoCruiseBtnVisibility();
   
   setupGameEnvironment(isConsecutive);
   
@@ -386,14 +402,7 @@ export function togglePause(e?: any) {
   game.isPaused = !game.isPaused;
   document.body.classList.toggle('game-paused', game.isPaused);
   $('pauseScreen').style.display = game.isPaused ? 'flex' : 'none';
-  const autoCruiseBtn = document.getElementById('autoCruiseBtn');
-  if (autoCruiseBtn) {
-    if (game.isPaused) {
-      autoCruiseBtn.style.display = 'none';
-    } else if (!game.demoMode && game.equipped && game.equipped['autocruise']) {
-      autoCruiseBtn.style.display = 'block';
-    }
-  }
+  updateAutoCruiseBtnVisibility();
   
   updatePauseButton();
   
