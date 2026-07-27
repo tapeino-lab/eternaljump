@@ -15,57 +15,6 @@ export function runAI(entity: Player) {
     return;
   }
   
-  // Smart meteor interaction for AI: avoid when dangerous, stomp when falling from above
-  let avoidMeteor = false;
-  for (let i = 0; i < (game.meteors ? game.meteors.length : 0); i++) {
-    let m = game.meteors[i];
-    if (m.hitTimer > 0) continue;
-
-    let mX = m.x + m.w / 2;
-    let dx = mX - px;
-    if (dx > config.gameWidth / 2) dx -= config.gameWidth;
-    else if (dx < -config.gameWidth / 2) dx += config.gameWidth;
-    let absDx = dx < 0 ? -dx : dx;
-
-    // If we are falling and the meteor is below us, try to align and stomp it as a last resort!
-    if (entity.vy > 0 && m.y >= py - 12 && m.y < py + 60 && absDx < 32) {
-      // Find if there are any standard platforms above us that are reachable/valid
-      let hasValidPlatformAbove = false;
-      if (game.platforms) {
-        for (let j = 0; j < game.platforms.length; j++) {
-          let p = game.platforms[j];
-          if (!p.broken && !p.blacklisted && !p.isGround && p.y < py - 10) {
-            hasValidPlatformAbove = true;
-            break;
-          }
-        }
-      }
-
-      // Check if we are in danger of falling with no nearby target platform under us
-      let noTargetBelow = !entity.aiTarget || Math.abs(entity.aiTarget.x + (entity.aiTarget.w || 16)/2 - px) > 120;
-
-      let isLastResort = !hasValidPlatformAbove || noTargetBelow;
-
-      if (isLastResort && absDx < 16) {
-        entity.inputDir = dx > 0 ? 1 : -1;
-        return; // Prioritize stomping as a last resort
-      }
-    }
-
-    // Avoid only if it is a dangerous head-on collision (rising, or meteor is coming from above)
-    if (m.y < py + 20 && m.y > py - 120) {
-      let isAboveUs = m.y < py - 10;
-      if (entity.vy < 0 || isAboveUs) {
-        if (absDx < 24) {
-          entity.inputDir = dx > 0 ? -1 : 1;
-          avoidMeteor = true;
-          break;
-        }
-      }
-    }
-  }
-  if (avoidMeteor) return;
-
   let isJustJumped = entity.lastPlatform !== entity.prevLastPlatform;
   entity.prevLastPlatform = entity.lastPlatform;
 
