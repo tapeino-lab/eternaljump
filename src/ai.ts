@@ -222,12 +222,18 @@ export function runAI(entity: Player) {
     let targetDir = dx > 0 ? 1 : -1;
 
     let candW = entity.aiTarget.w || 16;
-    let isOverPlatform = (px >= entity.aiTarget.x + 2 && px + 16 <= entity.aiTarget.x + candW - 2);
+    let isOverPlatform = (px - 6 >= entity.aiTarget.x && px + 6 <= entity.aiTarget.x + candW);
 
     let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= SCORE_THRESHOLDS.MUSHROOM_MAX) && ((game.greenMushroomCount || 0) < 18);
     // When locked from normal jump, fly directly and continuously toward the target (straight-shot)
-    let stopDist = entity.aiLockedFromNormalJump ? 1 : (isMushroomMode ? 2 : (entity.lastPlatform ? 2 : 6));
-    if (isOverPlatform && entity.vy > 0) {
+    let stopDist = entity.aiLockedFromNormalJump ? 1.5 : (isMushroomMode ? 2 : (entity.lastPlatform ? 2 : 6));
+    
+    // Suppress shaking/trembling at the jump apex:
+    // If the entity is near the apex (very slow ascent or already falling), and we are already aligned over the platform,
+    // stop issuing left/right key pushes (neutral inputDir = 0) and let physics/inertia handle the landing smoothly.
+    const isNearApex = entity.vy > -1.5;
+
+    if (isOverPlatform && isNearApex) {
       entity.inputDir = 0;
     } else if (dist > stopDist) {
       entity.inputDir = targetDir;

@@ -22,6 +22,7 @@ import { spawnParticles } from './particles.js';
       baseY: number = 0;
       inputDir: number = 0;
       facingRight: boolean = true;
+      facingDirFrames: number = 0;
       hitTimer: number = 0;
       squatTimer: number = 0;
       isPoweredUp: boolean = false;
@@ -98,8 +99,27 @@ import { spawnParticles } from './particles.js';
         if (this.squatTimer > 0) this.squatTimer--;
         if (this.hitTimer > 0) this.hitTimer--;
         
-        if (this.vx > 0.05) this.facingRight = true;
-        else if (this.vx < -0.05) this.facingRight = false;
+        if (this.vx > 0.08) {
+          this.facingDirFrames = Math.min(10, Math.max(1, this.facingDirFrames + 1));
+        } else if (this.vx < -0.08) {
+          this.facingDirFrames = Math.max(-10, Math.min(-1, this.facingDirFrames - 1));
+        } else {
+          if (this.facingDirFrames > 0) this.facingDirFrames = Math.max(0, this.facingDirFrames - 0.5);
+          else if (this.facingDirFrames < 0) this.facingDirFrames = Math.min(0, this.facingDirFrames + 0.5);
+        }
+
+        if (game.aiActive || game.demoMode) {
+          // AI Mode: require consistent travel direction for at least 7 frames before visually flipping
+          if (this.facingDirFrames >= 7) {
+            this.facingRight = true;
+          } else if (this.facingDirFrames <= -7) {
+            this.facingRight = false;
+          }
+        } else {
+          // Manual Mode: respond immediately to prevent laggy visual feel
+          if (this.vx > 0.05) this.facingRight = true;
+          else if (this.vx < -0.05) this.facingRight = false;
+        }
         
         this.history.unshift({ x: this.x, y: this.y, dir: this.facingRight });
         if (this.history.length > 4) this.history.pop();

@@ -193,7 +193,8 @@ export function updateAutoCruiseBtnVisibility() {
     !isModalOpen &&
     !game.demoMode &&
     !isAttractMode &&
-    (game.state === 'playing' || game.state === 'intro');
+    (game.state === 'playing' || game.state === 'intro') &&
+    !!(game.equipped && game.equipped['autocruise']);
 
   const nextDisplay = canShow ? 'block' : 'none';
   if (autoCruiseBtn.style.display !== nextDisplay) {
