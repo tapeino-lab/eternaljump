@@ -1,6 +1,7 @@
 import { config, SCORE_THRESHOLDS } from './config.js';
 import { game } from './state.js';
 import { isAttractMode } from './lifecycle.js';
+import { getSafetyLineY } from './spawner.js';
 import type { Player, Platform, Item } from './types.js';
 
 function isLockOnPlatform(platform: any): boolean {
@@ -69,6 +70,16 @@ export function runAI(entity: Player) {
       }
     }
 
+    return;
+  }
+
+  // First Super Jump: Keep inputDir neutral until exceeding the height of the first safety line (looks natural, avoids looking off-screen immediately)
+  if (entity.y > getSafetyLineY()) {
+    entity.inGreenMushroomChain = false;
+    entity.aiTarget = null;
+    entity.aiLockedFromNormalJump = false;
+    entity.aiLockedTarget = null;
+    entity.inputDir = 0;
     return;
   }
 
