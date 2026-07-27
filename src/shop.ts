@@ -46,34 +46,10 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
 </svg>`
   },
   {
-    id: 'magnet',
-    name: 'MAGNET',
-    desc: 'Easy coin collect',
-    price: 5000,
-    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
-  <rect x="3" y="2" width="10" height="1" fill="#000"/>
-  <rect x="2" y="3" width="1" height="10" fill="#000"/>
-  <rect x="13" y="3" width="1" height="10" fill="#000"/>
-  <rect x="3" y="13" width="3" height="1" fill="#000"/>
-  <rect x="10" y="13" width="3" height="1" fill="#000"/>
-  <rect x="6" y="6" width="1" height="7" fill="#000"/>
-  <rect x="9" y="6" width="1" height="7" fill="#000"/>
-  <rect x="7" y="5" width="2" height="1" fill="#000"/>
-  <rect x="3" y="3" width="10" height="2" fill="#e52521"/>
-  <rect x="3" y="5" width="3" height="4" fill="#e52521"/>
-  <rect x="10" y="5" width="3" height="4" fill="#e52521"/>
-  <rect x="3" y="9" width="3" height="4" fill="#ccc"/>
-  <rect x="10" y="9" width="3" height="4" fill="#ccc"/>
-  <rect x="4" y="3" width="8" height="1" fill="#fff" opacity="0.5"/>
-  <rect x="4" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
-  <rect x="11" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
-</svg>`
-  },
-  {
     id: 'skates',
     name: 'ICE SKATES',
     desc: 'Soft touch on ice',
-    price: 10000,
+    price: 6000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <rect x="3" y="3" width="5" height="1" fill="#000"/>
   <rect x="2" y="4" width="1" height="8" fill="#000"/>
@@ -106,7 +82,7 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     id: 'autocruise',
     name: 'AUTO CRUISE',
     desc: '"I\'ll take care of it."',
-    price: 20000,
+    price: 10000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
       <rect x="7" y="0" width="2" height="2" fill="#f33"/>
       <rect x="7" y="2" width="2" height="2" fill="#888"/>
@@ -124,6 +100,30 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
       <rect x="8" y="11" width="1" height="2" fill="#222"/>
       <rect x="10" y="11" width="1" height="2" fill="#222"/>
     </svg>`
+  },
+  {
+    id: 'magnet',
+    name: 'MAGNET',
+    desc: 'Easy coin collect',
+    price: 15000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="3" y="2" width="10" height="1" fill="#000"/>
+  <rect x="2" y="3" width="1" height="10" fill="#000"/>
+  <rect x="13" y="3" width="1" height="10" fill="#000"/>
+  <rect x="3" y="13" width="3" height="1" fill="#000"/>
+  <rect x="10" y="13" width="3" height="1" fill="#000"/>
+  <rect x="6" y="6" width="1" height="7" fill="#000"/>
+  <rect x="9" y="6" width="1" height="7" fill="#000"/>
+  <rect x="7" y="5" width="2" height="1" fill="#000"/>
+  <rect x="3" y="3" width="10" height="2" fill="#e52521"/>
+  <rect x="3" y="5" width="3" height="4" fill="#e52521"/>
+  <rect x="10" y="5" width="3" height="4" fill="#e52521"/>
+  <rect x="3" y="9" width="3" height="4" fill="#ccc"/>
+  <rect x="10" y="9" width="3" height="4" fill="#ccc"/>
+  <rect x="4" y="3" width="8" height="1" fill="#fff" opacity="0.5"/>
+  <rect x="4" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
+  <rect x="11" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
+</svg>`
   }
 ];
 

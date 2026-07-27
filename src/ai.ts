@@ -19,6 +19,17 @@ export function runAI(entity: Player) {
   let isJustJumped = entity.lastPlatform !== entity.prevLastPlatform;
   entity.prevLastPlatform = entity.lastPlatform;
 
+  // Track consecutive vertical jumps on the same platform to detect stuck state
+  if (entity.lastPlatform && entity.lastPlatform === entity.prevLastPlatform) {
+    if (entity.inputDir === 0) {
+      entity.samePlatformVertJumps = (entity.samePlatformVertJumps || 0) + 1;
+    } else {
+      entity.samePlatformVertJumps = 0;
+    }
+  } else {
+    entity.samePlatformVertJumps = 0;
+  }
+
   let needsRethink = false;
   if (!entity.aiTarget) {
     needsRethink = true;
@@ -30,19 +41,19 @@ export function runAI(entity: Player) {
       needsRethink = true;
     } else if (t.y < py - 10) {
       needsRethink = true;
-    } else if (entity.aiThinkTimer > 45) {
+    } else if (entity.aiThinkTimer > 30) {
       needsRethink = true;
     }
   }
 
-  let isStuck = false;
+  let isStuck = (entity.samePlatformVertJumps || 0) >= 2;
   if (needsRethink) {
     let history = entity.visitedHistory || entity.recentPlatforms || [];
     let timesVisited = 0;
     for (let i = 0; i < history.length; i++) {
       if (history[i] === entity.lastPlatform) timesVisited++;
     }
-    isStuck = timesVisited >= 2;
+    if (timesVisited >= 2) isStuck = true;
 
     entity.aiThinkTimer = 0;
     let initialVy = isJustJumped ? getPlatformJumpVy(entity.lastPlatform, entity) : entity.vy;
@@ -61,18 +72,24 @@ export function runAI(entity: Player) {
     if (dx > config.gameWidth / 2) dx -= config.gameWidth;
     else if (dx < -config.gameWidth / 2) dx += config.gameWidth;
 
-    let dist = dx < 0 ? -dx : dx;
+    let dist = Math.abs(dx);
     let targetDir = dx > 0 ? 1 : -1;
 
     let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= SCORE_THRESHOLDS.MID_HIGH);
-    let stopDist = isMushroomMode ? 2 : 12;
+    // Keep moving towards target even on platform edges to maximize reach (edge jumping)
+    let stopDist = isMushroomMode ? 2 : (entity.lastPlatform ? 2 : 6);
     if (dist > stopDist) {
       entity.inputDir = targetDir;
     } else {
       entity.inputDir = 0;
     }
   } else {
-    if (!entity.inputDir) entity.inputDir = entity.facingRight ? 1 : -1;
+    // If stuck with no target, force lateral escape movement
+    if (isStuck) {
+      entity.inputDir = (px < config.gameWidth / 2) ? 1 : -1;
+    } else if (!entity.inputDir) {
+      entity.inputDir = entity.facingRight ? 1 : -1;
+    }
   }
 }
 
@@ -107,6 +124,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   let vx = config.maxSpeedX || 1.6;
   let gw = config.gameWidth;
   let hgw = gw / 2;
+  let curPlatW = entity.lastPlatform ? (entity.lastPlatform.w || 32) : 16;
   
   let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= 80000);
 
@@ -117,12 +135,16 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
     let candPx = cand.x + (cand.w || 16) / 2;
     let candPy = cand.y;
+    let candW = cand.w || 16;
 
     let dx = px - candPx;
     if (dx < 0) dx = -dx;
     if (dx > hgw) dx = gw - dx;
 
-    let dy = py - candPy; 
+    // Effective horizontal distance taking edge jumping and platform widths into account
+    let eff_dx = Math.max(0, dx - (candW / 2) - (curPlatW / 2));
+
+    let dy = py - candPy; // positive when platform is ABOVE player
     if (initialVy > 2 && dy > -10) return;
 
     let score = 0;
@@ -151,23 +173,22 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       }
     } else if (isStuck) {
-      score += dx * 10; 
-      if (dy > 0) score += dy * 5; 
+      if (dy > 0) score += dy * 20; 
+      score += eff_dx * 5; 
     } else {
       if (dy > 0) {
-        score += dy * 20; 
+        score += dy * 30; // Prioritize climbing upward
       } else {
         let absDy = dy < 0 ? -dy : dy;
-        score -= absDy * 10; // Penalty for platform below
+        score -= absDy * 15; // Penalty for platform below
       }
-      score -= dx * 2; 
+      score -= eff_dx * 3; 
 
       let bonus = 0;
-      if (cand.type === 'super' || cand.isGlowing) bonus += 2000;
+      if (cand.type === 'super' || cand.isGlowing) bonus += 2500;
       if (cand.type === 'green') bonus += 500000;
       else if (cand.collected !== undefined) bonus += 5000; 
       
-      // Significantly reduce bonus for lower platforms to prioritize climbing upward
       if (dy < -10) {
         bonus = Math.floor(bonus / 4);
       }
@@ -176,20 +197,19 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       let historyIdx = history.lastIndexOf(cand);
       if (historyIdx !== -1) {
         let recency = history.length - historyIdx;
-        score -= (20000 / recency);
+        score -= (25000 / recency);
       }
     }
 
-    let dy_world = candPy - py;
+    let dy_world = candPy - py; // negative when candPy is above py
     let discriminant = initialVy * initialVy + 2 * g * dy_world;
     if (discriminant >= 0) {
       let t_fall = (-initialVy + Math.sqrt(discriminant)) / g;
       if (t_fall >= 0) {
-        let margin = isStuck ? -32 : -16;
-        let max_dx = t_fall * vx - margin;
-        if (max_dx < 0) max_dx = 0;
+        // Generous reach allowance considering air control, inertia, and edge launching
+        let max_dx = t_fall * (vx * 1.35) + 36;
         
-        if (dx <= max_dx) {
+        if (eff_dx <= max_dx) {
           if (score > bestScore) {
             bestScore = score;
             bestTarget = cand;
@@ -198,19 +218,21 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
     }
 
-    let fbScore = score;
-    if (initialVy > 0 && !(isMushroomMode && cand.type === 'green')) { 
-       if (dy > 0) {
-           fbScore -= 50000; 
-       } else {
-           if (isStuck) {
-             fbScore += dx * 5; 
-           } else {
-             fbScore = -dx * 10; 
-             if (dy > -40) fbScore -= 2000;
-             if (dx < 40) fbScore += 1000;
-           }
-       }
+    // Improved fallback evaluation: prioritize climbing to nearest upper/lateral platforms
+    let fbScore = 0;
+    if (dy > 0) {
+      fbScore += dy * 100; // Prefer platforms above
+    } else {
+      fbScore -= Math.abs(dy) * 50; // Penalize lower platforms
+    }
+    fbScore -= eff_dx * 8; // Prefer horizontally closer platforms
+    if (cand.type === 'super' || cand.isGlowing) fbScore += 3000;
+    if (cand.type === 'green') fbScore += 500000;
+
+    let historyIdx = history.lastIndexOf(cand);
+    if (historyIdx !== -1) {
+      let recency = history.length - historyIdx;
+      fbScore -= (30000 / recency);
     }
 
     if (fbScore > bestFallbackScore) {
