@@ -279,12 +279,11 @@ export function drawOffscreenIndicators() {
 function getEquippedIconSVG(id: string | null): string {
   if (id === 'magnet') {
     return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
-      <rect x="2" y="2" width="4" height="10" fill="#f33"/>
-      <rect x="10" y="2" width="4" height="10" fill="#f33"/>
-      <rect x="2" y="10" width="12" height="4" fill="#f33"/>
-      <rect x="6" y="6" width="4" height="8" fill="#000"/>
-      <rect x="2" y="2" width="4" height="3" fill="#eee"/>
-      <rect x="10" y="2" width="4" height="3" fill="#eee"/>
+      <rect x="3" y="2" width="10" height="3" fill="#f33"/>
+      <rect x="3" y="5" width="3" height="4" fill="#f33"/>
+      <rect x="10" y="5" width="3" height="4" fill="#f33"/>
+      <rect x="3" y="9" width="3" height="4" fill="#ccc"/>
+      <rect x="10" y="9" width="3" height="4" fill="#ccc"/>
     </svg>`;
   } else if (id === 'helmet') {
     return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
@@ -305,10 +304,10 @@ function getEquippedIconSVG(id: string | null): string {
     </svg>`;
   } else if (id === 'mushroom') {
     return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
-      <rect x="4" y="8" width="8" height="8" fill="#fcc"/>
-      <rect x="0" y="0" width="16" height="8" fill="#2c2"/>
-      <rect x="2" y="2" width="4" height="4" fill="#fff"/>
-      <rect x="10" y="2" width="4" height="4" fill="#fff"/>
+      <rect x="5" y="8" width="6" height="6" fill="#fcc"/>
+      <rect x="2" y="2" width="12" height="6" fill="#2c2"/>
+      <rect x="4" y="4" width="3" height="3" fill="#fff"/>
+      <rect x="9" y="4" width="3" height="3" fill="#fff"/>
     </svg>`;
   } else if (id === 'skates') {
     return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">

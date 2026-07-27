@@ -67,10 +67,10 @@ export function getIt(y: number, type: 'red' | 'green' = 'red', overrideX?: numb
       }
       draw() {
         if (this.collected) return;
-        dR(this.x + 4, this.y + 8, 8, 8, '#fcc');
-        dR(this.x, this.y, 16, 8, this.type === 'green' ? '#2c2' : '#f33');
-        dR(this.x + 2, this.y + 2, 4, 4, '#fff');
-        dR(this.x + 10, this.y + 2, 4, 4, '#fff');
+        dR(this.x + 5, this.y + 8, 6, 6, '#fcc');
+        dR(this.x + 2, this.y + 2, 12, 6, this.type === 'green' ? '#2c2' : '#f33');
+        dR(this.x + 4, this.y + 4, 3, 3, '#fff');
+        dR(this.x + 9, this.y + 4, 3, 3, '#fff');
       }
     }
 

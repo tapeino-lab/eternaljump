@@ -17,10 +17,10 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     desc: 'Warp to space',
     price: 1000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
-  <rect x="4" y="8" width="8" height="8" fill="#fcc"/>
-  <rect x="0" y="0" width="16" height="8" fill="#2c2"/>
-  <rect x="2" y="2" width="4" height="4" fill="#fff"/>
-  <rect x="10" y="2" width="4" height="4" fill="#fff"/>
+  <rect x="5" y="8" width="6" height="6" fill="#fcc"/>
+  <rect x="2" y="2" width="12" height="6" fill="#2c2"/>
+  <rect x="4" y="4" width="3" height="3" fill="#fff"/>
+  <rect x="9" y="4" width="3" height="3" fill="#fff"/>
 </svg>`
   },
   {
