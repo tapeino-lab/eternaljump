@@ -53,6 +53,10 @@ import { spawnParticles } from './particles.js';
       aiThinkTimer?: number;
       prevLastPlatform?: any;
       recentPlatforms?: any[];
+      samePlatformVertJumps?: number;
+      aiLockedTarget?: any;
+      aiLockedFromNormalJump?: boolean;
+      inGreenMushroomChain: boolean = false;
 
       constructor() {
         this.isNPC = false;
@@ -64,6 +68,7 @@ import { spawnParticles } from './particles.js';
         this.y = config.gameHeight - 80;
         this.vx = this.vy = this.animTimer = this.baseY = 0;
         this.isFalling = this.isSuperJumping = this.isPoweredUp = this.isSparkleJumping = false;
+        this.inGreenMushroomChain = false;
         this.history = [];
         this.facingRight = true;
         this.squatTimer = 0;
@@ -142,7 +147,7 @@ import { spawnParticles } from './particles.js';
         
         if (game.state === 'intro' || this.isIntro) {
           if (game.state === 'intro' && this.y >= 200 && (this.x + this.w / 2) <= 17) {
-            if (hasPlayedOnce()) {
+            if (hasPlayedOnce() && !game.demoMode) {
               game.state = 'shop';
               this.x = 17 - this.w / 2;
               this.vx = 0;

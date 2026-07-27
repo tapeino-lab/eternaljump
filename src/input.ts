@@ -308,9 +308,7 @@ export class InputManager {
         autoCruiseBtn.addEventListener(ev, (e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (game.equipped && game.equipped['autocruise']) {
-            setAuto(!game.aiActive);
-          }
+          setAuto(!game.aiActive);
         }, { passive: false });
       });
     }

@@ -55,7 +55,7 @@ export function render(ts: number) {
   
   drawWorldLayer(ts);
   drawEntitiesLayer(ts);
-  
+
   ctx.restore();
   
   drawUILayer(topColor, ts);

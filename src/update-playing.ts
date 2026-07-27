@@ -15,6 +15,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
         let superPower = config.superJumpPower * config.glowingMovingJumpMultiplier;
         game.player.jump(superPower);
         game.player.isSparkleJumping = true;
+        game.player.inGreenMushroomChain = true;
         game.player.squatTimer = 3;
         game.shakeAmount = 10;
         spawnParticles(i.x + i.w / 2, i.y, '#2c2', 8, 3);
@@ -46,6 +47,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
         npc.squatTimer = 3;
         spawnParticles(npc.x + npc.w / 2, i.y, i.type === 'green' ? '#2c2' : '#ccc', 6, 2);
         if (i.type === 'green') {
+          npc.inGreenMushroomChain = true;
           spawnParticles(npc.x + npc.w / 2, i.y, '#fff', 4, 2);
         }
         if (npc.aiPath.length > 0 && npc.aiPath[0] === i) npc.aiPath.shift();

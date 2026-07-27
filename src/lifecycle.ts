@@ -37,15 +37,17 @@ export function updatePauseButton() {
   const isShopOpen = $('shopScreen')?.style.display === 'flex';
   const isRankingOpen = $('rankingModal')?.style.display === 'flex';
   
-  if (game.isPaused || demoState.active || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear') {
+  if (game.isPaused || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear') {
     pBtn.style.display = 'none';
-  } else {
+  } else if (game.state === 'playing' || game.state === 'intro') {
     pBtn.style.display = 'flex';
     if (isAttractMode) {
       pBtn.innerHTML = GEAR_ICON_SVG;
     } else {
       pBtn.innerHTML = PAUSE_ICON_SVG;
     }
+  } else {
+    pBtn.style.display = 'none';
   }
 }
     
@@ -191,8 +193,7 @@ export function updateAutoCruiseBtnVisibility() {
     !isModalOpen &&
     !game.demoMode &&
     !isAttractMode &&
-    (game.state === 'playing' || game.state === 'intro') &&
-    !!(game.equipped && game.equipped['autocruise']);
+    (game.state === 'playing' || game.state === 'intro');
 
   const nextDisplay = canShow ? 'block' : 'none';
   if (autoCruiseBtn.style.display !== nextDisplay) {

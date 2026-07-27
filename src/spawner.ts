@@ -202,8 +202,8 @@ export function spawnPlatform() {
       my = it.y;
     }
   } else {
-    // If mushroom is equipped, do not spawn red mushrooms below 80000m. Above 80000m spawn normally.
-    const allowRedMushroom = !isMushroomEquipped || spS > 80000;
+    // If mushroom is equipped, do not spawn red mushrooms below 75000m. Above 75000m spawn normally.
+    const allowRedMushroom = !isMushroomEquipped || spS > SCORE_THRESHOLDS.MUSHROOM_MAX;
     if (allowRedMushroom && config.itemsEnabled && game.score >= config.mushroomMinScore && spS < SCORE_THRESHOLDS.METEOR_END && RND() < config.mushroomSpawnProb) {
       let it = getIt(y - 50 - RND() * 150, 'red');
       game.items.push(it);
