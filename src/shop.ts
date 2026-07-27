@@ -257,110 +257,42 @@ export function initShop() {
       const item = shopState.itemData[id];
       if (game.totalCoins < item.price) return;
 
-      // Disable buttons during animation to prevent double-purchases
+      // Disable buttons to prevent double-purchases
       confirmOk.style.pointerEvents = 'none';
       if (confirmCancel) confirmCancel.style.pointerEvents = 'none';
 
-      const startCoins = game.totalCoins;
-      const price = item.price;
-      const targetCoins = startCoins - price;
+      // Complete award unlock - totalCoins is NOT deducted!
+      game.inventory[id] = true;
+      if (!game.equipped) game.equipped = {};
+      game.equipped[id] = true; // Immediately equip upon purchase
 
-      // 1. Coin countdown animation in top-left UI
-      const duration = 600;
-      const startTime = performance.now();
+      secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+      secureStorage.setItem('JUMP_INVENTORY', game.inventory);
+      secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
 
-      function animateCoins(now: number) {
-        const elapsed = now - startTime;
-        const progress = Math.min(1, elapsed / duration);
-        const currentCoins = Math.round(startCoins - (price * progress));
-        
-        document.querySelectorAll('.shopCoinAmountVal').forEach(el => {
-          el.textContent = currentCoins.toString();
-        });
+      shopState.pendingItem = null;
 
-        if (progress < 1) {
-          requestAnimationFrame(animateCoins);
-        }
-      }
-      requestAnimationFrame(animateCoins);
+      const modal = $('shopConfirmModal');
+      if (modal) modal.style.display = 'none';
 
-      // 2. Flying coins animation from top-left coin header to GET button
-      const coinHeader = document.querySelector('.shop-coin-header');
-      const getBtn = $('confirmOkBtn');
+      const ctrl = document.querySelector('.shop-control-area') as HTMLElement;
+      if (ctrl) ctrl.style.pointerEvents = 'auto';
 
-      if (coinHeader && getBtn) {
-        const startRect = coinHeader.getBoundingClientRect();
-        const endRect = getBtn.getBoundingClientRect();
+      confirmOk.style.pointerEvents = 'auto';
+      if (confirmCancel) confirmCancel.style.pointerEvents = 'auto';
 
-        const startX = startRect.left + 12;
-        const startY = startRect.top + startRect.height / 2;
-        const endX = endRect.left + endRect.width / 2;
-        const endY = endRect.top + endRect.height / 2;
+      updateShopUI();
 
-        const numCoins = 5;
-        for (let i = 0; i < numCoins; i++) {
-          setTimeout(() => {
-            const coinEl = document.createElement('div');
-            coinEl.className = 'flying-shop-coin';
-            coinEl.innerHTML = `<div class="coin-icon" style="transform: scale(1.4);"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>`;
-            coinEl.style.left = `${startX}px`;
-            coinEl.style.top = `${startY}px`;
-            document.body.appendChild(coinEl);
-
-            // Force reflow
-            void coinEl.offsetWidth;
-
-            const offsetX = (Math.random() - 0.5) * 20;
-            const offsetY = (Math.random() - 0.5) * 16;
-
-            coinEl.style.transform = `translate(${endX - startX + offsetX}px, ${endY - startY + offsetY}px) scale(0.8)`;
-            coinEl.style.opacity = '0.9';
-
-            setTimeout(() => {
-              coinEl.style.opacity = '0';
-              setTimeout(() => {
-                if (coinEl.parentNode) coinEl.parentNode.removeChild(coinEl);
-              }, 200);
-            }, 400);
-          }, i * 60);
-        }
-      }
-
-      // 3. Complete purchase & close modal after animation finishes
-      setTimeout(() => {
-        game.totalCoins = targetCoins;
-        game.inventory[id] = true;
-        if (!game.equipped) game.equipped = {};
-        game.equipped[id] = true; // Immediately equip upon purchase
-
-        secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
-        secureStorage.setItem('JUMP_INVENTORY', game.inventory);
-        secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
-
-        shopState.pendingItem = null;
-
-        const modal = $('shopConfirmModal');
-        if (modal) modal.style.display = 'none';
-
-        const ctrl = document.querySelector('.shop-control-area') as HTMLElement;
-        if (ctrl) ctrl.style.pointerEvents = 'auto';
-
-        confirmOk.style.pointerEvents = 'auto';
-        if (confirmCancel) confirmCancel.style.pointerEvents = 'auto';
-
-        updateShopUI();
-
-        // 4. Flash shop items container to signify item is acquired & equipped!
-        const itemsContainer = document.querySelector('.shop-items-container');
-        if (itemsContainer) {
+      // Flash shop items container to signify item is acquired & equipped!
+      const itemsContainer = document.querySelector('.shop-items-container');
+      if (itemsContainer) {
+        itemsContainer.classList.remove('shop-flash-effect');
+        void (itemsContainer as HTMLElement).offsetWidth;
+        itemsContainer.classList.add('shop-flash-effect');
+        setTimeout(() => {
           itemsContainer.classList.remove('shop-flash-effect');
-          void (itemsContainer as HTMLElement).offsetWidth;
-          itemsContainer.classList.add('shop-flash-effect');
-          setTimeout(() => {
-            itemsContainer.classList.remove('shop-flash-effect');
-          }, 600);
-        }
-      }, 700);
+        }, 600);
+      }
     });
   }
   if (confirmCancel) {
