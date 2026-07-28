@@ -194,7 +194,7 @@ export function updateShopUI() {
     }
 
     itemCard.classList.remove('owned', 'equipped');
-    buyBtn.classList.remove('btn-get', 'btn-equip', 'btn-equipped');
+    buyBtn.classList.remove('btn-get', 'btn-equip', 'btn-equipped', 'can-get');
     buyBtn.style.color = '';
     buyBtn.style.borderColor = '';
 
@@ -212,6 +212,9 @@ export function updateShopUI() {
     } else {
       buyBtn.disabled = (game.totalCoins < price);
       buyBtn.classList.add('btn-get');
+      if (game.totalCoins >= price) {
+        buyBtn.classList.add('can-get');
+      }
       buyBtn.innerHTML = '<span class="btn-get-label">GET</span><div class="shop-price-tag" style="display:flex; align-items:center; gap:2px;"><div class="coin-icon" style="transform: translateY(-0.5px);"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div><span class="shop-price-val">' + price + '</span></div>';
     }
   });
@@ -259,84 +262,34 @@ export function initShop() {
         let item = shopState.itemData[id];
         if (!item || game.totalCoins < item.price) return;
 
-        shopState.pendingItem = id;
+        // Complete award unlock - totalCoins is NOT deducted!
+        game.inventory[id] = true;
+        if (!game.equipped) game.equipped = {};
+        game.equipped[id] = true; // Immediately equip upon purchase
 
-        const modal = $('shopConfirmModal');
-        const mIcon = $('confirmIcon');
-        const mName = $('confirmName');
-        const mDesc = $('confirmDesc');
-        const mPriceVal = $('confirmPriceVal');
+        secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+        secureStorage.setItem('JUMP_INVENTORY', game.inventory);
+        secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
 
-        if (modal && mIcon && mName && mDesc) {
-          const iconHtml = itemCard.querySelector('.shop-item-icon')?.innerHTML || '';
-          mIcon.innerHTML = iconHtml;
-          mName.innerText = item.name;
-          mDesc.innerText = item.desc;
-          if (mPriceVal) mPriceVal.innerText = item.price.toString();
-          modal.style.display = 'flex';
-          const ctrl = document.querySelector('.shop-control-area') as HTMLElement;
-          if (ctrl) ctrl.style.pointerEvents = 'none';
-        }
+        updateShopUI();
+
+        // 演出: アイテム枠のレインボー点滅
+        itemCard.classList.add('shop-item-rainbow-flash');
+        setTimeout(() => {
+          itemCard.classList.remove('shop-item-rainbow-flash');
+        }, 1500);
       }
     });
   });
+}
 
-  const confirmOk = $('confirmOkBtn');
-  const confirmCancel = $('confirmCancelBtn');
-
-  if (confirmOk) {
-    confirmOk.addEventListener('click', () => {
-      let id = shopState.pendingItem;
-      if (!id || !shopState.itemData[id]) return;
-
-      const item = shopState.itemData[id];
-      if (game.totalCoins < item.price) return;
-
-      // Disable buttons to prevent double-purchases
-      confirmOk.style.pointerEvents = 'none';
-      if (confirmCancel) confirmCancel.style.pointerEvents = 'none';
-
-      // Complete award unlock - totalCoins is NOT deducted!
-      game.inventory[id] = true;
-      if (!game.equipped) game.equipped = {};
-      game.equipped[id] = true; // Immediately equip upon purchase
-
-      secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+  const resetBtn = $('shopResetBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      game.inventory = {};
+      game.equipped = {};
       secureStorage.setItem('JUMP_INVENTORY', game.inventory);
       secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
-
-      shopState.pendingItem = null;
-
-      const modal = $('shopConfirmModal');
-      if (modal) modal.style.display = 'none';
-
-      const ctrl = document.querySelector('.shop-control-area') as HTMLElement;
-      if (ctrl) ctrl.style.pointerEvents = 'auto';
-
-      confirmOk.style.pointerEvents = 'auto';
-      if (confirmCancel) confirmCancel.style.pointerEvents = 'auto';
-
       updateShopUI();
-
-      // Flash shop items container to signify item is acquired & equipped!
-      const itemsContainer = document.querySelector('.shop-items-container');
-      if (itemsContainer) {
-        itemsContainer.classList.remove('shop-flash-effect');
-        void (itemsContainer as HTMLElement).offsetWidth;
-        itemsContainer.classList.add('shop-flash-effect');
-        setTimeout(() => {
-          itemsContainer.classList.remove('shop-flash-effect');
-        }, 600);
-      }
     });
   }
-  if (confirmCancel) {
-    confirmCancel.addEventListener('click', () => {
-      shopState.pendingItem = null;
-      const modal = $('shopConfirmModal');
-      if (modal) modal.style.display = 'none';
-      const ctrl = document.querySelector('.shop-control-area') as HTMLElement;
-      if (ctrl) ctrl.style.pointerEvents = 'auto';
-    });
-  }
-}

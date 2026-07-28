@@ -219,7 +219,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
               game.clearTime = game.playTime;
               game.shakeAmount = 0;
               if (!isAttractMode && pBtn) {
-                pBtn.style.display = 'none';
+                // pBtn.style.display = 'none';
               }
               $('tapToStartMsg').style.display = 'none';
               setIgnoreNextTap(true);

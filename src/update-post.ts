@@ -94,7 +94,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
         game.player.y = game.cameraY + config.gameHeight - game.player.h * 0.5;
         
         if (!isAttractMode && pBtn) {
-          pBtn.style.display = 'none';
+          // pBtn.style.display = 'none';
         }
         $('tapToStartMsg').style.display = 'none';
         setIgnoreNextTap(true);
@@ -132,7 +132,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
     document.body.classList.add('game-ended');
     game.endReason = 'TIME_UP';
     if (!isAttractMode && pBtn) {
-      pBtn.style.display = 'none';
+      // pBtn.style.display = 'none';
     }
     $('tapToStartMsg').style.display = 'none';
     setIgnoreNextTap(true);

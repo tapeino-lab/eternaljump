@@ -212,6 +212,7 @@
             <div class="coin-icon" style="margin-right: 4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
             <span class="shopCoinAmountVal" id="shopCoinAmount">0</span>
           </div>
+          <button id="shopResetBtn" style="background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.5); border-radius: 4px; color: #fff; font-family: 'Press Start 2P', sans-serif; font-size: 8px; padding: 4px 6px; cursor: pointer;">RESET</button>
         </div>
 
         <!-- Center SHOP Title below Coin UI -->
@@ -263,28 +264,6 @@
       <div id="shopBtnLeft" class="dir-btn" style="opacity: 0.2;"><span class="tri"></span></div>
       <div id="shopBtnRight" class="dir-btn" style="opacity: 0.2;"><span class="tri"></span></div>
       <div id="shopTapToClose" class="tap-to-start-msg" style="display: block;">TAP TO CLOSE</div>
-    </div>
-
-    <div id="shopConfirmModal" class="confirm-modal" style="display: none;">
-      <!-- Overlay Coin UI floating above modal background at exact same relative scaled position -->
-      <div style="position: absolute; top: calc((var(--game-height) - 360px * var(--game-scale)) / 2 + 10px * var(--game-scale)); left: calc(50% - 112px * var(--game-scale) + 10px * var(--game-scale)); display: flex; font-size: 10px; color: #fff; font-family: 'Press Start 2P', sans-serif; align-items: center; z-index: 10002; pointer-events: none; transform: scale(var(--game-scale)); transform-origin: top left;">
-        <div class="coin-icon" style="margin-right: 4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
-        <span class="shopCoinAmountVal">0</span>
-      </div>
-
-      <div class="confirm-modal-content">
-        <div id="confirmIcon" class="confirm-icon"></div>
-        <div id="confirmName" class="confirm-name"></div>
-        <div id="confirmDesc" class="confirm-desc"></div>
-        <div id="confirmPrice" class="confirm-price" style="display: flex; align-items: center; gap: 6px; font-family: 'Press Start 2P', sans-serif; font-size: 10px; color: #fff; margin-top: 2px;">
-          <div class="coin-icon" style="transform: translateY(-0.5px);"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
-          <span id="confirmPriceVal">1000</span>
-        </div>
-        <div class="confirm-actions">
-          <button id="confirmCancelBtn" class="modal-btn confirm-btn">CANCEL</button>
-          <button id="confirmOkBtn" class="modal-btn confirm-btn">GET</button>
-        </div>
-      </div>
     </div>
   </div>
 
