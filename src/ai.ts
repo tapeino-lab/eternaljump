@@ -31,7 +31,9 @@ export function runAI(entity: Player) {
     return;
   }
   
-  let isJustJumped = entity.lastPlatform !== entity.prevLastPlatform;
+  // Detect if the entity just initiated a jump this frame (velocity went from >= 0 to < 0)
+  let isJustJumped = (entity.vy < 0 && ((entity as any).prevVy === undefined || (entity as any).prevVy >= 0));
+  (entity as any).prevVy = entity.vy;
   let currentPlat = entity.lastPlatform;
   entity.prevLastPlatform = entity.lastPlatform;
 
@@ -42,8 +44,6 @@ export function runAI(entity: Player) {
     } else {
       entity.samePlatformVertJumps = 0;
     }
-  }
-  if (currentPlat) {
     entity.platformTheyJumpedFrom = currentPlat;
   }
 
@@ -344,12 +344,14 @@ export function runAI(entity: Player) {
     else if (dx_center < -config.gameWidth / 2) dx_center += config.gameWidth;
 
     if (entity.aiTarget.y !== undefined && Math.abs(dx_center) > 20) {
+      // Use a deeper inset (12px) to guarantee the player's 16px collision box clears any adjacent previous platform
+      let inset = Math.min(12, candW / 2);
       if (dx_center > 0) {
         // Target is to the right -> Aim for its left edge
-        tx = entity.aiTarget.x + 4;
+        tx = entity.aiTarget.x + inset;
       } else {
         // Target is to the left -> Aim for its right edge
-        tx = entity.aiTarget.x + candW - 4;
+        tx = entity.aiTarget.x + candW - inset;
       }
     }
 
@@ -372,7 +374,8 @@ export function runAI(entity: Player) {
       if (dy_target > 8) {
         isOverPlatform = (dist < 2.5);
       } else if (!isGrounded) {
-        isOverPlatform = (dist < 2.5);
+        // Demand stricter alignment when in mid-air to prevent edge clipping on adjacent platforms
+        isOverPlatform = (dist < 1.0);
       }
     }
 
