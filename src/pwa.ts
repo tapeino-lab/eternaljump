@@ -2,7 +2,6 @@
 
 import { registerSW } from 'virtual:pwa-register';
 
-declare const __APP_VERSION__: string;
 
 let updatePending = false;
 let reloadSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
@@ -16,8 +15,8 @@ export async function checkVersionJsonDirectly(): Promise<boolean> {
     const res = await fetch(versionUrl, { cache: 'no-store' });
     if (!res.ok) return false;
     const data = await res.json();
-    if (data && data.version && data.version !== __APP_VERSION__) {
-      console.log(`[VersionCheck] New version detected via version.json: ${data.version} (current: ${__APP_VERSION__})`);
+    if (data && data.version && data.version !== import.meta.env.VITE_APP_VERSION) {
+      console.log(`[VersionCheck] New version detected via version.json: ${data.version} (current: ${import.meta.env.VITE_APP_VERSION})`);
       updatePending = true;
       document.dispatchEvent(new Event('pwa-update-available'));
       if (currentSwRegistration) {

@@ -25,7 +25,7 @@ export const LootLockerAPI = {
   
   sessionToken: null,
   playerId: null,
-  version: `v${__APP_VERSION__}`,
+  version: `v${import.meta.env.VITE_APP_VERSION}`,
   logs: [],
 
   log: function(msg, type = 'info') {

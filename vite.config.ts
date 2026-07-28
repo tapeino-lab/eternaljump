@@ -33,7 +33,7 @@ function versionJsonPlugin() {
 export default defineConfig(() => {
   return {
     define: {
-      __APP_VERSION__: JSON.stringify(packageJson.version),
+      'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageJson.version),
     },
     base: process.env.VITE_BASE_PATH || './',
     plugins: [

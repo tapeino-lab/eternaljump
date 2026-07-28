@@ -15,8 +15,7 @@ setupInputListeners();
 
 const tVer = $('titleVersion');
 if (tVer) {
-  // @ts-ignore
-  tVer.innerText = `v${__APP_VERSION__}`;
+  tVer.innerText = `v${import.meta.env.VITE_APP_VERSION}`;
 }
 
 setupKeyboardUI();

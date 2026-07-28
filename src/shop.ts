@@ -84,21 +84,33 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     desc: '"I\'ll take care of it."',
     price: 10000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
-      <rect x="7" y="0" width="2" height="2" fill="#f33"/>
-      <rect x="7" y="2" width="2" height="2" fill="#888"/>
-      <rect x="1" y="6" width="1" height="4" fill="#777"/>
-      <rect x="14" y="6" width="1" height="4" fill="#777"/>
-      <rect x="2" y="4" width="12" height="11" fill="#888"/>
-      <rect x="3" y="5" width="10" height="9" fill="#ccc"/>
-      <rect x="3" y="5" width="9" height="1" fill="#eee"/>
-      <rect x="3" y="5" width="1" height="8" fill="#eee"/>
-      <rect x="4" y="7" width="8" height="3" fill="#111"/>
-      <rect x="5" y="8" width="2" height="1" fill="#00f0ff"/>
-      <rect x="9" y="8" width="2" height="1" fill="#00f0ff"/>
-      <rect x="5" y="11" width="6" height="2" fill="#555"/>
-      <rect x="6" y="11" width="1" height="2" fill="#222"/>
-      <rect x="8" y="11" width="1" height="2" fill="#222"/>
-      <rect x="10" y="11" width="1" height="2" fill="#222"/>
+      <!-- Main Monitor Outline -->
+      <rect x="2" y="2" width="12" height="12" fill="#111"/>
+      
+      <!-- Casing Base -->
+      <rect x="3" y="3" width="10" height="10" fill="#d8d4c0"/>
+      <!-- Highlights -->
+      <rect x="3" y="3" width="10" height="1" fill="#fff"/>
+      <rect x="3" y="4" width="1" height="9" fill="#fff"/>
+      <!-- Shadows -->
+      <rect x="4" y="12" width="9" height="1" fill="#a09888"/>
+      <rect x="12" y="4" width="1" height="8" fill="#a09888"/>
+
+      <!-- Screen Bezel -->
+      <rect x="4" y="4" width="8" height="7" fill="#111"/>
+      
+      <!-- Screen -->
+      <rect x="5" y="5" width="6" height="5" fill="#113311"/>
+      <rect x="5" y="5" width="6" height="1" fill="#1a4d1a"/>
+      
+      <!-- Face (Green Phosphor) -->
+      <rect x="6" y="6" width="1" height="1" fill="#33ff33"/>
+      <rect x="9" y="6" width="1" height="1" fill="#33ff33"/>
+      <rect x="7" y="8" width="2" height="1" fill="#33ff33"/>
+
+      <!-- Drive & LED -->
+      <rect x="5" y="11" width="3" height="1" fill="#555"/>
+      <rect x="10" y="11" width="1" height="1" fill="#ff3333"/>
     </svg>`
   },
   {
