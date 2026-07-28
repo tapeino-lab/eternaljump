@@ -214,8 +214,10 @@ export function updateShopUI() {
       buyBtn.classList.add('btn-get');
       if (game.totalCoins >= price) {
         buyBtn.classList.add('can-get');
+        buyBtn.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; min-height: 14px;"><span style="font-size: 9px;">GET</span></div>';
+      } else {
+        buyBtn.innerHTML = '<span class="btn-get-label">GET</span><div class="shop-price-tag" style="display:flex; align-items:center; gap:2px;"><div class="coin-icon" style="transform: translateY(-0.5px);"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div><span class="shop-price-val">' + price + '</span></div>';
       }
-      buyBtn.innerHTML = '<span class="btn-get-label">GET</span><div class="shop-price-tag" style="display:flex; align-items:center; gap:2px;"><div class="coin-icon" style="transform: translateY(-0.5px);"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div><span class="shop-price-val">' + price + '</span></div>';
     }
   });
 }
