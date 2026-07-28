@@ -100,19 +100,19 @@ import { spawnParticles } from './particles.js';
         if (this.hitTimer > 0) this.hitTimer--;
         
         if (this.vx > 0.08) {
-          this.facingDirFrames = Math.min(10, Math.max(1, this.facingDirFrames + 1));
+          this.facingDirFrames = Math.min(15, Math.max(1, this.facingDirFrames + 1));
         } else if (this.vx < -0.08) {
-          this.facingDirFrames = Math.max(-10, Math.min(-1, this.facingDirFrames - 1));
+          this.facingDirFrames = Math.max(-15, Math.min(-1, this.facingDirFrames - 1));
         } else {
           if (this.facingDirFrames > 0) this.facingDirFrames = Math.max(0, this.facingDirFrames - 0.5);
           else if (this.facingDirFrames < 0) this.facingDirFrames = Math.min(0, this.facingDirFrames + 0.5);
         }
 
         if (game.aiActive || game.demoMode) {
-          // AI Mode: require consistent travel direction for at least 7 frames before visually flipping
-          if (this.facingDirFrames >= 7) {
+          // AI Mode: require consistent travel direction for at least 10 frames before visually flipping
+          if (this.facingDirFrames >= 10) {
             this.facingRight = true;
-          } else if (this.facingDirFrames <= -7) {
+          } else if (this.facingDirFrames <= -10) {
             this.facingRight = false;
           }
         } else {

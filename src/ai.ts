@@ -239,12 +239,10 @@ export function runAI(entity: Player) {
     // When locked from normal jump, fly directly and continuously toward the target (straight-shot)
     let stopDist = entity.aiLockedFromNormalJump ? 1.5 : (isMushroomMode ? 2 : (entity.lastPlatform ? 2 : 6));
     
-    // Suppress shaking/trembling at the jump apex:
-    // If the entity is near the apex (very slow ascent or already falling), and we are already aligned over the platform,
-    // stop issuing left/right key pushes (neutral inputDir = 0) and let physics/inertia handle the landing smoothly.
-    const isNearApex = entity.vy > -1.5;
-
-    if (isOverPlatform && isNearApex) {
+    // Suppress shaking/trembling:
+    // If we are already aligned over the target platform, stop issuing left/right key pushes (neutral inputDir = 0)
+    // and let physics/inertia handle the movement smoothly. This completely avoids rapid back-and-forth micro-adjustments.
+    if (isOverPlatform) {
       entity.inputDir = 0;
     } else if (dist > stopDist) {
       entity.inputDir = targetDir;
@@ -463,6 +461,11 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         let recency = history.length - historyIdx;
         score -= (25000 / recency);
       }
+
+      // Target commitment/stickiness bonus: avoid rapid back-and-forth target switching
+      if (entity.aiTarget && cand === entity.aiTarget) {
+        score += 15000;
+      }
     }
 
     if (isReachable) {
@@ -503,6 +506,11 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     if (historyIdx !== -1) {
       let recency = history.length - historyIdx;
       fbScore -= (30000 / recency);
+    }
+
+    // Target commitment/stickiness bonus for fallback candidates as well
+    if (entity.aiTarget && cand === entity.aiTarget) {
+      fbScore += 15000;
     }
 
     if (fbScore > bestFallbackScore) {
