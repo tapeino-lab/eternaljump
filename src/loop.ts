@@ -38,11 +38,11 @@ export function loop(ts: number) {
     acc += dT;
     let upd = 0;
     while (acc >= frameDuration && upd < 3) {
-      updatePhysicsMain({
+      updatePhysicsMain(
         game, isAttractMode, demoState, config, inputHandler, IMG,
         setIgnoreNextTap, pBtn, initGame, spawnPlatform, fireworksSystem,
         airplaneSystem, runAI, FLR, spawnParticles
-      });
+      );
       acc -= frameDuration;
       upd++;
     }

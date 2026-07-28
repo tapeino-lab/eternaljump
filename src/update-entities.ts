@@ -1,7 +1,7 @@
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, P_FC } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
 import { initGame } from './lifecycle.js';
 
@@ -19,10 +19,16 @@ export function updateBirds(game: GameState) {
   }
 
   if (game.score > game.startScore + 1000 && game.score < SCORE_THRESHOLDS.MEDIUM) {
-    if (RND() < 0.012 && game.birds.filter(b => b.type === 2).length < 1) {
-      let dir = RND() < 0.85 ? game.flockDir : -game.flockDir;
-      let startX = dir === 1 ? -20 : config.gameWidth + 20;
-      game.birds.push(getBd(2, startX, game.cameraY + 50 + RND() * (config.gameHeight * 0.5), false));
+    if (RND() < 0.012) {
+      let hasType2 = false;
+      for (let i = 0; i < game.birds.length; i++) {
+        if (game.birds[i].type === 2) { hasType2 = true; break; }
+      }
+      if (!hasType2) {
+        let dir = RND() < 0.85 ? game.flockDir : -game.flockDir;
+        let startX = dir === 1 ? -20 : config.gameWidth + 20;
+        game.birds.push(getBd(2, startX, game.cameraY + 50 + RND() * (config.gameHeight * 0.5), false));
+      }
     }
     if (game.score >= 40000 && RND() < 0.02) {
       let bt = RND() < 0.8 ? 0 : 1;
@@ -114,6 +120,7 @@ export function updateFlyingCoins(game: GameState) {
     let fc = game.flyingCoins[i];
     fc.update();
     if (fc.dead) {
+      P_FC.push(fc);
       swapRemove(game.flyingCoins, i);
       i--;
     }
@@ -123,9 +130,16 @@ export function updateFlyingCoins(game: GameState) {
 
 export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean) {
   if (game.state === 'playing' && game.npcs.length > 0 && Math.random() < 0.00003) {
-    let anyBalloon = game.npcs.some(n => n.balloonTimer > 0);
+    let anyBalloon = false;
+    for (let i = 0; i < game.npcs.length; i++) {
+      if (game.npcs[i].balloonTimer > 0) { anyBalloon = true; break; }
+    }
     if (!anyBalloon) {
-      let activeNpcs = game.npcs.filter(n => n.active && n.y < game.cameraY + config.gameHeight + 300);
+      let activeNpcs = [];
+      for (let i = 0; i < game.npcs.length; i++) {
+        let n = game.npcs[i];
+        if (n.active && n.y < game.cameraY + config.gameHeight + 300) activeNpcs.push(n);
+      }
       if (activeNpcs.length > 0) {
         let rndIdx = Math.floor(Math.random() * activeNpcs.length);
         activeNpcs[rndIdx].balloonText = 'Load!';
@@ -179,6 +193,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
     if (npc.isIntro && npc.vy > 0) {
       for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
     let p = game.platforms[_idx_plats];
+        if (Math.abs(p.y - npc.y) > 200) continue;
         if (p.isGround && p.y === 240 && npc.x + npc.w > p.x && npc.x < p.x + p.w && npc.y + npc.h >= p.y && npc.y + npc.h < p.y + 15) {
           npc.y = p.y - npc.h;
           npc.vy = 0;
@@ -190,6 +205,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
     if (!onG && npc.vy > 0) {
       for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
     let p = game.platforms[_idx_plats];
+        if (Math.abs(p.y - npc.y) > 200) continue;
         if (p.broken || p.isCrumbling) continue;
         if (npc.isIntro && p.isGround) continue;
         if (npc.y + npc.h >= p.y && npc.y + npc.h < p.y + p.h + npc.vy && npc.x + npc.w > p.x && npc.x < p.x + p.w) {

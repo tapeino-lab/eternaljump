@@ -75,7 +75,12 @@ import { spawnParticles } from './particles.js';
         this.vx = this.vy = this.animTimer = this.baseY = 0;
         this.isFalling = this.isSuperJumping = this.isPoweredUp = this.isSparkleJumping = false;
         this.inGreenMushroomChain = false;
-        this.history = [];
+        this.history = [
+          { x: this.x, y: this.y, dir: true },
+          { x: this.x, y: this.y, dir: true },
+          { x: this.x, y: this.y, dir: true },
+          { x: this.x, y: this.y, dir: true }
+        ];
         this.facingRight = true;
         this.squatTimer = 0;
         this.inputDir = 0;
@@ -128,8 +133,13 @@ import { spawnParticles } from './particles.js';
           else if (this.vx < -0.05) this.facingRight = false;
         }
         
-        this.history.unshift({ x: this.x, y: this.y, dir: this.facingRight });
-        if (this.history.length > 4) this.history.pop();
+        let last = this.history.pop();
+        if (last) {
+          last.x = this.x;
+          last.y = this.y;
+          last.dir = this.facingRight;
+          this.history.unshift(last);
+        }
         
         if (this.vy >= 0) {
           this.isSuperJumping = false;

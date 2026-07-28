@@ -76,7 +76,10 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
             minX = config.gameWidth / 6;
             maxX = config.gameWidth - this.w - config.gameWidth / 6;
           } else if ((game.baseScoreY - this.y) * config.scoreMultiplier < SCORE_THRESHOLDS.EASY && game.platforms.length > 0) {
-            let lp = game.platforms.reduce((min, p) => p.y < min.y ? p : min, game.platforms[0]);
+            let lp = game.platforms[0];
+            for (let i = 1; i < game.platforms.length; i++) {
+              if (game.platforms[i].y < lp.y) lp = game.platforms[i];
+            }
             minX = MAX(0, lp.x + lp.w / 2 - 90 - this.w / 2);
             maxX = MIN(config.gameWidth - this.w, lp.x + lp.w / 2 + 90 - this.w / 2);
             if (maxX < minX) maxX = minX;

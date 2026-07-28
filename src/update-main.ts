@@ -12,8 +12,11 @@ import { initGame } from './lifecycle.js';
 
 import { RankingAPI } from './ranking.js';
 
-    export function updatePhysicsMain(args: { game: GameState, isAttractMode: boolean, demoState: any, config: any, inputHandler: any, IMG: any, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, initGame: any, spawnPlatform: any, fireworksSystem: any, airplaneSystem: any, runAI: any, FLR: any, spawnParticles: any }) {
-  const { game, isAttractMode, demoState, config, inputHandler, IMG, setIgnoreNextTap, pBtn, initGame, spawnPlatform, fireworksSystem, airplaneSystem, runAI, FLR, spawnParticles } = args;
+    export function updatePhysicsMain(
+      game: GameState, isAttractMode: boolean, demoState: any, config: any, inputHandler: any, IMG: any,
+      setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, initGame: any, spawnPlatform: any,
+      fireworksSystem: any, airplaneSystem: any, runAI: any, FLR: any, spawnParticles: any
+    ) {
 
   if (game.state === 'shop') return;
       updateParticles(game);

@@ -228,7 +228,13 @@ export function updateHUD(topColor) {
   let centerHtml = isTitle ? '' : MIN(config.goalScore, game.score) + 'm' + aiStatus;
   let timeHtml = isTimerVisible ? 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>' : '';
 
-  let eqList = game.equipped ? Object.keys(game.equipped).filter(k => game.equipped[k]) : [];
+  let eqList: string[] = [];
+  if (game.equipped) {
+    let keys = Object.keys(game.equipped);
+    for (let i = 0; i < keys.length; i++) {
+      if (game.equipped[keys[i]]) eqList.push(keys[i]);
+    }
+  }
   let eqKey = eqList.slice().sort().join(',');
 
   let curState = coinDisplay + '_' + centerHtml + '_' + timeHtml + '_' + eqKey;

@@ -61,8 +61,15 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
     }
   }
   
-  let hp = null;
-  while (game.platforms.length > 0 && (hp = game.platforms.reduce((min, p) => p.y < min.y ? p : min, game.platforms[0])) && hp.type !== 'goal' && hp.y > game.cameraY - config.gameHeight) {
+  let getHp = () => {
+    let min = game.platforms[0];
+    for (let i = 1; i < game.platforms.length; i++) {
+      if (game.platforms[i].y < min.y) min = game.platforms[i];
+    }
+    return min;
+  };
+  let hp;
+  while (game.platforms.length > 0 && (hp = getHp()) && hp.type !== 'goal' && hp.y > game.cameraY - config.gameHeight) {
     spawnPlatform();
   }
   
@@ -193,11 +200,19 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
         game.player.vx = 0;
         game.player.vy = 0;
         game.player.inputDir = 0;
-        game.player.history.unshift({ x: game.player.x, y: game.player.y, dir: game.player.facingRight });
-        if (game.player.history.length > 4) game.player.history.pop();
+        let last = game.player.history.pop();
+        if (last) {
+          last.x = game.player.x;
+          last.y = game.player.y;
+          last.dir = game.player.facingRight;
+          game.player.history.unshift(last);
+        }
         
         game.introAnimTimer--;
-        let cover = game.platforms.find(p => p.isIntroCover);
+        let cover = null;
+        for (let i = 0; i < game.platforms.length; i++) {
+          if (game.platforms[i].isIntroCover) { cover = game.platforms[i]; break; }
+        }
         if (cover) cover.blink = (FLR(game.introAnimTimer / 4) % 2 === 0);
         
         if (game.introAnimTimer < 60 && game.introAnimTimer > 0 && game.introAnimTimer % 4 === 0) {
@@ -244,7 +259,10 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
         }
       }
       if (!game.isConsecutive && onG) {
-        let cover = game.platforms.find(p => p.isIntroCover && !p.broken);
+        let cover = null;
+        for (let i = 0; i < game.platforms.length; i++) {
+          if (game.platforms[i].isIntroCover && !game.platforms[i].broken) { cover = game.platforms[i]; break; }
+        }
         if (cover) {
           let pcX = plX + plW / 2;
           if (pcX >= 106 && pcX <= 118) {

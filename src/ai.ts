@@ -9,7 +9,16 @@ function isLockOnPlatform(platform: any): boolean {
   return (platform.type === 'normal' || platform.isIcy || platform.type === 'h-slide' || platform.type === 'v-slide');
 }
 
+let aiCalculationsThisFrame = 0;
+let lastAiFrame = 0;
+
 export function runAI(entity: Player) {
+  let currentFrame = Math.floor(performance.now() / 16);
+  if (currentFrame !== lastAiFrame) {
+    lastAiFrame = currentFrame;
+    aiCalculationsThisFrame = 0;
+  }
+
   if (!entity || entity.hitTimer > 0) return;
 
   let px = entity.x + (entity.w || 16) / 2;
@@ -42,7 +51,15 @@ export function runAI(entity: Player) {
 
   // Ground level is y = 224 (feet at y = 240). Super jump spring platform is at y = 416 (hole center x = 112).
   // Check if entity is near ground level or inside the ground hole (entity.y >= 210)
-  let isGroundPhase = (entity.y >= 210) && game.platforms.some(p => p.isGround && !p.broken);
+  let isGroundPhase = false;
+  if (entity.y >= 210 && game.platforms) {
+    for (let i = 0; i < game.platforms.length; i++) {
+      if (game.platforms[i].isGround && !game.platforms[i].broken) {
+        isGroundPhase = true;
+        break;
+      }
+    }
+  }
 
   if (isGroundPhase) {
     entity.inGreenMushroomChain = false;
@@ -83,7 +100,16 @@ export function runAI(entity: Player) {
 
   // Green Mushroom Chain Mode: From touching 1st green mushroom to passing 18th green mushroom, fly straight up without turning left/right
   if (entity.inGreenMushroomChain) {
-    let hasRemainingGreenAbove = game.items.some(i => i.type === 'green' && i.y < entity.y + 20);
+    let hasRemainingGreenAbove = false;
+    if (game.items) {
+      for (let i = 0; i < game.items.length; i++) {
+        let it = game.items[i];
+        if (it.type === 'green' && it.y < entity.y + 20) {
+          hasRemainingGreenAbove = true;
+          break;
+        }
+      }
+    }
     let totalGreenSpawned = game.greenMushroomCount || 0;
     
     if ((totalGreenSpawned >= 18 && !hasRemainingGreenAbove && entity.vy > -2) || !game.equipped?.['mushroom']) {
@@ -106,31 +132,37 @@ export function runAI(entity: Player) {
       entity.inputDir = 0;
     }
 
-    let nextGreen = game.items.find(i => i.type === 'green' && i.y < entity.y);
+    let nextGreen = null;
+    if (game.items) {
+      for (let i = 0; i < game.items.length; i++) {
+        let it = game.items[i];
+        if (it.type === 'green' && it.y < entity.y) {
+          nextGreen = it;
+          break;
+        }
+      }
+    }
     entity.aiTarget = nextGreen || null;
     return;
-  }
-
-  // Find other active players or NPCs to track close proximity
-  let otherEntities: Player[] = [];
-  if (!entity.isNPC) {
-    otherEntities = (game.npcs || []).filter(n => n && n.active);
-  } else {
-    otherEntities = [game.player].concat((game.npcs || []).filter(n => n && n !== entity && n.active));
   }
 
   let isNearOtherEntity = false;
   let gw = config.gameWidth;
   let hgw = gw / 2;
-  for (let other of otherEntities) {
-    if (!other) continue;
+  
+  let checkProximity = (other: Player | null | undefined) => {
+    if (!other || other === entity || !other.active) return;
     let dx_other = Math.abs(entity.x - other.x);
     if (dx_other > hgw) dx_other = gw - dx_other;
     let dy_other = Math.abs(entity.y - other.y);
     if (dx_other < 24 && dy_other < 28) {
       isNearOtherEntity = true;
-      break;
     }
+  };
+  
+  if (entity.isNPC) checkProximity(game.player);
+  if (game.npcs) {
+    for (let i = 0; i < game.npcs.length; i++) checkProximity(game.npcs[i]);
   }
 
   if (isNearOtherEntity) {
@@ -276,6 +308,12 @@ export function runAI(entity: Player) {
     }
 
     if (needsRethink) {
+      // Throttle heavy AI pathfinding calculations to 2 per frame globally
+      if (aiCalculationsThisFrame >= 2) {
+        return;
+      }
+      aiCalculationsThisFrame++;
+
       let history = entity.visitedHistory || entity.recentPlatforms || [];
       let timesVisited = 0;
       for (let i = 0; i < history.length; i++) {
@@ -376,14 +414,20 @@ export function runAI(entity: Player) {
         // Find the nearest other active entity to actively move away from them
         let nearestOther: Player | null = null;
         let minOtherDist = Infinity;
-        for (let other of otherEntities) {
-          if (!other) continue;
+        
+        let checkNearest = (other: Player | null | undefined) => {
+          if (!other || other === entity || !other.active) return;
           let dx_other = Math.abs(entity.x - other.x);
           if (dx_other > hgw) dx_other = gw - dx_other;
           if (dx_other < minOtherDist) {
             minOtherDist = dx_other;
             nearestOther = other;
           }
+        };
+        
+        if (entity.isNPC) checkNearest(game.player);
+        if (game.npcs) {
+          for (let i = 0; i < game.npcs.length; i++) checkNearest(game.npcs[i]);
         }
         if (nearestOther && minOtherDist < 40) {
           let dx_val = entity.x - nearestOther.x;
@@ -436,13 +480,6 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
   let gw = config.gameWidth;
   let hgw = gw / 2;
-  
-  let otherEntities: Player[] = [];
-  if (!entity.isNPC) {
-    otherEntities = (game.npcs || []).filter(n => n && n.active);
-  } else {
-    otherEntities = [game.player].concat((game.npcs || []).filter(n => n && n !== entity && n.active));
-  }
   
   let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= SCORE_THRESHOLDS.MUSHROOM_MAX) && ((game.greenMushroomCount || 0) < 18);
 

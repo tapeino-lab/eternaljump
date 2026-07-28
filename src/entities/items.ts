@@ -8,6 +8,23 @@ import { ObjectPool } from './pool.js';
 
 export const P_CN = new ObjectPool<Coin>(() => new Coin());
 export const P_IT = new ObjectPool<Item>(() => new Item());
+export const P_FC = new ObjectPool<FlyingCoin>(() => new FlyingCoin(0, 0));
+
+export function getFc(worldX: number, worldY: number, onArrive?: () => void) {
+  let f = P_FC.get();
+  f.sx = FLR(worldX);
+  f.sy = FLR(worldY - game.cameraY);
+  f.tx = 16;
+  f.ty = 32;
+  f.cx = f.sx;
+  f.cy = f.sy;
+  f.progress = 0;
+  f.maxProgress = 30;
+  f.dead = false;
+  f.animTimer = 0;
+  f.onArrive = onArrive;
+  return f;
+}
 
 export function getCn(x: number, y: number) {
   let c = P_CN.get();

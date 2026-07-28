@@ -8,23 +8,30 @@ import { RankingAPI } from '../ranking.js';
 import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
 
 import { dR } from './core.js';
-export function getColorAtScore(s) {
+const sharedColorOut = { r: 0, g: 0, b: 0 };
+export function getColorAtScore(s: number, out = sharedColorOut) {
   let phases = config.bgPhases;
-  if (s <= phases[0].score) return phases[0].color;
-  if (s >= phases[phases.length - 1].score) return phases[phases.length - 1].color;
+  if (s <= phases[0].score) {
+    out.r = phases[0].color.r; out.g = phases[0].color.g; out.b = phases[0].color.b;
+    return out;
+  }
+  if (s >= phases[phases.length - 1].score) {
+    out.r = phases[phases.length - 1].color.r; out.g = phases[phases.length - 1].color.g; out.b = phases[phases.length - 1].color.b;
+    return out;
+  }
   
   for (let i = 0; i < phases.length - 1; i++) {
     let p1 = phases[i], p2 = phases[i + 1];
     if (s >= p1.score && s <= p2.score) {
       let r = (s - p1.score) / (p2.score - p1.score);
-      return {
-        r: p1.color.r + (p2.color.r - p1.color.r) * r,
-        g: p1.color.g + (p2.color.g - p1.color.g) * r,
-        b: p1.color.b + (p2.color.b - p1.color.b) * r
-      };
+      out.r = p1.color.r + (p2.color.r - p1.color.r) * r;
+      out.g = p1.color.g + (p2.color.g - p1.color.g) * r;
+      out.b = p1.color.b + (p2.color.b - p1.color.b) * r;
+      return out;
     }
   }
-  return phases[0].color;
+  out.r = phases[0].color.r; out.g = phases[0].color.g; out.b = phases[0].color.b;
+  return out;
 }
 
 const bgCache = document.createElement('canvas');

@@ -1,7 +1,7 @@
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, getFc } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
 import { initGame } from './lifecycle.js';
 
@@ -104,13 +104,14 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
       c.collected = true;
       c.dead = true;
       if (game.scoreCoin < 999) game.scoreCoin++;
-      game.flyingCoins.push(new FlyingCoin(c.x + c.w / 2, c.y + c.h / 2));
+      game.flyingCoins.push(getFc(c.x + c.w / 2, c.y + c.h / 2));
     }
   }
 
   if (game.player.vy > 0) {
     for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
     let p = game.platforms[_idx_plats];
+      if (Math.abs(p.y - game.player.y) > 200) continue;
       if (p.broken || p.isCrumbling) continue;
       if (game.player.y + game.player.h >= p.y && game.player.y + game.player.h < p.y + p.h + game.player.vy && game.player.x + game.player.w > p.x && game.player.x < p.x + p.w) {
         if (p.type === 'goal') {
