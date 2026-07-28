@@ -31,23 +31,37 @@ export { dR, inputHandler };
 const GEAR_ICON_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" style="fill:#fff; pointer-events:none; display: block; margin: auto;"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>`;
 const PAUSE_ICON_SVG = `<svg viewBox="0 0 16 16" width="16" height="16" shape-rendering="crispEdges" style="pointer-events:none; display: block; margin: auto;"><rect x="3" y="2" width="3" height="12" fill="#ffffff"/><rect x="10" y="2" width="3" height="12" fill="#ffffff"/></svg>`;
 
+let cachedPauseBtn: HTMLElement | null = null;
+let cachedShopScreen: HTMLElement | null = null;
+let cachedRankingModal: HTMLElement | null = null;
+let lastPauseBtnState: string = '';
+
 export function updatePauseButton() {
-  const pBtn = $('pauseBtn');
+  if (!cachedPauseBtn) cachedPauseBtn = $('pauseBtn');
+  const pBtn = cachedPauseBtn;
   if (!pBtn) return;
-  const isShopOpen = $('shopScreen')?.style.display === 'flex';
-  const isRankingOpen = $('rankingModal')?.style.display === 'flex';
   
-  if (game.isPaused || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear') {
-    pBtn.style.display = 'none';
+  if (!cachedShopScreen) cachedShopScreen = $('shopScreen');
+  if (!cachedRankingModal) cachedRankingModal = $('rankingModal');
+
+  const isShopOpen = cachedShopScreen?.style.display === 'flex';
+  const isRankingOpen = cachedRankingModal?.style.display === 'flex';
+  
+  let targetState = 'none';
+  if (game.isPaused || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear' || demoState.active) {
+    targetState = 'none';
   } else if (game.state === 'playing' || game.state === 'intro') {
-    pBtn.style.display = 'flex';
-    if (isAttractMode) {
-      pBtn.innerHTML = GEAR_ICON_SVG;
+    targetState = isAttractMode ? 'flex_gear' : 'flex_pause';
+  }
+
+  if (lastPauseBtnState !== targetState) {
+    if (targetState === 'none') {
+      pBtn.style.display = 'none';
     } else {
-      pBtn.innerHTML = PAUSE_ICON_SVG;
+      pBtn.style.display = 'flex';
+      pBtn.innerHTML = (targetState === 'flex_gear') ? GEAR_ICON_SVG : PAUSE_ICON_SVG;
     }
-  } else {
-    pBtn.style.display = 'none';
+    lastPauseBtnState = targetState;
   }
 }
     
@@ -177,14 +191,21 @@ export function setAuto(isActive) {
   updateAutoCruiseBtnVisibility();
 }
 
+let cachedAutoCruiseBtn: HTMLElement | null = null;
+let lastAutoCruiseState: string = '';
+
 export function updateAutoCruiseBtnVisibility() {
-  const autoCruiseBtn = document.getElementById('autoCruiseBtn');
+  if (!cachedAutoCruiseBtn) cachedAutoCruiseBtn = document.getElementById('autoCruiseBtn');
+  const autoCruiseBtn = cachedAutoCruiseBtn;
   if (!autoCruiseBtn) return;
+
+  if (!cachedRankingModal) cachedRankingModal = $('rankingModal');
+  if (!cachedShopScreen) cachedShopScreen = $('shopScreen');
 
   const isModalOpen = 
     game.isPaused ||
-    ($('rankingModal') && $('rankingModal').style.display === 'flex') ||
-    ($('shopScreen') && $('shopScreen').style.display === 'flex') ||
+    (cachedRankingModal && cachedRankingModal.style.display === 'flex') ||
+    (cachedShopScreen && cachedShopScreen.style.display === 'flex') ||
     game.state === 'gameover' ||
     game.state === 'clear' ||
     game.state === 'shop';
@@ -202,9 +223,15 @@ export function updateAutoCruiseBtnVisibility() {
   }
 
   if (canShow) {
-    autoCruiseBtn.innerHTML = 'AUTO';
-    autoCruiseBtn.style.color = game.aiActive ? '#a0f020' : '#fff';
-    autoCruiseBtn.style.borderColor = game.aiActive ? '#a0f020' : 'rgba(255, 255, 255, 0.7)';
+    const curState = game.aiActive ? 'active' : 'inactive';
+    if (lastAutoCruiseState !== curState) {
+      autoCruiseBtn.innerHTML = 'AUTO';
+      autoCruiseBtn.style.color = game.aiActive ? '#a0f020' : '#fff';
+      autoCruiseBtn.style.borderColor = game.aiActive ? '#a0f020' : 'rgba(255, 255, 255, 0.7)';
+      lastAutoCruiseState = curState;
+    }
+  } else {
+    lastAutoCruiseState = '';
   }
 }
 
@@ -357,16 +384,9 @@ export function initGame(isConsecutive = false) {
   resetGameState(isConsecutive);
   
   game.eventLog = [];
-  if (!isAttractMode) {
-    if (pBtn) {
-      pBtn.style.display = 'block';
-      pBtn.innerHTML = 'II';
-    }
-  } else {
-    if (pBtn) {
-      pBtn.style.display = demoState.active ? 'none' : 'block';
-      pBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" style="fill:#fff; pointer-events:none; display: block; margin: 1px;"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>`;
-    }
+  if (pBtn) {
+    lastPauseBtnState = '';
+    updatePauseButton();
   }
   
   setupGameCameraAndPlayer(isConsecutive);

@@ -28,32 +28,36 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
   }
   
   let dL = Math.max(game.cameraY, lowestY) + config.gameHeight * (1 + config.recoveryScreens);
-  for (let i = game.platforms.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.platforms.length; i++) {
     let p = game.platforms[i];
     if (p.broken || (!p.isGround && p.y >= dL)) {
       P_PL.push(p);
-      game.platforms.splice(i, 1);
+      swapRemove(game.platforms, i);
+      i--;
     }
   }
-  for (let i = game.items.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.items.length; i++) {
     if (game.items[i].y >= dL || game.items[i].collected) {
       P_IT.push(game.items[i]);
-      game.items.splice(i, 1);
+      swapRemove(game.items, i);
+      i--;
     }
   }
-  for (let i = game.coins.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.coins.length; i++) {
     let c = game.coins[i];
     if (c.y >= dL || c.dead) {
       P_CN.push(c);
-      game.coins.splice(i, 1);
+      swapRemove(game.coins, i);
+      i--;
     }
   }
   let cloudThresh = game.cameraY + config.gameHeight * 2.0;
-  for (let i = game.clouds.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.clouds.length; i++) {
     let c = game.clouds[i];
     if (c.y > cloudThresh) {
       P_CL.push(c);
-      game.clouds.splice(i, 1);
+      swapRemove(game.clouds, i);
+      i--;
     }
   }
   

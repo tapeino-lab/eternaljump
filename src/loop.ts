@@ -14,6 +14,9 @@ import { runAI } from './ai.js';
 import { spawnParticles } from './entities/index.js';
 import { onEnterShop } from './shop.js';
 
+let cachedTitleVersion: HTMLElement | null = null;
+let cachedShopScreen: HTMLElement | null = null;
+
 export let lastTime = performance.now();
 export let acc = 0;
 export let loopRunning = false;
@@ -48,13 +51,15 @@ export function loop(ts: number) {
     }
   }
 
-  const tVer = $('titleVersion');
+  if (!cachedTitleVersion) cachedTitleVersion = $('titleVersion');
+  const tVer = cachedTitleVersion;
   if (tVer) {
     let nDisp = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
     if (tVer.style.display !== nDisp) tVer.style.display = nDisp;
   }
 
-  const shopScreen = $('shopScreen');
+  if (!cachedShopScreen) cachedShopScreen = $('shopScreen');
+  const shopScreen = cachedShopScreen;
   if (shopScreen) {
     let sDisp = (game.state === 'shop') ? 'flex' : 'none';
     if (shopScreen.style.display !== sDisp) {

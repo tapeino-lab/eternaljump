@@ -8,12 +8,13 @@ import { initGame } from './lifecycle.js';
 import { RankingAPI } from './ranking.js';
 
 export function updateBirds(game: GameState) {
-  for (let i = game.birds.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.birds.length; i++) {
     let b = game.birds[i];
     b.update();
     if (b.y > game.cameraY + config.gameHeight + 100 || b.y < game.cameraY - 1000 || b.x < -50 || b.x > config.gameWidth + 50) {
       P_BD.push(b);
-      game.birds.splice(i, 1);
+      swapRemove(game.birds, i);
+      i--;
     }
   }
 
@@ -38,14 +39,16 @@ export function updateBirds(game: GameState) {
 
 
 export function updateMeteors(game: GameState) {
-  for (let i = game.meteors.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.meteors.length; i++) {
     let m = game.meteors[i];
     m.update();
     if (m.y > game.cameraY + config.gameHeight + 100) {
       P_MT.push(m);
-      game.meteors.splice(i, 1);
+      swapRemove(game.meteors, i);
+      i--;
     } else if (game.state === 'playing' && !(game.player.hitTimer > 0) && game.player.x < m.x + m.w && game.player.x + game.player.w > m.x && game.player.y < m.y + m.h && game.player.y + game.player.h > m.y) {
       let isStomping = (game.player.vy > 0 && (game.player.y + game.player.h - game.player.vy) <= m.y + m.h * 0.5);
+      game.player.recentExternalCollisionTimer = 180;
       if (isStomping) {
         m.hitTimer = 60;
         game.player.y = m.y - game.player.h;
@@ -94,23 +97,25 @@ export function updateMeteors(game: GameState) {
 
 
 export function updateParticles(game: GameState) {
-  for (let i = game.particles.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.particles.length; i++) {
     let pt = game.particles[i];
     pt.update();
     if (pt.life <= 0) {
       P_PT.push(pt);
-      game.particles.splice(i, 1);
+      swapRemove(game.particles, i);
+      i--;
     }
   }
 }
 
 export function updateFlyingCoins(game: GameState) {
   if (!game.flyingCoins) return;
-  for (let i = game.flyingCoins.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.flyingCoins.length; i++) {
     let fc = game.flyingCoins[i];
     fc.update();
     if (fc.dead) {
-      game.flyingCoins.splice(i, 1);
+      swapRemove(game.flyingCoins, i);
+      i--;
     }
   }
 }
@@ -128,16 +133,18 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
       }
     }
   }
-  for (let i = game.npcs.length - 1; i >= 0; i--) {
+  for (let i = 0; i < game.npcs.length; i++) {
     let npc = game.npcs[i];
     npc.update();
 
     if (npc.y > 1500) {
-      game.npcs.splice(i, 1);
+      swapRemove(game.npcs, i);
+      i--;
       continue;
     }
     if (npc.stagnationTimer > 1800 && npc.y > game.cameraY + config.gameHeight) {
-      game.npcs.splice(i, 1);
+      swapRemove(game.npcs, i);
+      i--;
       continue;
     }
     if (!npc.active) continue;
@@ -147,6 +154,8 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
       let nStomp = (npc.vy > 0 && (npc.y + npc.h - npc.vy) <= game.player.y + game.player.h * 0.5);
       
       if (pStomp) {
+        game.player.recentExternalCollisionTimer = 120;
+        npc.recentExternalCollisionTimer = 120;
         game.player.y = npc.y - game.player.h;
         game.player.jump(config.jumpPower * 0.8);
         npc.vy = -3;
@@ -154,6 +163,8 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
         npc.hitTimer = 20;
         spawnParticles(npc.x + npc.w / 2, npc.y, '#fff', 5, 2);
       } else if (nStomp) {
+        game.player.recentExternalCollisionTimer = 120;
+        npc.recentExternalCollisionTimer = 120;
         npc.y = game.player.y - npc.h;
         npc.jump(config.jumpPower * 0.8);
         game.player.vy = -3;
@@ -240,12 +251,14 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
           if (npc.aiPath.length > 0 && npc.aiPath[0] === p) npc.aiPath.shift();
 
           if (npc.lastPlatform === p) {
-            npc.sameBounceCount++;
-            if (npc.sameBounceCount >= 2) {
-              p.blacklisted = true;
-              if (npc.aiPath.length > 0) npc.aiPath[0].blacklisted = true;
-              npc.aiPath = [];
-              npc.sameBounceCount = 0;
+            if (!(npc.recentExternalCollisionTimer > 0)) {
+              npc.sameBounceCount++;
+              if (npc.sameBounceCount >= 2) {
+                p.blacklisted = true;
+                if (npc.aiPath.length > 0) npc.aiPath[0].blacklisted = true;
+                npc.aiPath = [];
+                npc.sameBounceCount = 0;
+              }
             }
           } else {
             npc.sameBounceCount = 0;

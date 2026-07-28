@@ -55,9 +55,14 @@ import { spawnParticles } from './particles.js';
       prevLastPlatform?: any;
       recentPlatforms?: any[];
       samePlatformVertJumps?: number;
+      platformTheyJumpedFrom?: any;
       aiLockedTarget?: any;
       aiLockedFromNormalJump?: boolean;
+      recentExternalCollisionTimer: number = 0;
       inGreenMushroomChain: boolean = false;
+      nearOtherEntityFrames?: number;
+      breakoutTimer?: number;
+      breakoutDir?: number;
 
       constructor() {
         this.isNPC = false;
@@ -96,8 +101,10 @@ import { spawnParticles } from './particles.js';
         }
       }
       update() {
+        this.frameCount++;
         if (this.squatTimer > 0) this.squatTimer--;
         if (this.hitTimer > 0) this.hitTimer--;
+        if (this.recentExternalCollisionTimer > 0) this.recentExternalCollisionTimer--;
         
         if (this.vx > 0.08) {
           this.facingDirFrames = Math.min(15, Math.max(1, this.facingDirFrames + 1));

@@ -1350,12 +1350,12 @@ transform: scale(0.9);
   flex-direction: column;
   background: rgba(15, 15, 20, 0.9);
   border: 1px solid #ffffff;
-  padding: 6px;
+  padding: 10px 8px;
   border-radius: 6px;
   box-sizing: border-box;
   width: 98%;
   transition: none;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
   user-select: none;
 }
@@ -1623,4 +1623,13 @@ transform: scale(0.9);
 
 .shop-flash-effect {
   animation: shopFlash 0.55s ease-out;
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(3px); }
+}
+
+.bounce-arrow {
+  animation: bounce 0.6s infinite alternate ease-in-out;
 }

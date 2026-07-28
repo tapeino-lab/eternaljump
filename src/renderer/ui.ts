@@ -8,6 +8,23 @@ import { RankingAPI } from '../ranking.js';
 import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
 
 import { dR } from './core.js';
+
+// DOM Elements Cache to prevent layout thrashing and expensive document.getElementById / querySelector lookups on every frame
+let cachedCanvasWrapper: HTMLElement | null = null;
+let cachedUI: HTMLElement | null = null;
+let cachedHudCoin: HTMLElement | null = null;
+let cachedHudScore: HTMLElement | null = null;
+let cachedHudTime: HTMLElement | null = null;
+let cachedHudEquippedBadge: HTMLElement | null = null;
+let cachedHudEquippedIcon: HTMLElement | null = null;
+let lastBrightBgState: boolean | null = null;
+
+let cachedDemoHeader: HTMLElement | null = null;
+let cachedDemoTop3: HTMLElement | null = null;
+let cachedDemoOthersWrapper: HTMLElement | null = null;
+let cachedDemoOthers: HTMLElement | null = null;
+let cachedDemoRankingContainer: HTMLElement | null = null;
+let cachedFadeOverlay: HTMLElement | null = null;
 export function drawOffscreenIndicators() {
   for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {
     let n = game.npcs[_idx_npcs];
@@ -155,10 +172,18 @@ function getEquippedIconSVG(id: string | null): string {
 
 export function updateHUD(topColor) {
   let lum = topColor.r * 0.299 + topColor.g * 0.587 + topColor.b * 0.114;
-  let wrap = $('canvasWrapper');
-  let ui = $('ui');
-  if (lum > 140) wrap.classList.add('bright-bg');
-  else wrap.classList.remove('bright-bg');
+  if (!cachedCanvasWrapper) cachedCanvasWrapper = $('canvasWrapper');
+  if (!cachedUI) cachedUI = $('ui');
+  let wrap = cachedCanvasWrapper;
+  let ui = cachedUI;
+  if (!wrap || !ui) return;
+
+  let isBright = lum > 140;
+  if (lastBrightBgState !== isBright) {
+    if (isBright) wrap.classList.add('bright-bg');
+    else wrap.classList.remove('bright-bg');
+    lastBrightBgState = isBright;
+  }
   
   let effPlayTime = (game.state === 'clear') ? game.clearTime : game.playTime;
   let timeLeft = MAX(0, config.timeLimit - effPlayTime / 1000);
@@ -174,20 +199,29 @@ export function updateHUD(topColor) {
   let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
   let isTimerVisible = !isAttractMode;
   
-  if (!ui.querySelector('#hud-coin')) {
-    let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
-    ui.innerHTML = `
-      <div style="flex:1; display:flex; flex-direction:column; align-items:flex-start;">
-        <div style="display:flex; align-items:center;">
-          ${cI}<span id="hud-coin"></span>
+  if (!cachedHudCoin) {
+    let hc = document.getElementById('hud-coin');
+    if (!hc) {
+      let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
+      ui.innerHTML = `
+        <div style="flex:1; display:flex; flex-direction:column; align-items:flex-start;">
+          <div style="display:flex; align-items:center;">
+            ${cI}<span id="hud-coin"></span>
+          </div>
+          <div id="hud-equipped-badge" style="display:none; margin-top:3px; padding:2px; background:rgba(0,0,0,0.75); border:1px solid #00e676; border-radius:3px; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.5); pointer-events:none;">
+            <div id="hud-equipped-icon" style="display:flex; align-items:center; justify-content:center; gap:2px;"></div>
+          </div>
         </div>
-        <div id="hud-equipped-badge" style="display:none; margin-top:3px; padding:2px; background:rgba(0,0,0,0.75); border:1px solid #00e676; border-radius:3px; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.5); pointer-events:none;">
-          <div id="hud-equipped-icon" style="display:flex; align-items:center; justify-content:center; gap:2px;"></div>
-        </div>
-      </div>
-      <span id="hud-score" style="flex:1;text-align:center;"></span>
-      <span id="hud-time" style="flex:1;text-align:right;"></span>
-    `;
+        <span id="hud-score" style="flex:1;text-align:center;"></span>
+        <span id="hud-time" style="flex:1;text-align:right;"></span>
+      `;
+      hc = document.getElementById('hud-coin');
+    }
+    cachedHudCoin = hc;
+    cachedHudScore = document.getElementById('hud-score');
+    cachedHudTime = document.getElementById('hud-time');
+    cachedHudEquippedBadge = document.getElementById('hud-equipped-badge');
+    cachedHudEquippedIcon = document.getElementById('hud-equipped-icon');
   }
 
   let coinDisplay = isTitle ? game.totalCoins : game.scoreCoin;
@@ -199,15 +233,15 @@ export function updateHUD(topColor) {
 
   let curState = coinDisplay + '_' + centerHtml + '_' + timeHtml + '_' + eqKey;
   if (game.lastUI !== curState) {
-    let hc = document.getElementById('hud-coin');
-    let hs = document.getElementById('hud-score');
-    let ht = document.getElementById('hud-time');
+    let hc = cachedHudCoin;
+    let hs = cachedHudScore;
+    let ht = cachedHudTime;
     if (hc && hc.innerHTML !== coinDisplay.toString()) hc.innerHTML = coinDisplay.toString();
     if (hs && hs.innerHTML !== centerHtml) hs.innerHTML = centerHtml;
     if (ht && ht.innerHTML !== timeHtml) ht.innerHTML = timeHtml;
 
-    let badge = document.getElementById('hud-equipped-badge');
-    let iconContainer = document.getElementById('hud-equipped-icon');
+    let badge = cachedHudEquippedBadge;
+    let iconContainer = cachedHudEquippedIcon;
     if (badge && iconContainer) {
       if (eqList.length > 0) {
         badge.style.display = 'inline-flex';
@@ -222,22 +256,37 @@ export function updateHUD(topColor) {
 
     game.lastUI = curState;
   }
-
 }
 
-export function updateDemoRanking(ts) {
+export function updateDemoRanking(ts: number) {
   if (demoState.active && demoState.phase === 'scroll') {
+    if (!cachedDemoRankingContainer) cachedDemoRankingContainer = $('demoRankingContainer');
+    if (!cachedDemoHeader) cachedDemoHeader = $('demoHeader');
+    if (!cachedDemoTop3) cachedDemoTop3 = $('demoTop3');
+    if (!cachedDemoOthers) cachedDemoOthers = $('demoOthers');
+    if (!cachedDemoOthersWrapper) cachedDemoOthersWrapper = $('demoOthersWrapper');
+    if (!cachedFadeOverlay) cachedFadeOverlay = $('fadeOverlay');
+
+    let container = cachedDemoRankingContainer;
+    let header = cachedDemoHeader;
+    let top3 = cachedDemoTop3;
+    let others = cachedDemoOthers;
+    let othersWrapper = cachedDemoOthersWrapper;
+    let overlay = cachedFadeOverlay;
+
+    if (!container || !header || !top3 || !others || !othersWrapper || !overlay) return;
+
     if (!demoState.calculated) {
-      demoState.containerH = $('demoRankingContainer').offsetHeight;
-      demoState.headerH = $('demoHeader').offsetHeight;
-      demoState.t3H = $('demoTop3').offsetHeight;
-      demoState.otH = $('demoOthers').offsetHeight;
+      demoState.containerH = container.offsetHeight;
+      demoState.headerH = header.offsetHeight;
+      demoState.t3H = top3.offsetHeight;
+      demoState.otH = others.offsetHeight;
       demoState.startScrollY = demoState.containerH;
       demoState.fixedHeaderY = demoState.containerH * 0.15;
       demoState.fixedTop3Y = demoState.fixedHeaderY + demoState.headerH;
       demoState.gap = 8;
       demoState.wH = demoState.containerH - demoState.fixedTop3Y - demoState.t3H - demoState.gap;
-      $('demoOthersWrapper').style.height = demoState.wH + 'px';
+      othersWrapper.style.height = demoState.wH + 'px';
       demoState.dist1 = demoState.containerH - demoState.fixedHeaderY;
       demoState.dist2 = MAX(0, demoState.otH - demoState.wH + 40);
       demoState.totalDist = demoState.dist1 + demoState.dist2;
@@ -251,39 +300,38 @@ export function updateDemoRanking(ts) {
     
     if (currentScrolled < demoState.dist1) {
       let headerY = demoState.containerH - currentScrolled;
-      $('demoHeader').style.transform = `translateY(${headerY}px)`;
-      $('demoTop3').style.transform = `translateY(${headerY + demoState.headerH}px)`;
-      $('demoOthersWrapper').style.transform = `translateY(${headerY + demoState.headerH + demoState.t3H + demoState.gap}px)`;
-      $('demoOthers').style.transform = 'translateY(0px)';
-      $('demoOthersWrapper').style.maskImage = 'none';
-      $('demoOthersWrapper').style.webkitMaskImage = 'none';
+      header.style.transform = `translateY(${headerY}px)`;
+      top3.style.transform = `translateY(${headerY + demoState.headerH}px)`;
+      othersWrapper.style.transform = `translateY(${headerY + demoState.headerH + demoState.t3H + demoState.gap}px)`;
+      others.style.transform = 'translateY(0px)';
+      othersWrapper.style.maskImage = 'none';
+      othersWrapper.style.webkitMaskImage = 'none';
     } else {
-      $('demoHeader').style.transform = `translateY(${demoState.fixedHeaderY}px)`;
-      $('demoTop3').style.transform = `translateY(${demoState.fixedTop3Y}px)`;
-      $('demoOthersWrapper').style.transform = `translateY(${demoState.fixedTop3Y + demoState.t3H + demoState.gap}px)`;
+      header.style.transform = `translateY(${demoState.fixedHeaderY}px)`;
+      top3.style.transform = `translateY(${demoState.fixedTop3Y}px)`;
+      othersWrapper.style.transform = `translateY(${demoState.fixedTop3Y + demoState.t3H + demoState.gap}px)`;
       let othersScrolled = currentScrolled - demoState.dist1;
-      $('demoOthers').style.transform = `translateY(${-othersScrolled}px)`;
-      $('demoOthersWrapper').style.maskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
-      $('demoOthersWrapper').style.webkitMaskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+      others.style.transform = `translateY(${-othersScrolled}px)`;
+      othersWrapper.style.maskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+      othersWrapper.style.webkitMaskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
     }
     
     if (progress >= 1) {
       demoState.phase = 'wait';
       setTimeout(() => {
         if (!isAttractMode) return;
-        let fo = $('fadeOverlay');
-        fo.style.display = 'block';
-        fo.offsetHeight;
-        fo.style.opacity = '1';
+        overlay.style.display = 'block';
+        overlay.offsetHeight;
+        overlay.style.opacity = '1';
         setTimeout(() => {
           if (!isAttractMode) return;
-          $('demoRankingContainer').style.display = 'none';
-          $('demoRankingContainer').style.opacity = '1';
-          $('demoRankingContainer').style.transition = 'none';
+          container.style.display = 'none';
+          container.style.opacity = '1';
+          container.style.transition = 'none';
           runAttractUICycle();
           setTimeout(() => {
-            fo.style.opacity = '0';
-            setTimeout(() => { fo.style.display = 'none'; }, 1000);
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 1000);
           }, 500);
         }, 1000);
       }, 3000);

@@ -47,7 +47,8 @@ export function createInitialGameState(): GameState {
     lastUI: '',
     flockDir: 1,
     isNewRecord: false,
-    personalBest: null
+    personalBest: null,
+    showAIThoughts: false
   };
 }
 
@@ -58,6 +59,9 @@ export const game: GameState = createInitialGameState();
  */
 export function resetGameStateData(game: GameState, isConsecutive: boolean = false, flockDir: number = 1, personalBest: any = null) {
   const initial = createInitialGameState();
+
+  // Preserve showAIThoughts value across reset
+  const oldShowAIThoughts = game.showAIThoughts !== undefined ? game.showAIThoughts : false;
 
   game.isConsecutive = isConsecutive;
   game.state = initial.state;
@@ -100,6 +104,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.personalBest = personalBest;
   game.clearTime = initial.clearTime;
   game.lastUI = initial.lastUI;
+  game.showAIThoughts = oldShowAIThoughts;
 }
 
 export function isEquipped(game: GameState, id: string): boolean {

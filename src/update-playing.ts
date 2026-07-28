@@ -169,15 +169,17 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
           else if (p.type === 'super') ap = config.superJumpPower;
           else if (p.type === 'h-slide' || p.type === 'v-slide') ap = config.jumpPower * config.movingPlatformJumpMultiplier;
           
-          if (game.demoMode && game.aiActive) {
+          if (game.aiActive) {
             if (game.player.aiPath.length > 0 && game.player.aiPath[0] === p) game.player.aiPath.shift();
             if (game.player.lastPlatform === p) {
-              game.player.sameBounceCount++;
-              if (game.player.sameBounceCount >= 2) {
-                p.blacklisted = true;
-                if (game.player.aiPath.length > 0) game.player.aiPath[0].blacklisted = true;
-                game.player.aiPath = [];
-                game.player.sameBounceCount = 0;
+              if (!(game.player.recentExternalCollisionTimer > 0)) {
+                game.player.sameBounceCount++;
+                if (game.player.sameBounceCount >= 2) {
+                  p.blacklisted = true;
+                  if (game.player.aiPath.length > 0) game.player.aiPath[0].blacklisted = true;
+                  game.player.aiPath = [];
+                  game.player.sameBounceCount = 0;
+                }
               }
             } else {
               game.player.sameBounceCount = 0;

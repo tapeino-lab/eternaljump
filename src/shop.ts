@@ -208,6 +208,11 @@ export function updateShopUI() {
 export function onEnterShop() {
   shopState.initialEquipped = { ...(game.equipped || {}) };
   updateShopUI();
+
+  const container = document.querySelector('.shop-items-container') as HTMLElement;
+  if (container) {
+    container.scrollTop = 0;
+  }
 }
 
 export function initShop() {

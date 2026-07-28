@@ -8,6 +8,8 @@ import { RankingAPI } from '../ranking.js';
 import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
 
 import { dR } from './core.js';
+
+const SPARKLE_COLORS = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f', '#fff'];
 export function drawHorizontalPipe(ctx: CanvasRenderingContext2D) {
   if (game.cameraY > 300) return;
   if (!hasPlayedOnce()) return;
@@ -99,7 +101,7 @@ let lastAlpha = -1, lastColor = '';
     let pt = game.particles[_idx_particles];
     if (pt.y > game.cameraY + config.gameHeight + 50 || pt.y < game.cameraY - 50) continue;
     if (pt.isSp) {
-      let b = pt.life % 6 < 3, s = b ? 4 : 2, c = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f', '#fff'][FLR(RND() * 7)];
+      let b = pt.life % 6 < 3, s = b ? 4 : 2, c = SPARKLE_COLORS[FLR(RND() * 7)];
       if (lastAlpha !== 0.9) { ctx.globalAlpha = 0.9; lastAlpha = 0.9; }
       dR(pt.x - 1, pt.y - s, 2, s * 2, c);
       dR(pt.x - s, pt.y - 1, s * 2, 2, c);
@@ -125,4 +127,159 @@ let lastAlpha = -1, lastColor = '';
   }
   game.player.draw();
   drawHorizontalPipe(ctx);
+  
+  // Call the AI Thought Visualization System
+  drawAIThoughts(ctx);
+}
+
+function drawAIThoughts(ctx: CanvasRenderingContext2D) {
+  if (!game.showAIThoughts) return;
+
+  const entitiesToVisual: any[] = [];
+  
+  // 1. Main player if AI or Demo/Attract Mode is running
+  if (game.player && (game.aiActive || game.demoMode || isAttractMode)) {
+    entitiesToVisual.push({
+      entity: game.player,
+      name: 'PLAYER AI',
+      color: '#00ffff' // Neon cyan
+    });
+  }
+
+  // 2. NPCs
+  for (let idx = 0; idx < game.npcs.length; idx++) {
+    const npc = game.npcs[idx];
+    if (npc && npc.active) {
+      entitiesToVisual.push({
+        entity: npc,
+        name: `NPC ${npc.npcIndex || idx + 1}`,
+        color: '#a0f020' // Neon green/yellow
+      });
+    }
+  }
+
+  if (entitiesToVisual.length === 0) return;
+
+  const g = config.jumpGravity || 0.15;
+  const maxVx = config.maxSpeedX || 1.6;
+  const frictionX = config.frictionX || 0.85;
+
+  for (let idx = 0; idx < entitiesToVisual.length; idx++) {
+    const { entity, name, color } = entitiesToVisual[idx];
+    
+    const px = entity.x + (entity.w || 16) / 2;
+    const py = entity.y + (entity.h || 16);
+
+    // Draw Target Line & Target Bounding Box
+    if (entity.aiTarget) {
+      const target = entity.aiTarget;
+      const tx = target.x + (target.w || 16) / 2;
+      const ty = target.y + (target.h || 8) / 2;
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(FLR(px), FLR(py - (entity.h || 16) / 2));
+      ctx.lineTo(FLR(tx), FLR(ty));
+      ctx.stroke();
+
+      // Bounding box
+      ctx.setLineDash([1, 1]);
+      ctx.strokeRect(FLR(target.x) - 1, FLR(target.y) - 1, (target.w || 16) + 2, (target.h || 8) + 2);
+      ctx.restore();
+    }
+
+    // Draw Predicted Trajectory Arc (Jump Arc)
+    let tempX = px;
+    let tempY = py;
+    let tempVx = entity.vx || 0;
+    let tempVy = entity.vy || 0;
+
+    ctx.save();
+    ctx.fillStyle = color;
+    for (let frame = 0; frame < 30; frame++) {
+      tempX += tempVx;
+      tempY += tempVy;
+      tempVy += g;
+
+      if (entity.aiTarget) {
+        let tx = entity.aiTarget.x + (entity.aiTarget.w || 16) / 2;
+        let tdx = tx - tempX;
+        // screen wrap-around
+        if (tdx > config.gameWidth / 2) tdx -= config.gameWidth;
+        else if (tdx < -config.gameWidth / 2) tdx += config.gameWidth;
+
+        let tdir = tdx > 0 ? 1 : -1;
+        if (Math.abs(tdx) > 2) {
+          tempVx += tdir * (config.accelX || 0.22);
+        } else {
+          tempVx *= frictionX;
+        }
+      }
+      
+      if (tempVx > maxVx) tempVx = maxVx;
+      else if (tempVx < -maxVx) tempVx = -maxVx;
+
+      let drawX = tempX;
+      if (drawX < 0) drawX += config.gameWidth;
+      else if (drawX > config.gameWidth) drawX -= config.gameWidth;
+
+      ctx.globalAlpha = Math.max(0.1, 1.0 - (frame / 30));
+      ctx.fillRect(FLR(drawX) - 1, FLR(tempY) - 1, 2, 2);
+    }
+    ctx.restore();
+
+    // Draw Input arrows
+    if (entity.inputDir !== 0) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.font = '5px "Press Start 2P", monospace, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(entity.inputDir > 0 ? '→' : '←', FLR(px + (entity.inputDir > 0 ? 10 : -10)), FLR(entity.y + 8));
+      ctx.restore();
+    }
+
+    // Draw State Labels above head
+    let labelY = entity.y - 6;
+    if (entity.balloonTimer > 0) labelY -= 16;
+
+    let stateStr = 'CLIMBING';
+    let labelColor = '#ffffff';
+
+    if (entity.inGreenMushroomChain) {
+      stateStr = 'CHAIN🚀';
+      labelColor = '#00ff00';
+    } else if (entity.aiLockedFromNormalJump) {
+      stateStr = 'LOCKED🔒';
+      labelColor = '#ffcc00';
+    } else if ((entity.samePlatformVertJumps || 0) >= 2) {
+      stateStr = 'STUCK⚠️';
+      labelColor = '#ff3333';
+    } else if (entity.vy > 0) {
+      stateStr = 'FALLING';
+      labelColor = '#00ffff';
+    } else if (entity.vy < 0) {
+      stateStr = 'JUMPING';
+      labelColor = '#ff66ff';
+    }
+
+    ctx.save();
+    ctx.font = '4px "Press Start 2P", monospace, sans-serif';
+    ctx.textAlign = 'center';
+    
+    // Background block
+    let textW = stateStr.length * 4 + 4;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.fillRect(FLR(px - textW / 2), FLR(labelY - 5), textW, 6);
+    
+    ctx.fillStyle = labelColor;
+    ctx.fillText(stateStr, FLR(px), FLR(labelY));
+    
+    // Entity Name sub-tag
+    ctx.fillStyle = '#aaa';
+    ctx.fillText(name, FLR(px), FLR(labelY - 6));
+    ctx.restore();
+  }
 }

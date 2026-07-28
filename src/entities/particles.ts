@@ -6,6 +6,8 @@ import { dR } from '../renderer/core.js';
 import { game } from '../state.js';
 import { ObjectPool } from './pool.js';
 
+const SPARKLE_COLORS = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f', '#fff'];
+
 export const P_PT = new ObjectPool<Particle>(() => new Particle());
 
 export function getPt(x: number, y: number, vx: number, vy: number, c: string, s: number, l: number, g = 0.2, sp = false) {
@@ -46,7 +48,7 @@ export class Particle {
   }
   draw() {
     if (this.isSp === true) {
-      let b = this.life % 6 < 3, s = b ? 4 : 2, c = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f', '#fff'][FLR(RND() * 7)];
+      let b = this.life % 6 < 3, s = b ? 4 : 2, c = SPARKLE_COLORS[FLR(RND() * 7)];
       ctx.globalAlpha = 0.9;
       dR(this.x - 1, this.y - s, 2, s * 2, c);
       dR(this.x - s, this.y - 1, s * 2, 2, c);

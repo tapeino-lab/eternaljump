@@ -6,10 +6,7 @@ import type { Player, Platform, Item } from './types.js';
 
 function isLockOnPlatform(platform: any): boolean {
   if (!platform) return false;
-  if (platform.isGlowing) return false;
-  if (platform.type === 'super') return false;
-  if (platform.type === 'h-slide' || platform.type === 'v-slide') return false;
-  return (platform.type === 'normal' || platform.isIcy);
+  return (platform.type === 'normal' || platform.isIcy || platform.type === 'h-slide' || platform.type === 'v-slide');
 }
 
 export function runAI(entity: Player) {
@@ -30,14 +27,15 @@ export function runAI(entity: Player) {
   entity.prevLastPlatform = entity.lastPlatform;
 
   // Track consecutive vertical jumps on the same platform to detect stuck state
-  if (entity.lastPlatform && entity.lastPlatform === entity.prevLastPlatform) {
-    if (entity.inputDir === 0) {
+  if (isJustJumped && currentPlat) {
+    if (currentPlat === entity.platformTheyJumpedFrom) {
       entity.samePlatformVertJumps = (entity.samePlatformVertJumps || 0) + 1;
     } else {
       entity.samePlatformVertJumps = 0;
     }
-  } else {
-    entity.samePlatformVertJumps = 0;
+  }
+  if (currentPlat) {
+    entity.platformTheyJumpedFrom = currentPlat;
   }
 
   let isPlayer = (entity === game.player);
@@ -113,6 +111,34 @@ export function runAI(entity: Player) {
     return;
   }
 
+  // Find other active players or NPCs to track close proximity
+  let otherEntities: Player[] = [];
+  if (!entity.isNPC) {
+    otherEntities = (game.npcs || []).filter(n => n && n.active);
+  } else {
+    otherEntities = [game.player].concat((game.npcs || []).filter(n => n && n !== entity && n.active));
+  }
+
+  let isNearOtherEntity = false;
+  let gw = config.gameWidth;
+  let hgw = gw / 2;
+  for (let other of otherEntities) {
+    if (!other) continue;
+    let dx_other = Math.abs(entity.x - other.x);
+    if (dx_other > hgw) dx_other = gw - dx_other;
+    let dy_other = Math.abs(entity.y - other.y);
+    if (dx_other < 24 && dy_other < 28) {
+      isNearOtherEntity = true;
+      break;
+    }
+  }
+
+  if (isNearOtherEntity) {
+    entity.nearOtherEntityFrames = (entity.nearOtherEntityFrames || 0) + 1;
+  } else {
+    entity.nearOtherEntityFrames = 0;
+  }
+
   // Calculate the strict bottom deadline (death/falling limit)
   let maxReachY = isPlayer ? (game.cameraY + config.gameHeight) : (py + config.gameHeight);
 
@@ -125,10 +151,28 @@ export function runAI(entity: Player) {
     // Check if target is above player but impossible to reach with current upward velocity
     let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
     if (!isGrounded && t.y < py - 2) {
-      let g = config.jumpGravity || 0.15;
-      let maxAscent = entity.vy < 0 ? (entity.vy * entity.vy) / (2 * g) : 0;
-      let apexY = py - maxAscent;
-      if (t.y < apexY - 2) return true;
+      // If we are locked onto this target, we already verified reachability at the start of the jump.
+      // We should only invalidate it if we are fully descending and have clearly fallen below its level.
+      if (entity.aiLockedFromNormalJump && entity.aiLockedTarget === t) {
+        if (entity.vy >= 0 && py > t.y + 32) {
+          return true;
+        }
+      } else {
+        // For non-locked targets, use a slightly more generous apex check to prevent rapid flickering
+        let g = config.jumpGravity || 0.15;
+        let maxAscent = entity.vy < 0 ? (entity.vy * entity.vy) / (2 * g) : 0;
+        let apexY = py - maxAscent;
+        
+        // If we are very close to the platform height anyway, don't invalidate
+        if (py - t.y > 16) {
+          if (t.y < apexY - 6) return true;
+        } else {
+          // If descending and feet are below platform height + margin, it's unreachable
+          if (entity.vy >= 0 && py > t.y + 24) {
+            return true;
+          }
+        }
+      }
     }
 
     return false;
@@ -169,10 +213,31 @@ export function runAI(entity: Player) {
     entity.aiTarget = bestTarget;
     entity.aiLockedTarget = bestTarget;
     entity.aiLockedFromNormalJump = true;
+
+    // Smart horizontal boost for far-away targets (edge take-off emulation)
+    if (bestTarget) {
+      let candW = bestTarget.w || 16;
+      let tx = bestTarget.x + candW / 2;
+      let dx = tx - px;
+      if (dx > config.gameWidth / 2) dx -= config.gameWidth;
+      else if (dx < -config.gameWidth / 2) dx += config.gameWidth;
+
+      let dist = Math.abs(dx);
+      if (dist > 30) {
+        let pushDir = dx > 0 ? 1 : -1;
+        // Apply immediate horizontal kick to help clear the gap smoothly
+        let boostAmount = 0.9 * pushDir;
+        entity.vx = (entity.vx || 0) + boostAmount;
+        let maxS = config.maxSpeedX * (entity.isSuperJumping ? 1.2 : 1.0);
+        if (entity.vx > maxS) entity.vx = maxS;
+        else if (entity.vx < -maxS) entity.vx = -maxS;
+      }
+    }
   } else if (entity.aiLockedFromNormalJump && entity.aiLockedTarget) {
     // During jump flight from a normal/ice platform, maintain lock onto the chosen target unless destroyed/collected/passed/surpassed
     let t = entity.aiLockedTarget;
     let isInvalid = isTargetInvalid(t) || isSuperLaunch;
+
     if (isInvalid) {
       // Unlock if target was destroyed, collected, or passed mid-air, or if player ascended above it
       entity.aiLockedFromNormalJump = false;
@@ -193,11 +258,20 @@ export function runAI(entity: Player) {
       let t = entity.aiTarget;
       if (isTargetInvalid(t)) {
         needsRethink = true;
-      } else if (entity.vy < 0) {
-        // While rising in mid-air, rethink every 4 frames to continuously update target towards jump apex
-        if ((entity.aiThinkTimer || 0) > 4) needsRethink = true;
-      } else if (entity.aiThinkTimer > 15) {
-        needsRethink = true;
+      } else {
+        let entityId = entity.isNPC ? (entity.npcIndex || 1) : 0;
+        let fCount = entity.frameCount || 0;
+        if (entity.vy < 0) {
+          // While rising in mid-air, lower rethink frequency and apply time-slicing (staggering across frames)
+          if ((entity.aiThinkTimer || 0) > 12 && (fCount + entityId) % 12 === 0) {
+            needsRethink = true;
+          }
+        } else {
+          // Lower rethink frequency during fall/wait and apply time-slicing
+          if ((entity.aiThinkTimer || 0) > 30 && (fCount + entityId) % 30 === 0) {
+            needsRethink = true;
+          }
+        }
       }
     }
 
@@ -220,11 +294,27 @@ export function runAI(entity: Player) {
 
 
   if (entity.aiTarget) {
-    let tx = entity.aiTarget.x + (entity.aiTarget.w || 16) / 2;
+    let candW = entity.aiTarget.w || 16;
+    let tx = entity.aiTarget.x + candW / 2;
     if (entity.aiTarget.type === 'h-slide' && entity.aiTarget.direction) {
       tx += entity.aiTarget.direction * 16;
     }
     
+    // Smart edge targeting for far away platforms to maximize reachable jump distance
+    let dx_center = tx - px;
+    if (dx_center > config.gameWidth / 2) dx_center -= config.gameWidth;
+    else if (dx_center < -config.gameWidth / 2) dx_center += config.gameWidth;
+
+    if (entity.aiTarget.y !== undefined && Math.abs(dx_center) > 20) {
+      if (dx_center > 0) {
+        // Target is to the right -> Aim for its left edge
+        tx = entity.aiTarget.x + 4;
+      } else {
+        // Target is to the left -> Aim for its right edge
+        tx = entity.aiTarget.x + candW - 4;
+      }
+    }
+
     let dx = tx - px;
     if (dx > config.gameWidth / 2) dx -= config.gameWidth;
     else if (dx < -config.gameWidth / 2) dx += config.gameWidth;
@@ -232,12 +322,25 @@ export function runAI(entity: Player) {
     let dist = Math.abs(dx);
     let targetDir = dx > 0 ? 1 : -1;
 
-    let candW = entity.aiTarget.w || 16;
+    let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
     let isOverPlatform = (px - 6 >= entity.aiTarget.x && px + 6 <= entity.aiTarget.x + candW);
+
+    // Height-aware and flight-aware OverPlatform override:
+    // If the target is physically above us or we are in mid-air, do NOT prematurely release the direction key.
+    // Hold it firmly to pull into the target smoothly, avoiding mid-air stalling, apex hesitation, and vertical jumping.
+    let targetY = entity.aiTarget.y;
+    if (targetY !== undefined) {
+      let dy_target = py - targetY; // positive when target is above player feet
+      if (dy_target > 8) {
+        isOverPlatform = (dist < 2.5);
+      } else if (!isGrounded) {
+        isOverPlatform = (dist < 2.5);
+      }
+    }
 
     let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= SCORE_THRESHOLDS.MUSHROOM_MAX) && ((game.greenMushroomCount || 0) < 18);
     // When locked from normal jump, fly directly and continuously toward the target (straight-shot)
-    let stopDist = entity.aiLockedFromNormalJump ? 1.5 : (isMushroomMode ? 2 : (entity.lastPlatform ? 2 : 6));
+    let stopDist = entity.aiLockedFromNormalJump ? 1.5 : (isMushroomMode ? 2 : (isGrounded ? 2 : 5));
     
     // Suppress shaking/trembling:
     // If we are already aligned over the target platform, stop issuing left/right key pushes (neutral inputDir = 0)
@@ -256,6 +359,45 @@ export function runAI(entity: Player) {
     } else if (entity.inputDir === undefined) {
       entity.inputDir = entity.facingRight ? 1 : -1;
     }
+  }
+
+  // Stuck/Collision breakout movement (irregular/random breakout maneuver)
+  let isStuckBreakout = (entity.stagnationTimer >= 120 || isStuck);
+  if (isStuckBreakout) {
+    if (entity.breakoutTimer && entity.breakoutTimer > 0) {
+      entity.breakoutTimer--;
+      if (entity.breakoutDir !== undefined) {
+        entity.inputDir = entity.breakoutDir;
+      }
+    } else {
+      // 5% chance per frame to trigger a breakout maneuver
+      if (Math.random() < 0.05) {
+        let chosenDir = Math.random() < 0.5 ? 1 : -1;
+        // Find the nearest other active entity to actively move away from them
+        let nearestOther: Player | null = null;
+        let minOtherDist = Infinity;
+        for (let other of otherEntities) {
+          if (!other) continue;
+          let dx_other = Math.abs(entity.x - other.x);
+          if (dx_other > hgw) dx_other = gw - dx_other;
+          if (dx_other < minOtherDist) {
+            minOtherDist = dx_other;
+            nearestOther = other;
+          }
+        }
+        if (nearestOther && minOtherDist < 40) {
+          let dx_val = entity.x - nearestOther.x;
+          if (dx_val > hgw) dx_val -= gw;
+          else if (dx_val < -hgw) dx_val += gw;
+          chosenDir = dx_val > 0 ? 1 : -1;
+        }
+        entity.breakoutTimer = 15 + Math.floor(Math.random() * 15);
+        entity.breakoutDir = chosenDir;
+        entity.inputDir = chosenDir;
+      }
+    }
+  } else {
+    entity.breakoutTimer = 0;
   }
 }
 
@@ -295,6 +437,13 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   let gw = config.gameWidth;
   let hgw = gw / 2;
   
+  let otherEntities: Player[] = [];
+  if (!entity.isNPC) {
+    otherEntities = (game.npcs || []).filter(n => n && n.active);
+  } else {
+    otherEntities = [game.player].concat((game.npcs || []).filter(n => n && n !== entity && n.active));
+  }
+  
   let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= SCORE_THRESHOLDS.MUSHROOM_MAX) && ((game.greenMushroomCount || 0) < 18);
 
   let processCand = (cand: any) => { 
@@ -333,13 +482,15 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
     let evalVy = isGroundedOnPlatform ? getPlatformJumpVy(entity.lastPlatform, entity) : initialVy;
 
-    if (evalVy < 0) {
+    if (entity.aiLockedFromNormalJump && entity.aiLockedTarget === cand) {
+      isReachable = true;
+    } else if (evalVy < 0) {
       // When rising in mid-air or launched into a jump, determine exact theoretical jump apex height
       let maxAscent = (evalVy * evalVy) / (2 * g);
       let apexY = py - maxAscent;
 
-      // Platform surface must be at or below the jump apex Y (with a 4px landing tolerance)
-      if (candPy >= apexY - 4) {
+      // Platform surface must be at or below the jump apex Y (with at least 2px clearance to guarantee landing)
+      if (candPy >= apexY + 2) {
         let discriminant = evalVy * evalVy + 2 * g * dy_world;
         if (discriminant >= 0) {
           let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
@@ -387,7 +538,76 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
     }
 
-    let score = 0;
+    // Deterministic, unique platform preference bias to prevent herding and target-switching oscillation.
+    // Each entity prefers platforms in a slightly different order based on their unique ID/coordinates.
+    let entityId = entity.isNPC ? (entity.npcIndex !== undefined ? entity.npcIndex : 1) : 0;
+    let candSeed = Math.abs(Math.sin((cand.x || 0) * 12.9898 + (cand.y || 0) * 78.233 + entityId * 43.123));
+    let microBias = (candSeed - 0.5) * 800; // Reduced from 6000 to 800 to prevent dampening climb elevation drive
+
+    // Ice platform lookahead check: ensure there is a next platform/item reachable after jumping off this ice platform
+    let hasNextFromIce = true;
+    if (cand.isIcy) {
+      let jumpVy = getPlatformJumpVy(cand, entity);
+      let maxAscent = (jumpVy * jumpVy) / (2 * g);
+      let t_flight = (-jumpVy * 2) / g;
+      let max_reach_dx = t_flight * maxVx + 10;
+
+      let foundNext = false;
+      for (let nextCand of candidates) {
+        if (nextCand === cand || nextCand.broken || nextCand.blacklisted || nextCand.isGround) continue;
+        
+        let nextCandPy = nextCand.y;
+        if (nextCandPy >= maxReachY) continue;
+
+        // Next platform must be within vertical reach from cand
+        if (nextCandPy >= cand.y + 15) continue;
+        if (nextCandPy < cand.y - maxAscent - 15) continue;
+
+        let nextCandW = nextCand.w || 16;
+        let nextCandPx = nextCand.x + nextCandW / 2;
+        let next_dx = Math.abs(candPx - nextCandPx);
+        if (next_dx > hgw) next_dx = gw - next_dx;
+        
+        let next_eff_dx = Math.max(0, next_dx - (nextCandW / 2) - (candW / 2));
+        if (next_eff_dx <= max_reach_dx) {
+          foundNext = true;
+          break;
+        }
+      }
+
+      if (!foundNext) {
+        for (let nextItem of items) {
+          if (nextItem.collected || nextItem.blacklisted) continue;
+          
+          let nextItemPy = nextItem.y;
+          if (nextItemPy >= maxReachY) continue;
+
+          if (nextItemPy >= cand.y + 15) continue;
+          if (nextItemPy < cand.y - maxAscent - 15) continue;
+
+          let nextItemW = nextItem.w || 16;
+          let nextItemPx = nextItem.x + nextItemW / 2;
+          let next_dx = Math.abs(candPx - nextItemPx);
+          if (next_dx > hgw) next_dx = gw - next_dx;
+
+          let next_eff_dx = Math.max(0, next_dx - (nextItemW / 2) - (candW / 2));
+          if (next_eff_dx <= max_reach_dx) {
+            foundNext = true;
+            break;
+          }
+        }
+      }
+
+      if (!foundNext) {
+        hasNextFromIce = false;
+      }
+    }
+
+    let score = microBias;
+    if (cand.isIcy) {
+      score -= 4000; // Prefer stable normal platforms if both are at a similar height
+    }
+
     let maxAscent = initialVy < 0 ? (initialVy * initialVy) / (2 * g) : 0;
     let apexY = py - maxAscent;
 
@@ -424,17 +644,23 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
     } else if (isStuck) {
       if (dy > 0) score += dy * 50; 
-      score += eff_dx * 5; 
+      score += eff_dx * 10; 
     } else {
       if (dy > 0) {
-        score += dy * 100; // Prioritize climbing upward to reachable high platforms
+        score += dy * 180; // Strongly prioritize climbing upward (increased from 100 to 180)
         if (initialVy < 0) {
-          let distFromApex = Math.abs(candPy - apexY);
-          score += Math.max(0, 30000 - distFromApex * 25);
+          let distFromApex = candPy - apexY; // Distance of platform surface below the jump apex
+          let apexBonus = 0;
+          if (distFromApex >= 2) {
+            // Highly reachable! The closer to the apex (higher up), the better!
+            // Give a massive base bonus, with a small penalty for being further below the apex.
+            apexBonus = 40000 - distFromApex * 100; // Boosted base bonus to 40000, reduced penalty to 100
+          }
+          score += Math.max(0, apexBonus);
         }
       } else {
         let absDy = dy < 0 ? -dy : dy;
-        score -= absDy * 50; // Penalty for platform below
+        score -= absDy * 100; // Penalize platforms below more heavily (increased from 50 to 100) to keep drive upward
         // When descending, heavily encourage landing on platforms directly or closely beneath the player
         if (initialVy >= 0 || entity.vy > 0) {
           if (eff_dx === 0) {
@@ -462,21 +688,33 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         score -= (25000 / recency);
       }
 
+      // Stuck prevention: If currently stuck/doing vertical jumps, heavily penalize targeting
+      // platforms directly above the player to force choosing side platforms.
+      if ((entity.samePlatformVertJumps || 0) >= 1) {
+        let isDirectlyAbove = (eff_dx < 16 && dy > 0);
+        if (isDirectlyAbove) {
+          score -= 60000;
+        }
+      }
+
       // Target commitment/stickiness bonus: avoid rapid back-and-forth target switching
       if (entity.aiTarget && cand === entity.aiTarget) {
         score += 15000;
       }
     }
 
-    if (isReachable) {
-      if (score > bestScore) {
-        bestScore = score;
-        bestTarget = cand;
-      }
+    // Improved fallback evaluation: context-aware for ascent vs descent
+    let fbScore = microBias;
+    if (cand.isIcy) {
+      fbScore -= 4000; // Apply general ice platform preference penalty here too
     }
 
-    // Improved fallback evaluation: context-aware for ascent vs descent
-    let fbScore = 0;
+    // Heavily penalize ice platforms with no next step (dead ends)
+    if (!hasNextFromIce) {
+      score -= 200000;
+      fbScore -= 200000;
+    }
+
     let isDescending = (initialVy >= 0 || entity.vy > 0);
 
     if (isDescending) {
@@ -511,6 +749,30 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     // Target commitment/stickiness bonus for fallback candidates as well
     if (entity.aiTarget && cand === entity.aiTarget) {
       fbScore += 15000;
+    }
+
+    // BREAKOUT target diversification: If stuck, force target switching to break stagnation loops
+    let isStuckBreakout = (entity.stagnationTimer >= 120 || isStuck);
+    if (isStuckBreakout) {
+      // 1. Add a penalty to the current target/locked target to encourage switching to a new target
+      if (entity.aiTarget === cand || entity.aiLockedTarget === cand) {
+        score -= 40000;
+        fbScore -= 40000;
+      }
+
+      // 2. Extra penalty for recently visited platforms in history to break loop/stagnation!
+      let historyIdx = history.lastIndexOf(cand);
+      if (historyIdx !== -1) {
+        score -= 50000;
+        fbScore -= 50000;
+      }
+    }
+
+    if (isReachable) {
+      if (score > bestScore) {
+        bestScore = score;
+        bestTarget = cand;
+      }
     }
 
     if (fbScore > bestFallbackScore) {

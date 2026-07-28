@@ -61,6 +61,7 @@ export interface GameState {
   isNewRecord: boolean;
   isBenchmarking?: boolean;
   personalBest: any;
+  showAIThoughts?: boolean;
 }
 
 export type { Player, NPC, Platform, Particle, Item, Coin, FlyingCoin, Meteor, Bird, BackgroundCloud as Cloud };
