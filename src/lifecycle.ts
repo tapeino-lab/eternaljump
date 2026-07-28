@@ -50,7 +50,7 @@ export function updatePauseButton() {
   let targetState = 'none';
   if (game.isPaused || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear' || demoState.active) {
     targetState = 'none';
-  } else if (game.state === 'playing' || game.state === 'intro') {
+  } else if (game.state === 'playing' || game.state === 'intro' || game.state === 'intro_anim' || game.state === 'powerup_anim' || game.state === 'powerdown_anim') {
     targetState = isAttractMode ? 'flex_gear' : 'flex_pause';
   }
 
@@ -214,7 +214,7 @@ export function updateAutoCruiseBtnVisibility() {
     !isModalOpen &&
     !game.demoMode &&
     !isAttractMode &&
-    (game.state === 'playing' || game.state === 'intro') &&
+    (game.state === 'playing' || game.state === 'intro' || game.state === 'intro_anim' || game.state === 'powerup_anim' || game.state === 'powerdown_anim') &&
     !!(game.equipped && game.equipped['autocruise']);
 
   const nextDisplay = canShow ? 'block' : 'none';

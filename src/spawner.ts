@@ -183,7 +183,7 @@ export function spawnPlatform() {
     let itemX = config.gameWidth / 2 - 8;
     if (game.lastGreenMushroomY === null || game.lastGreenMushroomY === undefined) {
       if (y <= firstGreenY) {
-        let it = getIt(firstGreenY, 'green', itemX);
+        let it = getIt(firstGreenY - 2, 'green', itemX);
         game.items.push(it);
         game.lastGreenMushroomY = firstGreenY;
         game.greenMushroomCount = 1;
