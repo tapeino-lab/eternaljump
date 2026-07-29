@@ -31,7 +31,7 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
     floater.style.borderRadius = '4px';
     floater.style.fontFamily = '"Press Start 2P", sans-serif';
     floater.style.textAlign = 'center';
-    floater.style.zIndex = '2000';
+    floater.style.zIndex = '15';
     floater.style.boxShadow = '0 4px 10px rgba(0,0,0,0.5)';
     floater.style.pointerEvents = 'none';
     
