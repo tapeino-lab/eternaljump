@@ -177,6 +177,7 @@ function resize() {
   document.documentElement.style.setProperty("--control-height", ctrlH + "px");
   document.documentElement.style.setProperty("--control-min-height", minCtrlH + "px");
   document.documentElement.style.setProperty("--control-max-height", maxCtrlH + "px");
+  document.documentElement.style.setProperty("--ctrl-scale", (ctrlH / 96).toString());
   if (wrap) {
     wrap.style.width = config.gameWidth + 'px';
     wrap.style.height = config.gameHeight + 'px';
