@@ -546,6 +546,17 @@ transform: scale(0.9);
   box-sizing: border-box;
 }
 
+/* Adjustments when Fullscreen button is hidden (iOS / unsupported devices) */
+body.no-fullscreen .btn-instagram {
+  right: 2px;
+}
+body.no-fullscreen #shopResetBtn {
+  margin-right: 20px !important;
+}
+body.no-fullscreen #hud-time {
+  padding-right: 18px !important;
+}
+
 #btnInstagramPause {
   z-index: 100;
 }
