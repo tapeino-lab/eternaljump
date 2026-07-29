@@ -174,7 +174,7 @@ export class InputManager {
   private bindGlobalTouchEvents() {
     ['touchstart', 'mousedown'].forEach(ev => {
       document.addEventListener(ev, (e: any) => {
-        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause') || e.target.closest('#btnFullscreen')) return;
         this.handleGlobalCapture(e);
       }, { capture: true, passive: false });
     });
@@ -187,7 +187,7 @@ export class InputManager {
 
     ['touchstart', 'mousedown'].forEach(ev => {
       ctrlArea.addEventListener(ev, (e: any) => {
-        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause') || e.target.closest('#autoCruiseBtn') || e.target.closest('#pauseBtn')) return;
+        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause') || e.target.closest('#btnFullscreen') || e.target.closest('#autoCruiseBtn') || e.target.closest('#pauseBtn')) return;
         e.preventDefault();
         
         if (this.handleControlTap(e)) return;
@@ -205,7 +205,7 @@ export class InputManager {
 
     ['touchmove', 'mousemove'].forEach(ev => {
       ctrlArea.addEventListener(ev, (e: any) => {
-        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause') || e.target.closest('#btnFullscreen')) return;
         if (e.cancelable) e.preventDefault();
         if (isAttractMode) return;
         if (game.aiActive) return;
@@ -239,7 +239,7 @@ export class InputManager {
 
     ['touchstart', 'mousedown'].forEach(ev => {
       tOv.addEventListener(ev, (e: any) => {
-        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause')) return;
+        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause') || e.target.closest('#btnFullscreen')) return;
         e.preventDefault();
         
         if (this.handleControlTap(e)) return;
@@ -319,11 +319,30 @@ export class InputManager {
       });
     }
 
+    const btnFs = $('btnFullscreen');
+    if (btnFs) {
+      ['touchstart', 'mousedown'].forEach(ev => {
+        btnFs.addEventListener(ev, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+              console.warn("Fullscreen error", err);
+            });
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        }, { passive: false });
+      });
+    }
+
     const pauseScreen = $('pauseScreen');
     if (pauseScreen) {
       ['touchstart', 'mousedown'].forEach(ev => {
         pauseScreen.addEventListener(ev, (e: any) => {
-          if (e.target.closest('#btnInstagramPause')) return;
+          if (e.target.closest('#btnInstagramPause') || e.target.closest('#btnFullscreen')) return;
           if (e.target.closest('#btnRankingPause')) {
             e.preventDefault();
             e.stopPropagation();
