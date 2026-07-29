@@ -44,32 +44,36 @@ export function resetBGScore() {
   lastBGScore = -1;
 }
 
-const cloudCaches = [];
-for (let i = 0; i < 3; i++) {
-  let c = document.createElement('canvas');
-  let cx = c.getContext('2d', { alpha: true });
-  let s = 10;
-  if (i === 0) {
-    c.width = s * 6; c.height = s * 3;
-    cx.fillStyle = '#fff';
-    cx.fillRect(s, s, s * 4, s * 2);
-    cx.fillRect(s * 2, 0, s * 2, s);
-    cx.fillRect(0, s * 2, s * 6, s);
-  } else if (i === 1) {
-    c.width = s * 7; c.height = s * 3;
-    cx.fillStyle = '#fff';
-    cx.fillRect(s, s, s * 5, s * 2);
-    cx.fillRect(s * 2, 0, s * 3, s);
-    cx.fillRect(0, s * 2, s * 7, s);
-  } else {
-    c.width = s * 5; c.height = s * 3;
-    cx.fillStyle = '#fff';
-    cx.fillRect(s, s, s * 3, s * 2);
-    cx.fillRect(s * 2, 0, s * 2, s);
-    cx.fillRect(0, s * 2, s * 5, s);
+export const cloudCaches: HTMLCanvasElement[] = [];
+export function drawCloudCaches() {
+  cloudCaches.length = 0;
+  for (let i = 0; i < 3; i++) {
+    let c = document.createElement('canvas');
+    let cx = c.getContext('2d', { alpha: true });
+    let s = 10;
+    if (i === 0) {
+      c.width = s * 6; c.height = s * 3;
+      cx.fillStyle = '#fff';
+      cx.fillRect(s, s, s * 4, s * 2);
+      cx.fillRect(s * 2, 0, s * 2, s);
+      cx.fillRect(0, s * 2, s * 6, s);
+    } else if (i === 1) {
+      c.width = s * 7; c.height = s * 3;
+      cx.fillStyle = '#fff';
+      cx.fillRect(s, s, s * 5, s * 2);
+      cx.fillRect(s * 2, 0, s * 3, s);
+      cx.fillRect(0, s * 2, s * 7, s);
+    } else {
+      c.width = s * 5; c.height = s * 3;
+      cx.fillStyle = '#fff';
+      cx.fillRect(s, s, s * 3, s * 2);
+      cx.fillRect(s * 2, 0, s * 2, s);
+      cx.fillRect(0, s * 2, s * 5, s);
+    }
+    cloudCaches.push(c);
   }
-  cloudCaches.push(c);
 }
+drawCloudCaches();
 
 export function drawBG(ts) {
   let scoreTop = (game.baseScoreY - game.cameraY) * config.scoreMultiplier;

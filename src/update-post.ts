@@ -24,10 +24,10 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
   let lowestY = game.player.y;
   for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {
     let n = game.npcs[_idx_npcs];
-    if (n.y > lowestY && n.y < 1500) lowestY = n.y;
+    if (n.active && n.y > lowestY) lowestY = n.y;
   }
   
-  let dL = Math.max(game.cameraY, lowestY) + config.gameHeight * (1 + config.recoveryScreens);
+  let dL = lowestY + config.gameHeight * 2;
   for (let i = 0; i < game.platforms.length; i++) {
     let p = game.platforms[i];
     if (p.broken || (!p.isGround && p.y >= dL)) {

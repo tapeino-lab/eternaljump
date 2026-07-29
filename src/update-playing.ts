@@ -15,7 +15,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
 
   for (let _idx_items = 0; _idx_items < game.items.length; _idx_items++) {
     let i = game.items[_idx_items];
-    if (i.y > bot100 || i.y + i.h < top100) continue;
+    if (i.type !== 'green' && (i.y > bot100 || i.y + i.h < top100)) continue;
 
     if (game.player.x < i.x + i.w && game.player.x + game.player.w > i.x && game.player.y < i.y + i.h && game.player.y + game.player.h > i.y) {
       if (i.type === 'green') {
