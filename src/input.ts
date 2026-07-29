@@ -321,21 +321,52 @@ export class InputManager {
 
     const btnFs = $('btnFullscreen');
     if (btnFs) {
-      ['touchstart', 'mousedown'].forEach(ev => {
-        btnFs.addEventListener(ev, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-              console.warn("Fullscreen error", err);
-            });
-          } else {
-            if (document.exitFullscreen) {
-              document.exitFullscreen();
-            }
+      // Check iOS or lack of fullscreen support
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const docEl = document.documentElement as any;
+      const doc = document as any;
+      const canFullscreen = !!(docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen);
+
+      if (isIOS || !canFullscreen) {
+        // Hide fullscreen button on iOS/iPhone where Fullscreen API is unsupported or problematic
+        btnFs.style.display = 'none';
+      } else {
+        const pathEnter = "M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z";
+        const pathExit = "M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z";
+
+        const updateFsIcon = () => {
+          const fsElement = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+          const svgPath = btnFs.querySelector('path');
+          if (svgPath) {
+            svgPath.setAttribute('d', fsElement ? pathExit : pathEnter);
           }
-        }, { passive: false });
-      });
+        };
+
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+          document.addEventListener(event, updateFsIcon);
+        });
+
+        ['touchstart', 'mousedown'].forEach(ev => {
+          btnFs.addEventListener(ev, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const fsElement = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+            if (!fsElement) {
+              if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch((err: any) => console.warn("Fullscreen error", err));
+              } else if (docEl.webkitRequestFullscreen) {
+                docEl.webkitRequestFullscreen();
+              }
+            } else {
+              if (doc.exitFullscreen) {
+                doc.exitFullscreen();
+              } else if (doc.webkitExitFullscreen) {
+                doc.webkitExitFullscreen();
+              }
+            }
+          }, { passive: false });
+        });
+      }
     }
 
     const pauseScreen = $('pauseScreen');

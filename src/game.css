@@ -513,10 +513,10 @@ transform: scale(0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.8;
+  opacity: 0.45;
 }
 .btn-fullscreen:hover {
-  opacity: 1;
+  opacity: 0.85;
 }
 .btn-fullscreen svg {
   width: 44px;
@@ -524,6 +524,7 @@ transform: scale(0.9);
   fill: #fff;
   pointer-events: none;
 }
+
 
 .btn-instagram {
   position: absolute;
