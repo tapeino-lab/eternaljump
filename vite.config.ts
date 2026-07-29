@@ -44,8 +44,8 @@ export default defineConfig(() => {
         injectRegister: 'auto',
         includeAssets: ['icon.svg', 'version.json'],
         manifest: {
-          name: 'Eternal Jumper',
-          short_name: 'Eternal Jumper',
+          name: 'FOLLOW ME!',
+          short_name: 'FOLLOW ME!',
           description: 'An endless jumping game',
           theme_color: '#000000',
           background_color: '#000000',

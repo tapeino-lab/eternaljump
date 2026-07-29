@@ -1,6 +1,6 @@
 {
-  "name": "ETERNAL JUMPER",
-  "description": "An 8-bit style vertical scroll jumping game - ETERNAL JUMPER.",
+  "name": "FOLLOW ME!",
+  "description": "An 8-bit style vertical scroll jumping game - FOLLOW ME!.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

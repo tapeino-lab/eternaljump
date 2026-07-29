@@ -129,10 +129,9 @@ function getEquippedIconSVG(id: string | null): string {
       <rect x="10" y="9" width="3" height="1" fill="#000"/>
       <rect x="13" y="10" width="1" height="2" fill="#000"/>
       <rect x="12" y="12" width="1" height="1" fill="#000"/>
-      <rect x="1" y="12" width="11" height="1" fill="#000"/>
-      <rect x="1" y="13" width="1" height="2" fill="#000"/>
-      <rect x="14" y="12" width="1" height="3" fill="#000"/>
-      <rect x="2" y="15" width="12" height="1" fill="#000"/>
+      <rect x="2" y="12" width="1" height="2" fill="#000"/>
+      <rect x="13" y="12" width="1" height="2" fill="#000"/>
+      <rect x="3" y="14" width="10" height="1" fill="#000"/>
       <rect x="3" y="4" width="5" height="8" fill="#4be"/>
       <rect x="8" y="7" width="1" height="5" fill="#4be"/>
       <rect x="9" y="10" width="4" height="2" fill="#4be"/>
@@ -141,12 +140,11 @@ function getEquippedIconSVG(id: string | null): string {
       <rect x="4" y="10" width="6" height="1" fill="#9ff"/>
       <rect x="7" y="6" width="1" height="6" fill="#17b"/>
       <rect x="8" y="11" width="4" height="1" fill="#17b"/>
-      <rect x="2" y="12" width="11" height="1" fill="#777"/>
-      <rect x="3" y="13" width="1" height="1" fill="#999"/>
-      <rect x="7" y="13" width="1" height="1" fill="#999"/>
-      <rect x="11" y="13" width="1" height="1" fill="#999"/>
-      <rect x="2" y="14" width="12" height="1" fill="#ddd"/>
-      <rect x="13" y="13" width="1" height="1" fill="#ddd"/>
+      <rect x="3" y="12" width="10" height="2" fill="#e0c280"/>
+      <rect x="4" y="13" width="1" height="1" fill="#b89c5e"/>
+      <rect x="6" y="13" width="1" height="1" fill="#b89c5e"/>
+      <rect x="8" y="13" width="1" height="1" fill="#b89c5e"/>
+      <rect x="10" y="13" width="1" height="1" fill="#b89c5e"/>
     </svg>`;
   } else if (id === 'autocruise') {
     return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
