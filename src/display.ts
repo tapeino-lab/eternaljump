@@ -42,12 +42,15 @@ function generateGreenVariant(img: HTMLImageElement): HTMLCanvasElement {
 export const IMG: Record<string, HTMLImageElement> = {};
 for (let k in B64) {
   IMG[k] = new Image();
-  IMG[k].onload = () => {
-    GREEN_IMG[k] = generateGreenVariant(IMG[k]);
+  const generate = () => {
+    if (!GREEN_IMG[k]) {
+      GREEN_IMG[k] = generateGreenVariant(IMG[k]);
+    }
   };
+  IMG[k].onload = generate;
   IMG[k].src = B64[k];
   if (IMG[k].complete && IMG[k].naturalWidth > 0) {
-    GREEN_IMG[k] = generateGreenVariant(IMG[k]);
+    generate();
   }
 }
 
@@ -84,18 +87,10 @@ document.addEventListener('pwa-update-available', () => {
 });
 
 
-export const groundCache = document.createElement('canvas');
-groundCache.width = config.gameWidth;
-groundCache.height = 400;
-const gCtx = groundCache.getContext('2d', { alpha: false });
-export let groundCached = false;
-
+export let groundPattern: CanvasPattern | null = null;
 function drawGroundCache() {
-  if (IMG.gnd.complete && IMG.gnd.naturalWidth > 0) {
-    let p = gCtx.createPattern(IMG.gnd, 'repeat');
-    gCtx.fillStyle = p;
-    gCtx.fillRect(0, 0, config.gameWidth, 400);
-    groundCached = true;
+  if (IMG.gnd.complete && IMG.gnd.naturalWidth > 0 && !groundPattern) {
+    groundPattern = ctx.createPattern(IMG.gnd, 'repeat');
   }
 }
 
@@ -202,8 +197,8 @@ function resize() {
     wrap.style.transformOrigin = 'center center';
   }
   if (cvs) {
-    cvs.width = config.gameWidth;
-    cvs.height = config.gameHeight;
+    if (cvs.width !== config.gameWidth) cvs.width = config.gameWidth;
+    if (cvs.height !== config.gameHeight) cvs.height = config.gameHeight;
     cvs.style.width = '100%';
     cvs.style.height = '100%';
   }

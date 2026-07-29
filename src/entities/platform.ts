@@ -1,6 +1,6 @@
 import { config, SCORE_THRESHOLDS } from '../config.js';
 import { RND, FLR, ABS, PI, MAX, MIN } from '../utils.js';
-import { ctx, IMG, groundCache, groundCached } from '../display.js';
+import { ctx, IMG, groundPattern } from '../display.js';
 
 import { game } from '../state.js';
 import { getPt } from './particles.js';
@@ -237,8 +237,12 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
         }
         if (this.isGround) {
           if (this.isIntroCover && this.blink) ctx.globalAlpha = 0.3;
-          if (groundCached) {
-            ctx.drawImage(groundCache, this.x, 0, this.w, this.h, this.x, this.y, this.w, this.h);
+          if (groundPattern) {
+            ctx.save();
+            ctx.translate(0, this.y);
+            ctx.fillStyle = groundPattern;
+            ctx.fillRect(this.x, 0, this.w, this.h);
+            ctx.restore();
           } else {
             dR(this.x, this.y, this.w, this.h, '#A0522D');
           }

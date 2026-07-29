@@ -1,5 +1,5 @@
 let tM = 4, tS = 0;
-import { IMG, ctx, pBtn, groundCache, groundCached, ctrlCenterX } from './display.js';
+import { IMG, ctx, pBtn, ctrlCenterX } from './display.js';
 import { loopRunning, resetLoopStats, startLoop } from './loop.js';
 import { applyCoinCountUp } from './ui-effects.js';
 import { secureStorage } from './secureStorage.js';
