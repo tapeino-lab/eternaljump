@@ -310,9 +310,9 @@ export function runAI(entity: Player) {
     if (needsRethink) {
       // Throttle heavy AI pathfinding calculations to 2 per frame globally
       if (aiCalculationsThisFrame >= 2) {
-        return;
-      }
-      aiCalculationsThisFrame++;
+        needsRethink = false; // Defer pathfinding, but continue to steering logic
+      } else {
+        aiCalculationsThisFrame++;
 
       let history = entity.visitedHistory || entity.recentPlatforms || [];
       let timesVisited = 0;
@@ -325,7 +325,9 @@ export function runAI(entity: Player) {
       let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
       let initialVy = (isJustJumped || isGrounded) ? getPlatformJumpVy(entity.lastPlatform, entity) : entity.vy;
       entity.aiTarget = findBestTarget(entity, px, py, initialVy, isStuck);
-    } else {
+      }
+    } 
+    if (!needsRethink) {
       entity.aiThinkTimer = (entity.aiThinkTimer || 0) + 1;
     }
   }
@@ -338,44 +340,29 @@ export function runAI(entity: Player) {
       tx += entity.aiTarget.direction * 16;
     }
     
-    // Smart edge targeting for far away platforms to maximize reachable jump distance
+    // Center targeting
     let dx_center = tx - px;
     if (dx_center > config.gameWidth / 2) dx_center -= config.gameWidth;
     else if (dx_center < -config.gameWidth / 2) dx_center += config.gameWidth;
 
-    if (entity.aiTarget.y !== undefined && Math.abs(dx_center) > 20) {
-      // Use a deeper inset (12px) to guarantee the player's 16px collision box clears any adjacent previous platform
-      let inset = Math.min(12, candW / 2);
-      if (dx_center > 0) {
-        // Target is to the right -> Aim for its left edge
-        tx = entity.aiTarget.x + inset;
-      } else {
-        // Target is to the left -> Aim for its right edge
-        tx = entity.aiTarget.x + candW - inset;
-      }
-    }
-
-    let dx = tx - px;
-    if (dx > config.gameWidth / 2) dx -= config.gameWidth;
-    else if (dx < -config.gameWidth / 2) dx += config.gameWidth;
+    let dx = dx_center;
 
     let dist = Math.abs(dx);
     let targetDir = dx > 0 ? 1 : -1;
 
     let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
-    let isOverPlatform = (px - 6 >= entity.aiTarget.x && px + 6 <= entity.aiTarget.x + candW);
+    
+    // Instead of a strict 1.0px threshold which causes wobbling, 
+    // we consider the entity "over" the platform if it is comfortably within its bounds.
+    let safeInset = Math.min(8, candW / 3);
+    let isOverPlatform = dist < (candW / 2 - safeInset);
 
-    // Height-aware and flight-aware OverPlatform override:
-    // If the target is physically above us or we are in mid-air, do NOT prematurely release the direction key.
-    // Hold it firmly to pull into the target smoothly, avoiding mid-air stalling, apex hesitation, and vertical jumping.
+    // If the target is significantly above us, wait until we are closer to the center
     let targetY = entity.aiTarget.y;
     if (targetY !== undefined) {
       let dy_target = py - targetY; // positive when target is above player feet
       if (dy_target > 8) {
-        isOverPlatform = (dist < 2.5);
-      } else if (!isGrounded) {
-        // Demand stricter alignment when in mid-air to prevent edge clipping on adjacent platforms
-        isOverPlatform = (dist < 1.0);
+        isOverPlatform = dist < 2.5;
       }
     }
 
@@ -673,7 +660,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         score -= distCenter * 10;
 
         if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') {
-          score += 3500;
+          score += 80000;
         }
 
         let historyIdx = history.lastIndexOf(cand);
@@ -713,7 +700,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       score -= eff_dx * 1.5; // Minimal lateral penalty so reachable far platforms are pursued
 
       let bonus = 0;
-      if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') bonus += 3500;
+      if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') bonus += 80000;
       if (cand.type === 'green' && dy > 0) bonus += 500000;
       else if (cand.collected !== undefined) bonus += 1000; 
       
