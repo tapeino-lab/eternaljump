@@ -196,7 +196,7 @@
   </div>
 
   <div id="controlArea">
-    <button id="autoCruiseBtn" style="position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 80px; height: 40px; font-size: 10px; z-index: 1; display: none; background: rgba(0,0,0,0.5); color: #fff; border: 3px solid rgba(255, 255, 255, 0.7); border-radius: 6px; font-family: 'Press Start 2P', monospace; cursor: pointer;">AUTO</button>
+    <button id="autoCruiseBtn" style="position: absolute; top: calc(-50px * var(--ctrl-scale, 1)); left: 50%; transform: translateX(-50%); width: calc(80px * var(--ctrl-scale, 1)); height: calc(40px * var(--ctrl-scale, 1)); font-size: calc(10px * var(--ctrl-scale, 1)); z-index: 1; display: none; background: rgba(0,0,0,0.5); color: #fff; border: 3px solid rgba(255, 255, 255, 0.7); border-radius: 6px; font-family: 'Press Start 2P', monospace; cursor: pointer;">AUTO</button>
     <div id="pauseBtn"></div>
     <div id="btnLeft" class="dir-btn"><span class="tri"></span></div>
     <div id="btnRight" class="dir-btn"><span class="tri"></span></div>

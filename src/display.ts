@@ -177,7 +177,9 @@ function resize() {
   document.documentElement.style.setProperty("--control-height", ctrlH + "px");
   document.documentElement.style.setProperty("--control-min-height", minCtrlH + "px");
   document.documentElement.style.setProperty("--control-max-height", maxCtrlH + "px");
-  document.documentElement.style.setProperty("--ctrl-scale", (ctrlH / 96).toString());
+  // Cap the scale factor at 1.3 to prevent elements from becoming huge in fullscreen mode
+  let ctrlScale = Math.min(1.3, Math.max(1, ctrlH / 96));
+  document.documentElement.style.setProperty("--ctrl-scale", ctrlScale.toString());
   if (wrap) {
     wrap.style.width = config.gameWidth + 'px';
     wrap.style.height = config.gameHeight + 'px';
