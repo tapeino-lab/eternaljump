@@ -8,8 +8,15 @@ import { initGame } from './lifecycle.js';
 import { RankingAPI } from './ranking.js';
 
 export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean) {
+  const camY = game.cameraY;
+  const camH = config.gameHeight;
+  const top100 = camY - 100;
+  const bot100 = camY + camH + 100;
+
   for (let _idx_items = 0; _idx_items < game.items.length; _idx_items++) {
     let i = game.items[_idx_items];
+    if (i.y > bot100 || i.y + i.h < top100) continue;
+
     if (game.player.x < i.x + i.w && game.player.x + game.player.w > i.x && game.player.y < i.y + i.h && game.player.y + game.player.h > i.y) {
       if (i.type === 'green') {
         let superPower = config.superJumpPower * config.glowingMovingJumpMultiplier;
@@ -57,6 +64,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
 
   for (let _idx_coins = 0; _idx_coins < game.coins.length; _idx_coins++) {
     let c = game.coins[_idx_coins];
+    if (c.y > bot100 || c.y + c.h < top100) continue;
     c.update();
     
     if (!c.collected) {
@@ -110,7 +118,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
 
   if (game.player.vy > 0) {
     for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
-    let p = game.platforms[_idx_plats];
+      let p = game.platforms[_idx_plats];
       if (Math.abs(p.y - game.player.y) > 200) continue;
       if (p.broken || p.isCrumbling) continue;
       if (game.player.y + game.player.h >= p.y && game.player.y + game.player.h < p.y + p.h + game.player.vy && game.player.x + game.player.w > p.x && game.player.x < p.x + p.w) {

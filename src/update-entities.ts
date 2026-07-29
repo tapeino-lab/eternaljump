@@ -106,7 +106,7 @@ export function updateParticles(game: GameState) {
   for (let i = 0; i < game.particles.length; i++) {
     let pt = game.particles[i];
     pt.update();
-    if (pt.life <= 0) {
+    if (pt.life <= 0 || pt.y > game.cameraY + config.gameHeight + 200 || pt.y < game.cameraY - 400) {
       P_PT.push(pt);
       swapRemove(game.particles, i);
       i--;
@@ -192,7 +192,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
     let onG = false;
     if (npc.isIntro && npc.vy > 0) {
       for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
-    let p = game.platforms[_idx_plats];
+        let p = game.platforms[_idx_plats];
         if (Math.abs(p.y - npc.y) > 200) continue;
         if (p.isGround && p.y === 240 && npc.x + npc.w > p.x && npc.x < p.x + p.w && npc.y + npc.h >= p.y && npc.y + npc.h < p.y + 15) {
           npc.y = p.y - npc.h;
@@ -204,7 +204,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
 
     if (!onG && npc.vy > 0) {
       for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
-    let p = game.platforms[_idx_plats];
+        let p = game.platforms[_idx_plats];
         if (Math.abs(p.y - npc.y) > 200) continue;
         if (p.broken || p.isCrumbling) continue;
         if (npc.isIntro && p.isGround) continue;

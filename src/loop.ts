@@ -26,6 +26,14 @@ export function setLoopRunning(val: boolean) { loopRunning = val; }
 export function resetLoopStats() { lastTime = performance.now(); acc = 0; }
 export function startLoop() { resetLoopStats(); loopRunning = true; requestAnimationFrame(loop); }
 
+let lastLoopCheckState = {
+  isAttractMode: null as boolean | null,
+  demoActive: null as boolean | null,
+  isPaused: null as boolean | null,
+  gameState: null as string | null,
+  aiActive: null as boolean | null
+};
+
 export function loop(ts: number) {
   let dT = ts - lastTime;
   lastTime = ts;
@@ -51,28 +59,44 @@ export function loop(ts: number) {
     }
   }
 
-  if (!cachedTitleVersion) cachedTitleVersion = $('titleVersion');
-  const tVer = cachedTitleVersion;
-  if (tVer) {
-    let nDisp = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
-    if (tVer.style.display !== nDisp) tVer.style.display = nDisp;
-  }
+  // DOM Status check only when key state properties change or on state transitions
+  const stateChanged = (
+    lastLoopCheckState.isAttractMode !== isAttractMode ||
+    lastLoopCheckState.demoActive !== demoState.active ||
+    lastLoopCheckState.isPaused !== game.isPaused ||
+    lastLoopCheckState.gameState !== game.state ||
+    lastLoopCheckState.aiActive !== game.aiActive
+  );
 
-  if (!cachedShopScreen) cachedShopScreen = $('shopScreen');
-  const shopScreen = cachedShopScreen;
-  if (shopScreen) {
-    let sDisp = (game.state === 'shop') ? 'flex' : 'none';
-    if (shopScreen.style.display !== sDisp) {
-      shopScreen.style.display = sDisp;
-      if (game.state === 'shop') {
-        onEnterShop();
-      }
-      updatePauseButton();
+  if (stateChanged) {
+    lastLoopCheckState.isAttractMode = isAttractMode;
+    lastLoopCheckState.demoActive = demoState.active;
+    lastLoopCheckState.isPaused = game.isPaused;
+    lastLoopCheckState.gameState = game.state;
+    lastLoopCheckState.aiActive = game.aiActive;
+
+    if (!cachedTitleVersion) cachedTitleVersion = $('titleVersion');
+    const tVer = cachedTitleVersion;
+    if (tVer) {
+      let nDisp = (isAttractMode && !demoState.active && !game.isPaused) ? 'block' : 'none';
+      if (tVer.style.display !== nDisp) tVer.style.display = nDisp;
     }
-  }
 
-  updatePauseButton();
-  updateAutoCruiseBtnVisibility();
+    if (!cachedShopScreen) cachedShopScreen = $('shopScreen');
+    const shopScreen = cachedShopScreen;
+    if (shopScreen) {
+      let sDisp = (game.state === 'shop') ? 'flex' : 'none';
+      if (shopScreen.style.display !== sDisp) {
+        shopScreen.style.display = sDisp;
+        if (game.state === 'shop') {
+          onEnterShop();
+        }
+      }
+    }
+
+    updatePauseButton();
+    updateAutoCruiseBtnVisibility();
+  }
 
   render(ts);
   if (loopRunning) requestAnimationFrame(loop);

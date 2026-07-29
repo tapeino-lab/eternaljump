@@ -98,27 +98,37 @@ export function drawBG(ts) {
   let bA = (currentVisScore < 100000);
   if (sA > 0) {
     ctx.fillStyle = '#fff';
+    let lastAlpha = -1;
     for (let _idx_stars = 0; _idx_stars < game.stars.length; _idx_stars++) {
-    let st = game.stars[_idx_stars];
+      let st = game.stars[_idx_stars];
       let sy = (st.y - game.cameraY * st.speed) % config.gameHeight;
       if (sy < 0) sy += config.gameHeight;
-      ctx.globalAlpha = sA * (bA ? (0.5 + 0.5 * SIN(ts * st.blink)) : 1);
+      let alpha = sA * (bA ? (0.5 + 0.5 * SIN(ts * st.blink)) : 1);
+      if (lastAlpha !== alpha) {
+        ctx.globalAlpha = alpha;
+        lastAlpha = alpha;
+      }
       ctx.fillRect(FLR(st.x), FLR(sy), st.size, st.size);
     }
-    ctx.globalAlpha = 1.0;
+    if (lastAlpha !== 1.0) ctx.globalAlpha = 1.0;
   }
   
   let cA = currentVisScore < 40000 ? 1 : (currentVisScore < 50000 ? 1 - (currentVisScore - 40000) / 10000 : 0);
   if (cA > 0) {
+    let lastAlpha = -1;
     for (let _idx_clouds = 0; _idx_clouds < game.clouds.length; _idx_clouds++) {
-    let c = game.clouds[_idx_clouds];
+      let c = game.clouds[_idx_clouds];
       let sy = (c.y - game.cameraY) * c.speed, s = 10 * c.scale;
       if (sy > config.gameHeight || sy + s * 3 < 0) continue;
-      ctx.globalAlpha = cA * (c.speed === 0.6 ? 0.15 : 0.25);
+      let alpha = cA * (c.speed === 0.6 ? 0.15 : 0.25);
+      if (lastAlpha !== alpha) {
+        ctx.globalAlpha = alpha;
+        lastAlpha = alpha;
+      }
       let cc = cloudCaches[c.type];
       ctx.drawImage(cc, FLR(c.x - s), FLR(sy - s), FLR(cc.width * c.scale), FLR(cc.height * c.scale));
-      ctx.globalAlpha = 1.0;
     }
+    if (lastAlpha !== 1.0) ctx.globalAlpha = 1.0;
   }
   return getColorAtScore(scoreTop);
 }

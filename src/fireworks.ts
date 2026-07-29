@@ -1,6 +1,7 @@
 import type { GameState } from "./types.js";
 import { config } from './config.js';
 import { FLR, RND, PI, swapRemove } from './utils.js';
+import { ObjectPool } from './entities/pool.js';
 
 export interface FireworkRocket {
   x: number;
@@ -37,6 +38,18 @@ export interface FireworkFlash {
   alpha: number;
 }
 
+const sparkPool = new ObjectPool<FireworkSpark>(() => ({
+  x: 0, y: 0, vx: 0, vy: 0, color: '', size: 0, alpha: 0, decay: 0, gravity: 0, sparkle: false
+}));
+
+const flashPool = new ObjectPool<FireworkFlash>(() => ({
+  x: 0, y: 0, radius: 0, maxRadius: 0, color: '', alpha: 0
+}));
+
+const rocketPool = new ObjectPool<FireworkRocket>(() => ({
+  x: 0, y: 0, vx: 0, vy: 0, targetY: 0, color: '', secondColor: '', type: 'burst'
+}));
+
 const COLOR_PALETTES = [
   ['#ff3366', '#ffd700'], // Pink & Gold
   ['#00f0ff', '#ffffff'], // Cyan & White
@@ -44,7 +57,6 @@ const COLOR_PALETTES = [
   ['#00ff66', '#00f0ff'], // Neon Green & Cyan
   ['#ff00ff', '#9d4edd'], // Magenta & Purple
   ['#ffffff', '#ffd700'], // Silver & Gold
-  // Traditional color palettes
   ['#e64a19', '#ffb300'],
   ['#00b8d4', '#ccff90'],
   ['#aa00ff', '#ff80ab'],
@@ -58,6 +70,9 @@ class FireworksSystem {
   spawnTimer: number = 0;
 
   reset() {
+    sparkPool.releaseAll(this.sparks);
+    flashPool.releaseAll(this.flashes);
+    rocketPool.releaseAll(this.rockets);
     this.rockets = [];
     this.sparks = [];
     this.flashes = [];
@@ -68,7 +83,6 @@ class FireworksSystem {
    * Launch firework rocket
    */
   launch(x?: number, targetY?: number) {
-    // Exclude center hole area
     let startX: number;
     if (x !== undefined) {
       startX = x;
@@ -86,22 +100,21 @@ class FireworksSystem {
     ];
     const type = types[FLR(RND() * types.length)];
 
-    // Launch position near ground
     const startY = 240;
     const dist = Math.max(20, startY - destY);
-    // Initial velocity vy for target altitude destY under gravity 0.14
     const vy = -Math.sqrt(2 * 0.14 * dist);
 
-    this.rockets.push({
-      x: startX,
-      y: startY,
-      vx: (RND() - 0.5) * 0.5,
-      vy: vy,
-      targetY: destY,
-      color: palette[0],
-      secondColor: palette[1],
-      type: type,
-    });
+    const r = rocketPool.get();
+    r.x = startX;
+    r.y = startY;
+    r.vx = (RND() - 0.5) * 0.5;
+    r.vy = vy;
+    r.targetY = destY;
+    r.color = palette[0];
+    r.secondColor = palette[1];
+    r.type = type;
+
+    this.rockets.push(r);
   }
 
   /**
@@ -121,7 +134,6 @@ class FireworksSystem {
       }
     }
 
-    // Spawn rockets
     if (allowSpawn) {
       this.spawnTimer--;
       if (this.spawnTimer <= 0) {
@@ -138,27 +150,28 @@ class FireworksSystem {
       const r = this.rockets[i];
       r.x += r.vx;
       r.y += r.vy;
-      r.vy += 0.14; // Gravity deceleration
+      r.vy += 0.14;
 
-      // Trail sparks
       if (RND() < 0.8) {
-        this.sparks.push({
-          x: r.x + (RND() - 0.5) * 1.5,
-          y: r.y + 3,
-          vx: (RND() - 0.5) * 0.3,
-          vy: RND() * 1.2 + 0.3,
-          color: r.type === 'wabika' ? '#ff9800' : '#ffea88',
-          size: 1.2 + RND() * 1.2,
-          alpha: 0.9,
-          decay: 0.06 + RND() * 0.04,
-          gravity: 0.04,
-          sparkle: false,
-        });
+        const sp = sparkPool.get();
+        sp.x = r.x + (RND() - 0.5) * 1.5;
+        sp.y = r.y + 3;
+        sp.vx = (RND() - 0.5) * 0.3;
+        sp.vy = RND() * 1.2 + 0.3;
+        sp.color = r.type === 'wabika' ? '#ff9800' : '#ffea88';
+        sp.size = 1.2 + RND() * 1.2;
+        sp.alpha = 0.9;
+        sp.decay = 0.06 + RND() * 0.04;
+        sp.gravity = 0.04;
+        sp.sparkle = false;
+        sp.secondColor = undefined;
+        sp.colorShiftTimer = undefined;
+        this.sparks.push(sp);
       }
 
-      // Explode at target altitude or slowdown
       if (r.y <= r.targetY || r.vy >= -0.2) {
         this.explode(r);
+        rocketPool.release(r);
         swapRemove(this.rockets, i);
       }
     }
@@ -169,6 +182,7 @@ class FireworksSystem {
       f.radius += (f.maxRadius - f.radius) * 0.35;
       f.alpha -= 0.12;
       if (f.alpha <= 0) {
+        flashPool.release(f);
         swapRemove(this.flashes, i);
       }
     }
@@ -183,7 +197,6 @@ class FireworksSystem {
       s.vy += s.gravity;
       s.alpha -= s.decay;
 
-      // Color shift timer
       if (s.colorShiftTimer !== undefined && s.colorShiftTimer > 0) {
         s.colorShiftTimer--;
         if (s.colorShiftTimer === 0 && s.secondColor) {
@@ -192,13 +205,14 @@ class FireworksSystem {
       }
 
       if (s.alpha <= 0 || s.y > config.gameHeight + 250 || s.y < -350) {
+        sparkPool.release(s);
         swapRemove(this.sparks, i);
       }
     }
 
-    // Limit spark count for performance
     if (this.sparks.length > 220) {
-      this.sparks = this.sparks.slice(this.sparks.length - 220);
+      const overflow = this.sparks.splice(0, this.sparks.length - 220);
+      sparkPool.releaseAll(overflow);
     }
   }
 
@@ -206,15 +220,14 @@ class FireworksSystem {
    * Rocket explosion
    */
   explode(r: FireworkRocket) {
-    // Explosion flash
-    this.flashes.push({
-      x: r.x,
-      y: r.y,
-      radius: 3,
-      maxRadius: r.type === 'senrin' ? 14 : 26,
-      color: r.type === 'wabika' ? '#ffaa00' : '#ffffff',
-      alpha: 0.95,
-    });
+    const f = flashPool.get();
+    f.x = r.x;
+    f.y = r.y;
+    f.radius = 3;
+    f.maxRadius = r.type === 'senrin' ? 14 : 26;
+    f.color = r.type === 'wabika' ? '#ffaa00' : '#ffffff';
+    f.alpha = 0.95;
+    this.flashes.push(f);
 
     if (r.type === 'senrin') {
       const petalCount = 7;
@@ -225,31 +238,33 @@ class FireworksSystem {
         const cy = r.y + Math.sin(pAngle) * pDist;
         const pColor = COLOR_PALETTES[FLR(RND() * COLOR_PALETTES.length)][0];
 
-        this.flashes.push({
-          x: cx,
-          y: cy,
-          radius: 2,
-          maxRadius: 10,
-          color: pColor,
-          alpha: 0.9,
-        });
+        const pf = flashPool.get();
+        pf.x = cx;
+        pf.y = cy;
+        pf.radius = 2;
+        pf.maxRadius = 10;
+        pf.color = pColor;
+        pf.alpha = 0.9;
+        this.flashes.push(pf);
 
         const subCount = 10;
         for (let i = 0; i < subCount; i++) {
           const angle = (i / subCount) * PI * 2;
           const speed = 0.8 + RND() * 0.8;
-          this.sparks.push({
-            x: cx,
-            y: cy,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            color: pColor,
-            size: 1.8,
-            alpha: 1.0,
-            decay: 0.035 + RND() * 0.02,
-            gravity: 0.02,
-            sparkle: true,
-          });
+          const sp = sparkPool.get();
+          sp.x = cx;
+          sp.y = cy;
+          sp.vx = Math.cos(angle) * speed;
+          sp.vy = Math.sin(angle) * speed;
+          sp.color = pColor;
+          sp.secondColor = undefined;
+          sp.colorShiftTimer = undefined;
+          sp.size = 1.8;
+          sp.alpha = 1.0;
+          sp.decay = 0.035 + RND() * 0.02;
+          sp.gravity = 0.02;
+          sp.sparkle = true;
+          this.sparks.push(sp);
         }
       }
       return;
@@ -302,20 +317,20 @@ class FireworksSystem {
         speed = 1.2 + RND() * 1.8;
       }
 
-      this.sparks.push({
-        x: r.x,
-        y: r.y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        color: color,
-        secondColor: secondColor,
-        colorShiftTimer: colorShiftTimer,
-        size: size,
-        alpha: 1.0,
-        decay: decay,
-        gravity: gravity,
-        sparkle: sparkle,
-      });
+      const sp = sparkPool.get();
+      sp.x = r.x;
+      sp.y = r.y;
+      sp.vx = Math.cos(angle) * speed;
+      sp.vy = Math.sin(angle) * speed;
+      sp.color = color;
+      sp.secondColor = secondColor;
+      sp.colorShiftTimer = colorShiftTimer;
+      sp.size = size;
+      sp.alpha = 1.0;
+      sp.decay = decay;
+      sp.gravity = gravity;
+      sp.sparkle = sparkle;
+      this.sparks.push(sp);
     }
   }
 
@@ -328,31 +343,32 @@ class FireworksSystem {
     // 1. Draw explosion flash
     for (let i = 0; i < this.flashes.length; i++) {
       const f = this.flashes[i];
-      const screenY = FLR(f.y);
-      const size = FLR(f.radius * 1.8);
+      const screenY = f.y | 0;
+      const size = (f.radius * 1.8) | 0;
       ctx.globalAlpha = Math.max(0, f.alpha);
       ctx.fillStyle = f.color;
-      ctx.fillRect(FLR(f.x - size / 2), FLR(screenY - size / 2), size, size);
+      ctx.fillRect((f.x - size * 0.5) | 0, (screenY - size * 0.5) | 0, size, size);
     }
 
     // 2. Draw rockets
     for (let i = 0; i < this.rockets.length; i++) {
       const r = this.rockets[i];
-      const screenY = FLR(r.y);
+      const screenY = r.y | 0;
+      const rx = r.x | 0;
 
       ctx.globalAlpha = 0.7;
       ctx.fillStyle = r.color;
-      ctx.fillRect(FLR(r.x - 2), FLR(screenY - 2), 4, 4);
+      ctx.fillRect(rx - 2, screenY - 2, 4, 4);
 
       ctx.globalAlpha = 1.0;
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(FLR(r.x - 1), FLR(screenY - 1), 2, 2);
+      ctx.fillRect(rx - 1, screenY - 1, 2, 2);
     }
 
     // 3. Draw sparks
     for (let i = 0; i < this.sparks.length; i++) {
       const s = this.sparks[i];
-      const screenY = FLR(s.y);
+      const screenY = s.y | 0;
       if (screenY < -50 || screenY > config.gameHeight + 200) continue;
 
       let alpha = s.alpha;
@@ -363,9 +379,9 @@ class FireworksSystem {
         alpha = Math.min(1.0, alpha + 0.4);
       }
 
-      const px = FLR(s.x);
+      const px = s.x | 0;
       const py = screenY;
-      const sz = Math.max(1, FLR(s.size * 1.2));
+      const sz = Math.max(1, (s.size * 1.2) | 0);
 
       ctx.globalAlpha = Math.max(0, alpha);
       ctx.fillStyle = color;

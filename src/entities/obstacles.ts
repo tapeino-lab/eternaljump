@@ -134,7 +134,7 @@ export function getMt(x: number, y: number, vx: number, vy: number) {
         ctx.fillStyle = 'rgba(20,10,10,0.6)';
         let t = ts + this.animOffset;
         ctx.save();
-        ctx.translate(FLR(this.x), FLR(this.y));
+        ctx.translate(this.x | 0, this.y | 0);
         if (this.vx < 0) ctx.scale(-1, 1);
         if (this.type === 0) {
           if (this.isPerched) ctx.fillRect(0, -2, 2, 2);
@@ -217,7 +217,7 @@ export function getMt(x: number, y: number, vx: number, vy: number) {
       }
       draw() {
         ctx.save();
-        ctx.translate(FLR(this.x + this.w / 2), FLR(this.y + this.h / 2));
+        ctx.translate((this.x + this.w * 0.5) | 0, (this.y + this.h * 0.5) | 0);
         ctx.rotate(this.ang);
         ctx.scale(this.scale, this.scale);
         ctx.translate(-8, -8);

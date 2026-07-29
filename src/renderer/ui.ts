@@ -175,6 +175,14 @@ function getEquippedIconSVG(id: string | null): string {
   return '';
 }
 
+let lastCoinVal = -1;
+let lastScoreVal = -1;
+let lastTimeCeil = -1;
+let lastTimeStyle = '';
+let lastIsTitleState: boolean | null = null;
+let lastIsTimerVisState: boolean | null = null;
+let lastEquippedKey = '';
+
 export function updateHUD(topColor) {
   let lum = topColor.r * 0.299 + topColor.g * 0.587 + topColor.b * 0.114;
   if (!cachedCanvasWrapper) cachedCanvasWrapper = $('canvasWrapper');
@@ -192,18 +200,48 @@ export function updateHUD(topColor) {
   
   let effPlayTime = (game.state === 'clear') ? game.clearTime : game.playTime;
   let timeLeft = MAX(0, config.timeLimit - effPlayTime / 1000);
-  let timeStr = Math.ceil(timeLeft).toString().padStart(3, '0');
-  
+  let timeCeil = Math.ceil(timeLeft);
+
+  let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
+  let isTimerVisible = !isAttractMode;
+
+  let coinDisplay = isTitle ? game.totalCoins : game.scoreCoin;
+  let scoreVal = isTitle ? -1 : MIN(config.goalScore, game.score);
+
+  // Fast check equipped items key without array allocations if possible
+  let eqKey = '';
+  if (game.equipped) {
+    for (let k in game.equipped) {
+      if (game.equipped[k]) eqKey += k + ';';
+    }
+  }
+
   let timeNumStyle = '';
   if (timeLeft <= 10 && timeLeft > 0) timeNumStyle = 'color:#f33;animation:blinkRetro 0.3s infinite;';
   else if (timeLeft <= 60 && timeLeft > 0) timeNumStyle = 'color:#ff0;animation:blinkRetro 0.3s infinite;';
   else if (timeLeft === 0) timeNumStyle = 'color:#f00;';
-  
-  let aiStatus = '';
-  
-  let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
-  let isTimerVisible = !isAttractMode;
-  
+
+  // Quick bailout if no HUD values changed
+  if (
+    lastCoinVal === coinDisplay &&
+    lastScoreVal === scoreVal &&
+    lastTimeCeil === timeCeil &&
+    lastTimeStyle === timeNumStyle &&
+    lastIsTitleState === isTitle &&
+    lastIsTimerVisState === isTimerVisible &&
+    lastEquippedKey === eqKey
+  ) {
+    return;
+  }
+
+  lastCoinVal = coinDisplay;
+  lastScoreVal = scoreVal;
+  lastTimeCeil = timeCeil;
+  lastTimeStyle = timeNumStyle;
+  lastIsTitleState = isTitle;
+  lastIsTimerVisState = isTimerVisible;
+  lastEquippedKey = eqKey;
+
   if (!cachedHudCoin) {
     let hc = document.getElementById('hud-coin');
     if (!hc) {
@@ -229,43 +267,35 @@ export function updateHUD(topColor) {
     cachedHudEquippedIcon = document.getElementById('hud-equipped-icon');
   }
 
-  let coinDisplay = isTitle ? game.totalCoins : game.scoreCoin;
-  let centerHtml = isTitle ? '' : MIN(config.goalScore, game.score) + 'm' + aiStatus;
+  let timeStr = timeCeil.toString().padStart(3, '0');
+  let centerHtml = isTitle ? '' : scoreVal + 'm';
   let timeHtml = isTimerVisible ? 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>' : '';
 
-  let eqList: string[] = [];
-  if (game.equipped) {
-    let keys = Object.keys(game.equipped);
-    for (let i = 0; i < keys.length; i++) {
-      if (game.equipped[keys[i]]) eqList.push(keys[i]);
-    }
-  }
-  let eqKey = eqList.slice().sort().join(',');
+  let hc = cachedHudCoin;
+  let hs = cachedHudScore;
+  let ht = cachedHudTime;
+  if (hc && hc.innerHTML !== coinDisplay.toString()) hc.innerHTML = coinDisplay.toString();
+  if (hs && hs.innerHTML !== centerHtml) hs.innerHTML = centerHtml;
+  if (ht && ht.innerHTML !== timeHtml) ht.innerHTML = timeHtml;
 
-  let curState = coinDisplay + '_' + centerHtml + '_' + timeHtml + '_' + eqKey;
-  if (game.lastUI !== curState) {
-    let hc = cachedHudCoin;
-    let hs = cachedHudScore;
-    let ht = cachedHudTime;
-    if (hc && hc.innerHTML !== coinDisplay.toString()) hc.innerHTML = coinDisplay.toString();
-    if (hs && hs.innerHTML !== centerHtml) hs.innerHTML = centerHtml;
-    if (ht && ht.innerHTML !== timeHtml) ht.innerHTML = timeHtml;
-
-    let badge = cachedHudEquippedBadge;
-    let iconContainer = cachedHudEquippedIcon;
-    if (badge && iconContainer) {
-      if (eqList.length > 0) {
-        badge.style.display = 'inline-flex';
-        let iconsHtml = eqList.map(id => getEquippedIconSVG(id)).join('');
-        if (iconContainer.innerHTML !== iconsHtml) {
-          iconContainer.innerHTML = iconsHtml;
-        }
-      } else {
-        badge.style.display = 'none';
+  let badge = cachedHudEquippedBadge;
+  let iconContainer = cachedHudEquippedIcon;
+  if (badge && iconContainer) {
+    let eqList: string[] = [];
+    if (game.equipped) {
+      for (let k in game.equipped) {
+        if (game.equipped[k]) eqList.push(k);
       }
     }
-
-    game.lastUI = curState;
+    if (eqList.length > 0) {
+      badge.style.display = 'inline-flex';
+      let iconsHtml = eqList.map(id => getEquippedIconSVG(id)).join('');
+      if (iconContainer.innerHTML !== iconsHtml) {
+        iconContainer.innerHTML = iconsHtml;
+      }
+    } else {
+      badge.style.display = 'none';
+    }
   }
 }
 

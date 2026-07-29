@@ -10,7 +10,7 @@ import { B64 } from './assets.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
 import { runAI } from './ai.js';
 import { getLevelConfig } from './level.js';
-import { Particle, Bird, Meteor, Player, NPC, Platform, Item, Coin, BackgroundCloud, getPt, getPl, getCn, getBd, getMt, getIt, getCl, spawnParticles, spawnDebris, trySpawnBirdsOnPlatform, P_PT, P_PL, P_CN, P_BD, P_MT, P_IT, P_CL } from './entities/index.js';
+import { Particle, Bird, Meteor, Player, NPC, Platform, Item, Coin, BackgroundCloud, getPt, getPl, getCn, getBd, getMt, getIt, getCl, spawnParticles, spawnDebris, trySpawnBirdsOnPlatform, P_PT, P_PL, P_CN, P_BD, P_MT, P_IT, P_CL, P_FC } from './entities/index.js';
 import { LootLockerAPI } from "./lootlocker.js";
 import { RankingAPI } from "./ranking.js";
 import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang, $, escapeHTML, getPlayerName } from "./utils.js";
@@ -248,6 +248,7 @@ export function resetGameState(isConsecutive) {
   if (game.meteors) P_MT.releaseAll(game.meteors);
   if (game.items) P_IT.releaseAll(game.items);
   if (game.clouds && game.clouds.length > 0) P_CL.releaseAll(game.clouds);
+  if (game.flyingCoins && game.flyingCoins.length > 0) P_FC.releaseAll(game.flyingCoins);
 
   const flockDir = RND() < 0.5 ? 1 : -1;
   const pb = secureStorage.getItem<any>('EternalJumper_PB', null);
