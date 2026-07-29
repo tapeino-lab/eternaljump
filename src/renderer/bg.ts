@@ -34,8 +34,14 @@ export function getColorAtScore(s: number, out = sharedColorOut) {
   return out;
 }
 
+const bgCache = document.createElement('canvas');
+bgCache.width = 1;
+bgCache.height = 400;
+const bgCtx = bgCache.getContext('2d', { alpha: false });
+let lastBGScore = -1;
+
 export function resetBGScore() {
-  // no-op now
+  lastBGScore = -1;
 }
 
 export function drawCloud(cType: number, s: number, x: number, y: number) {
@@ -60,18 +66,25 @@ export function drawCloudCaches() {
 }
 
 export function drawBG(ts) {
-  let scoreTop = (game.baseScoreY - game.cameraY) * config.scoreMultiplier;
+  let scoreTop = Math.floor((game.baseScoreY - game.cameraY) * config.scoreMultiplier);
   
-  let scoreBottom = (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier;
-  let grad = ctx.createLinearGradient(0, 0, 0, config.gameHeight);
-  for (let i = 0; i <= 4; i++) {
-    let ratio = i / 4;
-    let s = scoreTop - (scoreTop - scoreBottom) * ratio;
-    let c = getColorAtScore(s);
-    grad.addColorStop(ratio, 'rgb(' + Math.round(c.r) + ',' + Math.round(c.g) + ',' + Math.round(c.b) + ')');
+  if (scoreTop !== lastBGScore && bgCtx) {
+    let scoreBottom = (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier;
+    let grad = bgCtx.createLinearGradient(0, 0, 0, config.gameHeight);
+    for (let i = 0; i <= 4; i++) {
+      let ratio = i / 4;
+      let s = scoreTop - (scoreTop - scoreBottom) * ratio;
+      let c = getColorAtScore(s);
+      grad.addColorStop(ratio, 'rgb(' + Math.round(c.r) + ',' + Math.round(c.g) + ',' + Math.round(c.b) + ')');
+    }
+    bgCtx.fillStyle = grad;
+    bgCtx.fillRect(0, 0, 1, config.gameHeight);
+    lastBGScore = scoreTop;
   }
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, config.gameWidth, config.gameHeight);
+  
+  if (bgCtx) {
+    ctx.drawImage(bgCache, 0, 0, 1, config.gameHeight, 0, 0, config.gameWidth, config.gameHeight);
+  }
   
   let currentVisScore = (scoreTop + (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier) / 2;
   let sA = 0;

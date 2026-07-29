@@ -7,18 +7,20 @@ import { resetBGScore, drawCloudCaches } from './renderer/bg.js';
 import { checkUpdateAndReload } from './pwa.js';
 import { MAX, FLR, RND, $ } from './utils.js';
 
-export const GREEN_IMG: Record<string, HTMLCanvasElement> = {};
+export const GREEN_IMG: Record<string, HTMLImageElement> = {};
 
-function generateGreenVariant(img: HTMLImageElement): HTMLCanvasElement {
-  const cvs = document.createElement('canvas');
-  cvs.width = img.naturalWidth || img.width || 16;
-  cvs.height = img.naturalHeight || img.height || 16;
-  const c = cvs.getContext('2d');
-  if (!c) return cvs;
-  c.drawImage(img, 0, 0);
+const tmpCanvas = document.createElement('canvas');
+const tmpCtx = tmpCanvas.getContext('2d', { willReadFrequently: true });
+
+function generateGreenVariant(img: HTMLImageElement): HTMLImageElement | null {
+  if (!tmpCtx) return null;
+  tmpCanvas.width = img.naturalWidth || img.width || 16;
+  tmpCanvas.height = img.naturalHeight || img.height || 16;
+  tmpCtx.clearRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+  tmpCtx.drawImage(img, 0, 0);
   
   try {
-    const imgData = c.getImageData(0, 0, cvs.width, cvs.height);
+    const imgData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
     const data = imgData.data;
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
@@ -26,17 +28,19 @@ function generateGreenVariant(img: HTMLImageElement): HTMLCanvasElement {
       const b = data[i + 2];
       const a = data[i + 3];
       if (a > 0) {
-        // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをエメラルドグリーン(#00d880)に置換
         if (r > 180 && g < 50 && b < 50) {
-          data[i] = 0;       // Red
-          data[i + 1] = 216; // Green
-          data[i + 2] = 128; // Blue
+          data[i] = 0;       
+          data[i + 1] = 216; 
+          data[i + 2] = 128; 
         }
       }
     }
-    c.putImageData(imgData, 0, 0);
+    tmpCtx.putImageData(imgData, 0, 0);
+    const newImg = new Image();
+    newImg.src = tmpCanvas.toDataURL();
+    return newImg;
   } catch (e) {}
-  return cvs;
+  return null;
 }
 
 export const IMG: Record<string, HTMLImageElement> = {};
@@ -216,12 +220,5 @@ window.addEventListener('orientationchange', () => {
 });
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', resize);
-}
-if (typeof ResizeObserver !== 'undefined') {
-  const observer = new ResizeObserver(() => {
-    resize();
-  });
-  let ac = $('appContainer');
-  if (ac) observer.observe(ac);
 }
 resize();
