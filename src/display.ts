@@ -2,7 +2,7 @@ import { B64 } from './assets.js';
 import { config } from './config.js';
 import { game, demoState } from './state.js';
 import { togglePause } from './lifecycle.js';
-import { resetBGScore } from './renderer/bg.js';
+import { resetBGScore, drawCloudCaches } from './renderer/bg.js';
 
 import { checkUpdateAndReload } from './pwa.js';
 import { MAX, FLR, RND, $ } from './utils.js';
@@ -103,13 +103,28 @@ IMG.gnd.onload = drawGroundCache;
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
+    resize();
+    updateCtrlCenter();
     drawGroundCache();
+    drawCloudCaches();
     resetBGScore();
   } else {
     if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
       togglePause();
     }
   }
+});
+
+cvs.addEventListener('contextlost', (e) => {
+  e.preventDefault();
+});
+
+cvs.addEventListener('contextrestored', () => {
+  resize();
+  updateCtrlCenter();
+  drawGroundCache();
+  drawCloudCaches();
+  resetBGScore();
 });
 
 (window as any).gameScale = 1;
