@@ -2,7 +2,7 @@
 
 :root {
   /* 操作ボタン・コントロールエリア調整用CSS変数 */
-  --control-max-height: 128px; /* 全画面等で操作エリアが高くなりすぎるのを抑える上限値 */
+  --control-max-height: 160px; /* 全画面等で操作エリアが高くなりすぎるのを抑える上限値 */
   --control-min-height: 50px;  /* 最小高さ */
   --control-btn-max-height: 100%;
 }

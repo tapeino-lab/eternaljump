@@ -91,13 +91,21 @@ function resize() {
   
   let tW = winW;
   let tH = tW / ratio;
-  let ctrlH = Math.min(128, Math.max(50, tW * 0.25));
+  
+  const MAX_CTRL_H = 160;
+  const MIN_CTRL_H = 50;
 
-  if (tH + ctrlH > winH) {
+  let remH = winH - tH;
+  let ctrlH = 0;
+
+  if (remH >= MIN_CTRL_H) {
+    ctrlH = Math.min(MAX_CTRL_H, Math.max(MIN_CTRL_H, remH));
+  } else {
+    ctrlH = MIN_CTRL_H;
     let scale = winH / (tH + ctrlH);
     tW = tW * scale;
     tH = tW / ratio;
-    ctrlH = Math.min(128, Math.max(50, tW * 0.25));
+    ctrlH = Math.min(MAX_CTRL_H, Math.max(MIN_CTRL_H, winH - tH));
   }
 
   let gc = $('gameContainer'), ca = $('controlArea'), sca = $('shopControlArea'), ac = $('appContainer');
