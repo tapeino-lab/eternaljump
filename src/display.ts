@@ -2,25 +2,23 @@ import { B64 } from './assets.js';
 import { config } from './config.js';
 import { game, demoState } from './state.js';
 import { togglePause } from './lifecycle.js';
-import { resetBGScore, drawCloudCaches } from './renderer/bg.js';
+import { resetBGScore } from './renderer/bg.js';
 
 import { checkUpdateAndReload } from './pwa.js';
 import { MAX, FLR, RND, $ } from './utils.js';
 
-export const GREEN_IMG: Record<string, HTMLImageElement> = {};
+export const GREEN_IMG: Record<string, HTMLCanvasElement> = {};
 
-const tmpCanvas = document.createElement('canvas');
-const tmpCtx = tmpCanvas.getContext('2d', { willReadFrequently: true });
-
-function generateGreenVariant(img: HTMLImageElement): HTMLImageElement | null {
-  if (!tmpCtx) return null;
-  tmpCanvas.width = img.naturalWidth || img.width || 16;
-  tmpCanvas.height = img.naturalHeight || img.height || 16;
-  tmpCtx.clearRect(0, 0, tmpCanvas.width, tmpCanvas.height);
-  tmpCtx.drawImage(img, 0, 0);
+function generateGreenVariant(img: HTMLImageElement): HTMLCanvasElement {
+  const cvs = document.createElement('canvas');
+  cvs.width = img.naturalWidth || img.width || 16;
+  cvs.height = img.naturalHeight || img.height || 16;
+  const c = cvs.getContext('2d');
+  if (!c) return cvs;
+  c.drawImage(img, 0, 0);
   
   try {
-    const imgData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
+    const imgData = c.getImageData(0, 0, cvs.width, cvs.height);
     const data = imgData.data;
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
@@ -28,33 +26,28 @@ function generateGreenVariant(img: HTMLImageElement): HTMLImageElement | null {
       const b = data[i + 2];
       const a = data[i + 3];
       if (a > 0) {
+        // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをエメラルドグリーン(#00d880)に置換
         if (r > 180 && g < 50 && b < 50) {
-          data[i] = 0;       
-          data[i + 1] = 216; 
-          data[i + 2] = 128; 
+          data[i] = 0;       // Red
+          data[i + 1] = 216; // Green
+          data[i + 2] = 128; // Blue
         }
       }
     }
-    tmpCtx.putImageData(imgData, 0, 0);
-    const newImg = new Image();
-    newImg.src = tmpCanvas.toDataURL();
-    return newImg;
+    c.putImageData(imgData, 0, 0);
   } catch (e) {}
-  return null;
+  return cvs;
 }
 
 export const IMG: Record<string, HTMLImageElement> = {};
 for (let k in B64) {
   IMG[k] = new Image();
-  const generate = () => {
-    if (!GREEN_IMG[k]) {
-      GREEN_IMG[k] = generateGreenVariant(IMG[k]);
-    }
+  IMG[k].onload = () => {
+    GREEN_IMG[k] = generateGreenVariant(IMG[k]);
   };
-  IMG[k].onload = generate;
   IMG[k].src = B64[k];
   if (IMG[k].complete && IMG[k].naturalWidth > 0) {
-    generate();
+    GREEN_IMG[k] = generateGreenVariant(IMG[k]);
   }
 }
 
@@ -91,10 +84,18 @@ document.addEventListener('pwa-update-available', () => {
 });
 
 
-export let groundPattern: CanvasPattern | null = null;
+export const groundCache = document.createElement('canvas');
+groundCache.width = config.gameWidth;
+groundCache.height = 400;
+const gCtx = groundCache.getContext('2d', { alpha: false });
+export let groundCached = false;
+
 function drawGroundCache() {
-  if (IMG.gnd.complete && IMG.gnd.naturalWidth > 0 && !groundPattern) {
-    groundPattern = ctx.createPattern(IMG.gnd, 'repeat');
+  if (IMG.gnd.complete && IMG.gnd.naturalWidth > 0) {
+    let p = gCtx.createPattern(IMG.gnd, 'repeat');
+    gCtx.fillStyle = p;
+    gCtx.fillRect(0, 0, config.gameWidth, 400);
+    groundCached = true;
   }
 }
 
@@ -102,28 +103,13 @@ IMG.gnd.onload = drawGroundCache;
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
-    resize();
-    updateCtrlCenter();
     drawGroundCache();
-    drawCloudCaches();
     resetBGScore();
   } else {
     if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
       togglePause();
     }
   }
-});
-
-cvs.addEventListener('contextlost', (e) => {
-  e.preventDefault();
-});
-
-cvs.addEventListener('contextrestored', () => {
-  resize();
-  updateCtrlCenter();
-  drawGroundCache();
-  drawCloudCaches();
-  resetBGScore();
 });
 
 (window as any).gameScale = 1;
@@ -141,15 +127,15 @@ function resize() {
   let winW = window.innerWidth, winH = window.innerHeight;
   let ratio = config.gameWidth / config.gameHeight;
   
-  // 最低高さは 96px、大画面でも広がりすぎないよう 140px 程度に抑える
-  const minCtrlH = Math.max(96, Math.min(140, Math.floor(winW / 4)));
+  // 最低高さは 96px または 画面高さの 1/7 (約14.3%) の大きい方
+  const minCtrlH = Math.max(96, Math.floor(winH / 7));
 
   // まず画面横幅いっぱいにゲーム画面を配置
   let tW = winW;
   let tH = tW / ratio;
 
-  // 最大高さは余白がある場合でも 150px を上限にする
-  const maxCtrlH = Math.max(minCtrlH, Math.min(150, Math.floor(winH / 6)));
+  // 最大高さは「画面全体の高さの1/5」または「200px」の小さい方（最低高さ以上）
+  const maxCtrlH = Math.max(minCtrlH, Math.min(200, Math.floor(winH / 5)));
 
   let remH = winH - tH;
   let ctrlH = 0;
@@ -201,8 +187,8 @@ function resize() {
     wrap.style.transformOrigin = 'center center';
   }
   if (cvs) {
-    if (cvs.width !== config.gameWidth) cvs.width = config.gameWidth;
-    if (cvs.height !== config.gameHeight) cvs.height = config.gameHeight;
+    cvs.width = config.gameWidth;
+    cvs.height = config.gameHeight;
     cvs.style.width = '100%';
     cvs.style.height = '100%';
   }
@@ -220,5 +206,12 @@ window.addEventListener('orientationchange', () => {
 });
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', resize);
+}
+if (typeof ResizeObserver !== 'undefined') {
+  const observer = new ResizeObserver(() => {
+    resize();
+  });
+  let ac = $('appContainer');
+  if (ac) observer.observe(ac);
 }
 resize();

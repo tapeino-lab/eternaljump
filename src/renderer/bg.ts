@@ -34,47 +34,62 @@ export function getColorAtScore(s: number, out = sharedColorOut) {
   return out;
 }
 
+const bgCache = document.createElement('canvas');
+bgCache.width = 1;
+bgCache.height = config.gameHeight;
+const bgCtx = bgCache.getContext('2d', { alpha: false });
+let lastBGScore = -1;
+
 export function resetBGScore() {
-  // no-op now
+  lastBGScore = -1;
 }
 
-export function drawCloud(cType: number, s: number, x: number, y: number) {
-  ctx.fillStyle = '#fff';
-  if (cType === 0) {
-    ctx.fillRect(x + s, y + s, s * 4, s * 2);
-    ctx.fillRect(x + s * 2, y, s * 2, s);
-    ctx.fillRect(x, y + s * 2, s * 6, s);
-  } else if (cType === 1) {
-    ctx.fillRect(x + s, y + s, s * 5, s * 2);
-    ctx.fillRect(x + s * 2, y, s * 3, s);
-    ctx.fillRect(x, y + s * 2, s * 7, s);
+const cloudCaches = [];
+for (let i = 0; i < 3; i++) {
+  let c = document.createElement('canvas');
+  let cx = c.getContext('2d', { alpha: true });
+  let s = 10;
+  if (i === 0) {
+    c.width = s * 6; c.height = s * 3;
+    cx.fillStyle = '#fff';
+    cx.fillRect(s, s, s * 4, s * 2);
+    cx.fillRect(s * 2, 0, s * 2, s);
+    cx.fillRect(0, s * 2, s * 6, s);
+  } else if (i === 1) {
+    c.width = s * 7; c.height = s * 3;
+    cx.fillStyle = '#fff';
+    cx.fillRect(s, s, s * 5, s * 2);
+    cx.fillRect(s * 2, 0, s * 3, s);
+    cx.fillRect(0, s * 2, s * 7, s);
   } else {
-    ctx.fillRect(x + s, y + s, s * 3, s * 2);
-    ctx.fillRect(x + s * 2, y, s * 2, s);
-    ctx.fillRect(x, y + s * 2, s * 5, s);
+    c.width = s * 5; c.height = s * 3;
+    cx.fillStyle = '#fff';
+    cx.fillRect(s, s, s * 3, s * 2);
+    cx.fillRect(s * 2, 0, s * 2, s);
+    cx.fillRect(0, s * 2, s * 5, s);
   }
+  cloudCaches.push(c);
 }
 
-export function drawCloudCaches() {
-  // no-op now
-}
-
-export function drawBG(ts: number) {
-  let scoreTop = Math.floor((game.baseScoreY - game.cameraY) * config.scoreMultiplier);
-  let scoreBottom = (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier;
-  let grad = ctx.createLinearGradient(0, 0, 0, config.gameHeight);
-  
-  for (let i = 0; i <= 4; i++) {
-    let ratio = i / 4;
-    let s = scoreTop - (scoreTop - scoreBottom) * ratio;
-    let c = getColorAtScore(s);
-    grad.addColorStop(ratio, `rgb(${Math.round(c.r)},${Math.round(c.g)},${Math.round(c.b)})`);
+export function drawBG(ts) {
+  let scoreTop = (game.baseScoreY - game.cameraY) * config.scoreMultiplier;
+  let sT = FLR(scoreTop);
+  if (sT !== lastBGScore) {
+    let scoreBottom = (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier;
+    let grad = bgCtx.createLinearGradient(0, 0, 0, config.gameHeight);
+    for (let i = 0; i <= 4; i++) {
+      let ratio = i / 4;
+      let s = scoreTop - (scoreTop - scoreBottom) * ratio;
+      let c = getColorAtScore(s);
+      grad.addColorStop(ratio, 'rgb(' + Math.round(c.r) + ',' + Math.round(c.g) + ',' + Math.round(c.b) + ')');
+    }
+    bgCtx.fillStyle = grad;
+    bgCtx.fillRect(0, 0, 1, config.gameHeight);
+    lastBGScore = sT;
   }
+  ctx.drawImage(bgCache, 0, 0, 1, config.gameHeight, 0, 0, config.gameWidth, config.gameHeight);
   
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, config.gameWidth, config.gameHeight);
-  
-  let currentVisScore = (scoreTop + scoreBottom) / 2;
+  let currentVisScore = (scoreTop + (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier) / 2;
   let sA = 0;
   if (currentVisScore >= 45000 && currentVisScore < 60000) sA = (currentVisScore - 45000) / 15000;
   else if (currentVisScore >= 60000 && currentVisScore < 125000) sA = 1;
@@ -110,7 +125,8 @@ export function drawBG(ts: number) {
         ctx.globalAlpha = alpha;
         lastAlpha = alpha;
       }
-      drawCloud(c.type, FLR(10 * c.scale), FLR(c.x - s), FLR(sy - s));
+      let cc = cloudCaches[c.type];
+      ctx.drawImage(cc, FLR(c.x - s), FLR(sy - s), FLR(cc.width * c.scale), FLR(cc.height * c.scale));
     }
     if (lastAlpha !== 1.0) ctx.globalAlpha = 1.0;
   }
