@@ -89,23 +89,28 @@ function resize() {
   let winW = window.innerWidth, winH = window.innerHeight;
   let ratio = config.gameWidth / config.gameHeight;
   
+  const MIN_CTRL_H = 144;
+  const MAX_CTRL_H = 240;
+
+  // まず画面横幅いっぱいにゲーム画面を配置
   let tW = winW;
   let tH = tW / ratio;
-  
-  const MAX_CTRL_H = 160;
-  const MIN_CTRL_H = 50;
 
   let remH = winH - tH;
   let ctrlH = 0;
 
   if (remH >= MIN_CTRL_H) {
-    ctrlH = Math.min(MAX_CTRL_H, Math.max(MIN_CTRL_H, remH));
+    // 十分な高さがある場合（一般的な縦長Android端末など）: 左右余白0pxで横幅いっぱい
+    ctrlH = Math.min(MAX_CTRL_H, remH);
   } else {
+    // 縦長比率が不十分な場合（iPhone 14/15等）:
+    // 操作エリアに最低144pxを保証するためゲーム画面を縮小し、その分左右に余白を作る
     ctrlH = MIN_CTRL_H;
-    let scale = winH / (tH + ctrlH);
-    tW = tW * scale;
-    tH = tW / ratio;
-    ctrlH = Math.min(MAX_CTRL_H, Math.max(MIN_CTRL_H, winH - tH));
+    let availGameH = winH - ctrlH;
+    if (availGameH > 0) {
+      tH = availGameH;
+      tW = tH * ratio;
+    }
   }
 
   let gc = $('gameContainer'), ca = $('controlArea'), sca = $('shopControlArea'), ac = $('appContainer');
@@ -129,6 +134,8 @@ function resize() {
   document.documentElement.style.setProperty("--game-scale", (window as any).gameScale);
   document.documentElement.style.setProperty("--game-height", tH + "px");
   document.documentElement.style.setProperty("--control-height", ctrlH + "px");
+  document.documentElement.style.setProperty("--control-min-height", MIN_CTRL_H + "px");
+  document.documentElement.style.setProperty("--control-max-height", MAX_CTRL_H + "px");
   if (wrap) {
     wrap.style.width = config.gameWidth + 'px';
     wrap.style.height = config.gameHeight + 'px';

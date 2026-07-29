@@ -139,7 +139,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         RankingAPI.isShowingResult = false;
         $('resultContainer').style.display = 'none';
         $('rankingContainer').style.display = 'none';
-        $('rankingLoading').style.display = 'block';
+        $('rankingLoading').style.display = 'flex';
         $('rankingModal').style.display = 'flex';
         setIgnoreNextTap(true);
         let s = await RankingAPI.getScores();

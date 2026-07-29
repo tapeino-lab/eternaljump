@@ -9,7 +9,7 @@ export async function startDemoRankingScroll(isAttractMode: boolean) {
   $('demoRankingContainer').style.opacity = '1';
   $('demoRankingContainer').style.transition = 'none';
   $('demoRankingContainer').style.background = 'rgba(0,0,0,0.3)';
-  $('demoLoading').style.display = 'block';
+  $('demoLoading').style.display = 'flex';
   $('demoHeader').innerHTML = '';
   $('demoTop3').innerHTML = '';
   $('demoOthers').innerHTML = '';
