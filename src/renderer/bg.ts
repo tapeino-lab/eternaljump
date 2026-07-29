@@ -45,32 +45,38 @@ export function resetBGScore() {
 }
 
 export const cloudCaches: HTMLCanvasElement[] = [];
+for (let i = 0; i < 3; i++) {
+  cloudCaches.push(document.createElement('canvas'));
+}
+
 export function drawCloudCaches() {
-  cloudCaches.length = 0;
   for (let i = 0; i < 3; i++) {
-    let c = document.createElement('canvas');
+    let c = cloudCaches[i];
     let cx = c.getContext('2d', { alpha: true });
+    if (!cx) continue;
     let s = 10;
     if (i === 0) {
       c.width = s * 6; c.height = s * 3;
+      cx.clearRect(0, 0, c.width, c.height);
       cx.fillStyle = '#fff';
       cx.fillRect(s, s, s * 4, s * 2);
       cx.fillRect(s * 2, 0, s * 2, s);
       cx.fillRect(0, s * 2, s * 6, s);
     } else if (i === 1) {
       c.width = s * 7; c.height = s * 3;
+      cx.clearRect(0, 0, c.width, c.height);
       cx.fillStyle = '#fff';
       cx.fillRect(s, s, s * 5, s * 2);
       cx.fillRect(s * 2, 0, s * 3, s);
       cx.fillRect(0, s * 2, s * 7, s);
     } else {
       c.width = s * 5; c.height = s * 3;
+      cx.clearRect(0, 0, c.width, c.height);
       cx.fillStyle = '#fff';
       cx.fillRect(s, s, s * 3, s * 2);
       cx.fillRect(s * 2, 0, s * 2, s);
       cx.fillRect(0, s * 2, s * 5, s);
     }
-    cloudCaches.push(c);
   }
 }
 drawCloudCaches();
