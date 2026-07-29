@@ -34,7 +34,7 @@ export function initVirtualKeyboard() {
   const createBtn = (char) => {
     const btn = document.createElement('button');
     btn.className = 'modal-btn';
-    btn.style.cssText = 'padding:14px 0; font-size:14px; font-family:"Press Start 2P", sans-serif; background:#222; color:#fff; border:2px solid #555; border-radius:4px; cursor:pointer; text-align:center;';
+    btn.style.cssText = 'padding:12px 0; font-size:14px; font-family:"Press Start 2P", sans-serif; background:#222; color:#fff; border:2px solid #555; border-radius:4px; cursor:pointer; text-align:center;';
     btn.innerText = char;
     btn.addEventListener('click', handleCharClick(char));
     return btn;
