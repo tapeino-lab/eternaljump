@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap');
 
+:root {
+  /* 操作ボタン・コントロールエリア調整用CSS変数 */
+  --control-max-height: 128px; /* 全画面等で操作エリアが高くなりすぎるのを抑える上限値 */
+  --control-min-height: 50px;  /* 最小高さ */
+  --control-btn-max-height: 100%;
+}
+
 @keyframes yellowGlow {
   0% { box-shadow: 0 0 4px 1px rgba(255, 255, 0, 0.4); border-color: rgba(255, 255, 0, 0.6); }
   50% { box-shadow: 0 0 10px 2px rgba(255, 255, 0, 0.8); border-color: rgba(255, 255, 0, 1); }
@@ -70,6 +77,8 @@ border-top: 4px solid var(--ca-bt);
 box-sizing: border-box;
 display: flex;
 position: relative;
+height: clamp(var(--control-min-height), var(--control-height, 120px), var(--control-max-height));
+max-height: var(--control-max-height);
 }
 
 #controlArea[data-theme="classic"], #shopControlArea[data-theme="classic"] {

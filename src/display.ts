@@ -88,16 +88,22 @@ function updateCtrlCenter() {
 function resize() {
   let winW = window.innerWidth, winH = window.innerHeight;
   let ratio = config.gameWidth / config.gameHeight;
-  let tW = winW, tH = tW / ratio;
-  if (tH > winH * 0.85) {
-    tH = winH * 0.85;
-    tW = tH * ratio;
+  
+  let tW = winW;
+  let tH = tW / ratio;
+  let ctrlH = Math.min(128, Math.max(50, tW * 0.25));
+
+  if (tH + ctrlH > winH) {
+    let scale = winH / (tH + ctrlH);
+    tW = tW * scale;
+    tH = tW / ratio;
+    ctrlH = Math.min(128, Math.max(50, tW * 0.25));
   }
-  let cH = winH - tH;
+
   let gc = $('gameContainer'), ca = $('controlArea'), sca = $('shopControlArea'), ac = $('appContainer');
   if (ac) {
     ac.style.width = tW + 'px';
-    ac.style.height = (tH + cH) + 'px';
+    ac.style.height = (tH + ctrlH) + 'px';
   }
   if (gc) {
     gc.style.width = tW + 'px';
@@ -105,16 +111,16 @@ function resize() {
   }
   if (ca) {
     ca.style.width = tW + 'px';
-    ca.style.height = cH + 'px';
+    ca.style.height = ctrlH + 'px';
   }
   if (sca) {
     sca.style.width = tW + 'px';
-    sca.style.height = cH + 'px';
+    sca.style.height = ctrlH + 'px';
   }
   (window as any).gameScale = tW / config.gameWidth;
   document.documentElement.style.setProperty("--game-scale", (window as any).gameScale);
   document.documentElement.style.setProperty("--game-height", tH + "px");
-  document.documentElement.style.setProperty("--control-height", cH + "px");
+  document.documentElement.style.setProperty("--control-height", ctrlH + "px");
   if (wrap) {
     wrap.style.width = config.gameWidth + 'px';
     wrap.style.height = config.gameHeight + 'px';

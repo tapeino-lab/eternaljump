@@ -234,14 +234,21 @@ export class InputManager {
   }
 
   private bindTouchOverlayEvents() {
-    const tOv = $('touchOverlay');
-    if (!tOv) return;
-
     ['touchstart', 'mousedown'].forEach(ev => {
-      tOv.addEventListener(ev, (e: any) => {
-        if (e.target.closest('#btnInstagram') || e.target.closest('#btnInstagramPause') || e.target.closest('#btnFullscreen')) return;
-        e.preventDefault();
+      document.addEventListener(ev, (e: any) => {
+        if (e.target.closest('#btnInstagram') || 
+            e.target.closest('#btnInstagramPause') || 
+            e.target.closest('#btnFullscreen') || 
+            e.target.closest('#autoCruiseBtn') || 
+            e.target.closest('#pauseBtn') || 
+            e.target.closest('#controlArea') || 
+            e.target.closest('#shopControlArea') || 
+            e.target.closest('#nameEditModal') || 
+            e.target.closest('#rankingModal') || 
+            e.target.closest('#pauseScreen')) return;
         
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+
         if (this.handleControlTap(e)) return;
         
         if (game.aiActive) return;
@@ -260,8 +267,7 @@ export class InputManager {
     });
 
     ['touchmove', 'mousemove'].forEach(ev => {
-      tOv.addEventListener(ev, (e: any) => {
-        if (e.cancelable) e.preventDefault();
+      document.addEventListener(ev, (e: any) => {
         if (game.aiActive) return;
         let proc = (id: string, cx: number) => {
           if (this.active.has(id) && this.tOrgs.has(id)) {
@@ -285,7 +291,7 @@ export class InputManager {
     });
 
     ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => {
-      tOv.addEventListener(ev, (e: any) => {
+      document.addEventListener(ev, (e: any) => {
         if (e.changedTouches) {
           for (let i = 0; i < e.changedTouches.length; i++) {
             let t = e.changedTouches[i];
