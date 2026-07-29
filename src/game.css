@@ -546,15 +546,23 @@ transform: scale(0.9);
   box-sizing: border-box;
 }
 
+/* Default/Has Fullscreen button adjustments */
+body.has-fullscreen #shopResetBtn {
+  margin-right: 30px;
+}
+body.has-fullscreen #hud-time {
+  padding-right: 28px;
+}
+
 /* Adjustments when Fullscreen button is hidden (iOS / unsupported devices) */
 body.no-fullscreen .btn-instagram {
-  right: 2px;
+  right: 10px;
 }
 body.no-fullscreen #shopResetBtn {
-  margin-right: 20px !important;
+  margin-right: 0px !important;
 }
 body.no-fullscreen #hud-time {
-  padding-right: 18px !important;
+  padding-right: 0px !important;
 }
 
 #btnInstagramPause {

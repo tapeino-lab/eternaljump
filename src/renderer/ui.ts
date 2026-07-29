@@ -218,7 +218,7 @@ export function updateHUD(topColor) {
           </div>
         </div>
         <span id="hud-score" style="flex:1;text-align:center;"></span>
-        <span id="hud-time" style="flex:1;text-align:right;padding-right:28px;"></span>
+        <span id="hud-time" style="flex:1;text-align:right;"></span>
       `;
       hc = document.getElementById('hud-coin');
     }
