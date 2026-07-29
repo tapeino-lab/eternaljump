@@ -87,38 +87,43 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
     let coinPerSpawn = Math.max(1, Math.ceil(coins / totalSpawns));
     let spawnInterval = 60;
 
-    let spawnTimer = setInterval(() => {
-      if (remainingCoins <= 0) {
-        clearInterval(spawnTimer);
-        setTimeout(() => {
-          if (floater) {
-            floater.style.transition = 'opacity 0.3s';
-            floater.style.opacity = '0';
-            setTimeout(() => { if (floater) floater.remove(); }, 300);
-          }
-        }, 400);
-        return;
-      }
+    // Start count-up timing right as the popup begins fading out at 2.2 seconds (2200ms)
+    let countUpDelay = 2200;
 
-      let amt = Math.min(remainingCoins, coinPerSpawn);
-      remainingCoins -= amt;
-      if (valSpan) {
-        valSpan.textContent = remainingCoins.toString();
-      }
+    setTimeout(() => {
+      let spawnTimer = setInterval(() => {
+        if (remainingCoins <= 0) {
+          clearInterval(spawnTimer);
+          setTimeout(() => {
+            if (floater) {
+              floater.style.transition = 'opacity 0.3s';
+              floater.style.opacity = '0';
+              setTimeout(() => { if (floater) floater.remove(); }, 300);
+            }
+          }, 400);
+          return;
+        }
 
-      game.totalCoins += amt;
-      secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+        let amt = Math.min(remainingCoins, coinPerSpawn);
+        remainingCoins -= amt;
+        if (valSpan) {
+          valSpan.textContent = remainingCoins.toString();
+        }
 
-      let coinBox = document.getElementById('hud-coin-box');
-      if (coinBox) {
-        coinBox.animate([
-          { transform: 'scale(1)', filter: 'brightness(1)' },
-          { transform: 'scale(1.4)', filter: 'brightness(2)' },
-          { transform: 'scale(1)', filter: 'brightness(1)' }
-        ], { duration: 220, easing: 'ease-out' });
-      }
+        game.totalCoins += amt;
+        secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
 
-    }, spawnInterval);
+        let coinBox = document.getElementById('hud-coin-box');
+        if (coinBox) {
+          coinBox.animate([
+            { transform: 'scale(1)', filter: 'brightness(1)' },
+            { transform: 'scale(1.4)', filter: 'brightness(2)' },
+            { transform: 'scale(1)', filter: 'brightness(1)' }
+          ], { duration: 220, easing: 'ease-out' });
+        }
+
+      }, spawnInterval);
+    }, countUpDelay);
 
   }, delay);
 }
