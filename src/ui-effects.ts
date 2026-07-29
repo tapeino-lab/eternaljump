@@ -49,6 +49,25 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
   // Start flying effect after blinking text animation completes (1200ms)
   let delay = showWindow ? 1200 : 50;
   setTimeout(() => {
+    // Spawn floating +n popup text near the HUD coin display
+    let coinBox = document.getElementById('hud-coin-box') || (document.querySelector('#ui .coin-icon')?.parentElement as HTMLElement);
+    if (coinBox && coinBox.parentElement) {
+      let parent = coinBox.parentElement as HTMLElement;
+      parent.style.position = 'relative';
+
+      let oldPop = parent.querySelector('.coin-add-popup');
+      if (oldPop) oldPop.remove();
+
+      let pop = document.createElement('span');
+      pop.className = 'coin-add-popup';
+      pop.textContent = '+' + coins;
+      parent.appendChild(pop);
+
+      pop.addEventListener('animationend', () => {
+        pop.remove();
+      });
+    }
+
     let startX = 128;
     let startY = 250;
     let cw = document.getElementById('canvasWrapper');
@@ -90,9 +109,9 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
       game.totalCoins += amt;
       secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
 
-      let uiIcon = document.querySelector('#ui .coin-icon');
-      if (uiIcon && uiIcon.parentElement) {
-        uiIcon.parentElement.animate([
+      let coinBox = document.getElementById('hud-coin-box');
+      if (coinBox) {
+        coinBox.animate([
           { transform: 'scale(1)', filter: 'brightness(1)' },
           { transform: 'scale(1.4)', filter: 'brightness(2)' },
           { transform: 'scale(1)', filter: 'brightness(1)' }

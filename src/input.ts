@@ -399,12 +399,16 @@ export class InputManager {
           } else if (e.target.closest('#btnConfirmYes')) {
             e.preventDefault();
             e.stopPropagation();
+            let earned = (!game.demoMode && game.scoreCoin) ? game.scoreCoin : 0;
             $('pauseConfirmModal')!.style.display = 'none';
             game.isPaused = false;
             $('pauseScreen')!.style.display = 'none';
             setIgnoreNextTap(true);
             setTimeout(() => setIgnoreNextTap(false), 500);
             startAttractCycle();
+            if (earned > 0) {
+              applyCoinCountUp(earned, 'COINS GET!', false, false);
+            }
           } else if (e.target.closest('#btnConfirmNo')) {
             e.preventDefault();
             e.stopPropagation();

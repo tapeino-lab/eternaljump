@@ -1783,3 +1783,47 @@ body.no-fullscreen #hud-time {
   pointer-events: none;
   z-index: 9999;
 }
+
+@keyframes coinAddPopup {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  8% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  16% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  24% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  32% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+
+.coin-add-popup {
+  position: absolute;
+  left: calc(100% + 0.5ch);
+  top: 0;
+  color: #fff;
+  font-family: "Press Start 2P", sans-serif;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: coinAddPopup 3.5s ease-out forwards;
+  z-index: 20;
+}

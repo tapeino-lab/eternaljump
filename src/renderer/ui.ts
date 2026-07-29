@@ -247,9 +247,11 @@ export function updateHUD(topColor) {
     if (!hc) {
       let cI = '<div class="coin-icon" style="margin-right:4px;"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>';
       ui.innerHTML = `
-        <div style="flex:1; display:flex; flex-direction:column; align-items:flex-start;">
-          <div style="display:flex; align-items:center;">
-            ${cI}<span id="hud-coin"></span>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:flex-start; position:relative;">
+          <div style="display:inline-flex; align-items:center; position:relative;">
+            <div id="hud-coin-box" style="display:flex; align-items:center;">
+              ${cI}<span id="hud-coin"></span>
+            </div>
           </div>
           <div id="hud-equipped-badge" style="display:none; margin-top:3px; padding:2px; background:rgba(0,0,0,0.75); border:1px solid #00e676; border-radius:3px; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.5); pointer-events:none;">
             <div id="hud-equipped-icon" style="display:flex; align-items:center; justify-content:center; gap:2px;"></div>
