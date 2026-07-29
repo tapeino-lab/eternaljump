@@ -89,8 +89,8 @@ function resize() {
   let winW = window.innerWidth, winH = window.innerHeight;
   let ratio = config.gameWidth / config.gameHeight;
   
-  // 最低高さは 128px または 画面高さの 1/6 (約16.7%) の大きい方
-  const minCtrlH = Math.max(128, Math.floor(winH / 6));
+  // 最低高さは 128px または 画面高さの 1/8 (12.5%) の大きい方
+  const minCtrlH = Math.max(128, Math.floor(winH / 8));
   const MAX_CTRL_H = 320;
 
   // まず画面横幅いっぱいにゲーム画面を配置
