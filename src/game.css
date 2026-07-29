@@ -829,6 +829,7 @@ body.no-fullscreen #hud-time {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  line-height: 1;
 }
 
 .demo-header {
@@ -889,31 +890,25 @@ body.no-fullscreen #hud-time {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  line-height: 1;
 }
 
 .loading-coin-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  animation: loadingCoinFloat 0.7s ease-in-out infinite alternate;
 }
 
 .loading-coin-icon .coin-icon {
-  transform: scale(1.4) translateY(0);
   animation: loadingCoinSpin 0.5s steps(4) infinite;
 }
 
-@keyframes loadingCoinFloat {
-  0% { transform: translateY(-3px); }
-  100% { transform: translateY(3px); }
-}
-
 @keyframes loadingCoinSpin {
-  0% { transform: scale(1.4) scaleX(1); filter: brightness(1); }
-  25% { transform: scale(1.4) scaleX(0.5); filter: brightness(1.25); }
-  50% { transform: scale(1.4) scaleX(0.08); filter: brightness(1.5); }
-  75% { transform: scale(1.4) scaleX(-0.5); filter: brightness(0.9); }
-  100% { transform: scale(1.4) scaleX(-1); filter: brightness(1); }
+  0% { transform: translateY(-1px) scale(1.4) scaleX(1); filter: brightness(1); }
+  25% { transform: translateY(-1px) scale(1.4) scaleX(0.5); filter: brightness(1.25); }
+  50% { transform: translateY(-1px) scale(1.4) scaleX(0.08); filter: brightness(1.5); }
+  75% { transform: translateY(-1px) scale(1.4) scaleX(-0.5); filter: brightness(0.9); }
+  100% { transform: translateY(-1px) scale(1.4) scaleX(-1); filter: brightness(1); }
 }
 
 .result-container {
