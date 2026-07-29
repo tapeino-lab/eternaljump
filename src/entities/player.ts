@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
 import { game } from '../state.js';
-import { ctx, IMG } from '../display.js';
+import { ctx, IMG, GREEN_IMG } from '../display.js';
 
 import { dR } from '../renderer/core.js';
 
@@ -221,38 +221,44 @@ import { spawnParticles } from './particles.js';
         }
         
         let bA = MAX(0, MIN(1, (-this.vy - 10) / 5));
-        let cImg = isPwr ? IMG.pwr : IMG.jmp;
         
+        let imgKey = isPwr ? 'pwr' : 'jmp';
         if (this.isNPC) {
-          cImg = this.active ? IMG['n' + (this.npcIndex + 1) + 'j'] : IMG['n' + (this.npcIndex + 1) + 's'];
+          imgKey = this.active ? ('n' + (this.npcIndex + 1) + 'j') : ('n' + (this.npcIndex + 1) + 's');
         } else if (!isPwr) {
           if (game.state === 'gameover') {
-            cImg = IMG.fal;
+            imgKey = 'fal';
           } else if (game.state === 'clear') {
-            cImg = IMG.jmp;
+            imgKey = 'jmp';
           } else if (game.state === 'intro_anim') {
-            cImg = this.savedIntroImg || IMG.wlk2;
+            imgKey = 'wlk2';
           } else if (this.squatTimer > 0) {
-            cImg = IMG.wlk3;
+            imgKey = 'wlk3';
           } else if ((game.state === 'intro' || this.isIntro) && this.vy > 0) {
             if (this.y > 272) {
-              cImg = IMG.fal;
+              imgKey = 'fal';
             } else {
               let f = FLR(performance.now() / 100) % 3;
-              cImg = f === 0 ? IMG.wlk1 : (f === 1 ? IMG.wlk2 : IMG.wlk3);
+              imgKey = f === 0 ? 'wlk1' : (f === 1 ? 'wlk2' : 'wlk3');
             }
           } else if (this.vy < 0 || (this.vy > 0 && this.vy < 4.68)) {
-            cImg = IMG.jmp;
+            imgKey = 'jmp';
           } else if (this.vy >= 4.68) {
-            cImg = IMG.fal;
+            imgKey = 'fal';
           } else {
             if (ABS(this.vx) > 0) {
               let f = FLR(performance.now() / 100) % 3;
-              cImg = f === 0 ? IMG.wlk1 : (f === 1 ? IMG.wlk2 : IMG.wlk3);
+              imgKey = f === 0 ? 'wlk1' : (f === 1 ? 'wlk2' : 'wlk3');
             } else {
-              cImg = IMG.std;
+              imgKey = 'std';
             }
           }
+        }
+        
+        let cImg: any = (game.state === 'intro_anim' && !this.isNPC && this.savedIntroImg) ? this.savedIntroImg : IMG[imgKey];
+        let drawImg: any = cImg;
+        if (!this.isNPC && game.equipped?.['mushroom'] && GREEN_IMG[imgKey]) {
+          drawImg = GREEN_IMG[imgKey];
         }
         
         let useSp = true;
@@ -264,7 +270,7 @@ import { spawnParticles } from './particles.js';
           for (let i = 0; i < this.history.length; i++) {
             let pos = this.history[i];
             ctx.globalAlpha = MAX(0, 0.4 - i * 0.1) * bA * bAl;
-            if (useSp && cImg.complete) {
+            if (useSp && (drawImg.complete || drawImg.width > 0)) {
               ctx.save();
               ctx.translate(FLR(pos.x + this.w / 2), FLR(pos.y + dH));
               if (!pos.dir) ctx.scale(-1, 1);
@@ -273,7 +279,7 @@ import { spawnParticles } from './particles.js';
                 ctx.rotate((performance.now() / 50) % (PI * 2));
                 ctx.translate(0, dH / 2);
               }
-              ctx.drawImage(cImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
+              ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
               this.drawHelmet(dH, vS, vOy, cImg);
               ctx.restore();
             } else {
@@ -283,7 +289,7 @@ import { spawnParticles } from './particles.js';
         }
         
         ctx.globalAlpha = bAl;
-        if (useSp && cImg.complete) {
+        if (useSp && (drawImg.complete || drawImg.width > 0)) {
           ctx.save();
           ctx.translate(FLR(this.x + this.w / 2), FLR(dY + dH));
           if (!this.facingRight) ctx.scale(-1, 1);
@@ -292,7 +298,7 @@ import { spawnParticles } from './particles.js';
             ctx.rotate((performance.now() / 50) % (PI * 2));
             ctx.translate(0, dH / 2);
           }
-          ctx.drawImage(cImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
+          ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
           this.drawHelmet(dH, vS, vOy, cImg);
           ctx.restore();
         } else {
