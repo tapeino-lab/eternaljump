@@ -35,6 +35,7 @@ let lastLoopCheckState = {
 };
 
 export function loop(ts: number) {
+  try {
   let dT = ts - lastTime;
   lastTime = ts;
   if (dT > 250) dT = 250;
@@ -99,5 +100,8 @@ export function loop(ts: number) {
   }
 
   render(ts);
+  } catch (err) {
+    console.error("Game loop error:", err);
+  }
   if (loopRunning) requestAnimationFrame(loop);
 }
