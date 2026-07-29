@@ -3,7 +3,7 @@
 :root {
   /* 操作ボタン・コントロールエリア調整用CSS変数 */
   --control-max-height: 320px; /* 全画面等で操作エリアが高くなりすぎるのを抑える上限値 */
-  --control-min-height: 128px;  /* 最小高さ */
+  --control-min-height: 96px;  /* 最小高さ */
   --control-btn-max-height: 100%;
 }
 
@@ -77,7 +77,7 @@ border-top: 4px solid var(--ca-bt);
 box-sizing: border-box;
 display: flex;
 position: relative;
-height: clamp(var(--control-min-height, 128px), var(--control-height, 128px), var(--control-max-height, 320px));
+height: clamp(var(--control-min-height, 96px), var(--control-height, 96px), var(--control-max-height, 320px));
 max-height: var(--control-max-height);
 }
 
