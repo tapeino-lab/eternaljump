@@ -220,7 +220,20 @@ export function updateShopUI() {
   });
 }
 
+export const AUTOCRUISE_QUOTES = [
+  '"Right away, Michael."',
+  '"I\'m on it, Michael."',
+  '"Already on it."',
+  '"Leave it to me, Michael."',
+  '"I\'ll take care of it."'
+];
+
 export function onEnterShop() {
+  const autoCruiseItem = SHOP_ITEMS.find(i => i.id === 'autocruise');
+  if (autoCruiseItem) {
+    autoCruiseItem.desc = AUTOCRUISE_QUOTES[Math.floor(Math.random() * AUTOCRUISE_QUOTES.length)];
+  }
+
   shopState.initialEquipped = { ...(game.equipped || {}) };
   updateShopUI();
 
