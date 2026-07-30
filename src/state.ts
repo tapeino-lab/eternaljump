@@ -1,7 +1,16 @@
 import type { GameState } from './types.js';
 
 export function createInitialGameState(): GameState {
-  return {
+  let scoreKey = Math.floor(Math.random() * 0xFFFFFFFF);
+  let scoreObf = 0 ^ scoreKey;
+
+  let scoreCoinKey = Math.floor(Math.random() * 0xFFFFFFFF);
+  let scoreCoinObf = 0 ^ scoreCoinKey;
+
+  let totalCoinsKey = Math.floor(Math.random() * 0xFFFFFFFF);
+  let totalCoinsObf = 0 ^ totalCoinsKey;
+
+  const obj = {
     state: 'intro',
     isPaused: false,
     demoMode: false,
@@ -25,9 +34,6 @@ export function createInitialGameState(): GameState {
     cameraY: 0,
     highestCameraY: 0,
     highestPlayerY: 0,
-    score: 0,
-    scoreCoin: 0,
-    totalCoins: 0,
     inventory: {},
     equipped: {},
     lastCoinY: 0,
@@ -49,7 +55,39 @@ export function createInitialGameState(): GameState {
     isNewRecord: false,
     personalBest: null,
     showAIThoughts: false
-  };
+  } as unknown as GameState;
+
+  Object.defineProperties(obj, {
+    score: {
+      get: () => scoreObf ^ scoreKey,
+      set: (val: number) => {
+        scoreKey = Math.floor(Math.random() * 0xFFFFFFFF);
+        scoreObf = (val | 0) ^ scoreKey;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    scoreCoin: {
+      get: () => scoreCoinObf ^ scoreCoinKey,
+      set: (val: number) => {
+        scoreCoinKey = Math.floor(Math.random() * 0xFFFFFFFF);
+        scoreCoinObf = (val | 0) ^ scoreCoinKey;
+      },
+      enumerable: true,
+      configurable: true
+    },
+    totalCoins: {
+      get: () => totalCoinsObf ^ totalCoinsKey,
+      set: (val: number) => {
+        totalCoinsKey = Math.floor(Math.random() * 0xFFFFFFFF);
+        totalCoinsObf = (val | 0) ^ totalCoinsKey;
+      },
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  return obj;
 }
 
 export const game: GameState = createInitialGameState();
