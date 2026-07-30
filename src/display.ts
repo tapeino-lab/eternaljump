@@ -55,6 +55,9 @@ let isFirstPlay = true;
 
 const cvs = $('gameCanvas') as HTMLCanvasElement;
 export const ctx = cvs.getContext('2d', { alpha: false });
+if (ctx) {
+  ctx.imageSmoothingEnabled = false;
+}
 const ui = $('ui');
 const btnL = $('btnLeft');
 const btnR = $('btnRight');
@@ -206,6 +209,7 @@ function resize() {
     cvs.height = config.gameHeight;
     cvs.style.width = '100%';
     cvs.style.height = '100%';
+    if (ctx) ctx.imageSmoothingEnabled = false;
   }
   let tapMsg = $('tapToStartMsg');
   if (tapMsg) {

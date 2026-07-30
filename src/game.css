@@ -41,7 +41,16 @@ align-items: center;
 }
 
 #canvasWrapper {
-position: relative;
+  position: relative;
+  will-change: transform;
+}
+
+#gameCanvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: -moz-crisp-edges;
+  transform: translateZ(0);
 }
 
 #touchOverlay {

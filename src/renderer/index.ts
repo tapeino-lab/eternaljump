@@ -41,9 +41,6 @@ export function drawUILayer(topColor: any, ts: number) {
 export function render(ts: number) {
   let topColor = drawBackgroundLayer(ts);
 
-  ctx.save();
-  ctx.imageSmoothingEnabled = false;
-  
   let sX = 0, sY = 0;
   if (game.shakeAmount > 0) {
     sX = (RND() - 0.5) * 2 * game.shakeAmount;
@@ -51,13 +48,15 @@ export function render(ts: number) {
     game.shakeAmount *= 0.85;
     if (game.shakeAmount < 0.5) game.shakeAmount = 0;
   }
-  ctx.translate(FLR(sX), FLR(-game.cameraY + sY));
   
+  let camX = FLR(sX);
+  let camY = FLR(-game.cameraY + sY);
+
+  ctx.translate(camX, camY);
   drawWorldLayer(ts);
   drawEntitiesLayer(ts);
+  ctx.translate(-camX, -camY);
 
-  ctx.restore();
-  
   drawUILayer(topColor, ts);
 }
 
