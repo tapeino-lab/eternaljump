@@ -54,7 +54,7 @@ for (let k in B64) {
 let isFirstPlay = true;
 
 const cvs = $('gameCanvas') as HTMLCanvasElement;
-export const ctx = cvs.getContext('2d');
+export const ctx = cvs.getContext('2d', { alpha: false });
 const ui = $('ui');
 const btnL = $('btnLeft');
 const btnR = $('btnRight');
