@@ -1,7 +1,7 @@
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, P_FC } from './entities/index.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, P_FC, getFc } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
 import { initGame } from './lifecycle.js';
 
@@ -54,6 +54,8 @@ export function updateMeteors(game: GameState) {
       i--;
     } else if (game.state === 'playing' && !(game.player.hitTimer > 0) && game.player.x < m.x + m.w && game.player.x + game.player.w > m.x && game.player.y < m.y + m.h && game.player.y + game.player.h > m.y) {
       let isStomping = (game.player.vy > 0 && (game.player.y + game.player.h - game.player.vy) <= m.y + m.h * 0.5);
+      let isPunchingUp = (game.player.vy < 0 && (game.player.y - game.player.vy) >= m.y + m.h * 0.5);
+      
       game.player.recentExternalCollisionTimer = 180;
       if (isStomping) {
         m.hitTimer = 60;
@@ -67,6 +69,31 @@ export function updateMeteors(game: GameState) {
           game.player.aiPath = [];
         }
         spawnParticles(m.x + m.w / 2, m.y, '#fff', 15, 4);
+      } else if (isPunchingUp && game.equipped?.['rod']) {
+        let reward = m.isLarge ? 3 : 1;
+        for (let j = 0; j < reward; j++) {
+          if (game.scoreCoin < 999) game.scoreCoin++;
+          game.totalCoins++;
+          let fc = getFc(m.x + m.w / 2 + (j * 15 - 15), m.y + m.h / 2 + (j * 10 - 10));
+          fc.maxProgress = 30 + j * 5;
+          game.flyingCoins.push(fc);
+        }
+        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#ffd700', 10, 3);
+        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#f80', 20, 5);
+        game.shakeAmount = 6;
+        P_MT.push(m);
+        swapRemove(game.meteors, i);
+        i--;
+        game.player.vy *= 0.5;
+        if (game.player.isPoweredUp && !game.equipped?.['helmet']) {
+          game.player.history = [];
+          game.player.savedVy = game.player.vy;
+          game.player.savedVx = game.player.vx;
+          game.player.isPoweredUp = false;
+          game.state = 'powerdown_anim';
+          game.player.animTimer = 48;
+          game.player.baseY = game.player.y;
+        }
       } else {
         if (m.hitTimer > 0) continue;
         m.hitTimer = 60;

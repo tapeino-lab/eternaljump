@@ -281,6 +281,7 @@ import { spawnParticles } from './particles.js';
               }
               ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
               this.drawHelmet(dH, vS, vOy, cImg);
+              this.drawRod(dH, vS, vOy, imgKey);
               ctx.restore();
             } else {
               dR(pos.x, pos.y, this.w, dH, c);
@@ -300,11 +301,45 @@ import { spawnParticles } from './particles.js';
           }
           ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
           this.drawHelmet(dH, vS, vOy, cImg);
+          this.drawRod(dH, vS, vOy, imgKey);
           ctx.restore();
         } else {
           dR(this.x, dY, this.w, dH, c);
         }
         ctx.globalAlpha = 1.0;
+      }
+
+      drawRod(dH: number, vS: number, vOy: number, imgKey: string) {
+        if (this.isNPC || !game.equipped?.["rod"]) return;
+        if (imgKey !== "jmp" && imgKey !== "pwr") return;
+
+        let startX = FLR(5 * vS);
+        let startY = FLR(-dH * vS + vOy - 5 * vS);
+
+        // Stick
+        ctx.fillStyle = "#444";
+        ctx.fillRect(startX, startY + 4 * vS, 2 * vS, 4 * vS);
+        ctx.fillStyle = "#777";
+        ctx.fillRect(startX, startY + 4 * vS, 1 * vS, 4 * vS);
+
+        // Sphere
+        ctx.fillStyle = "#777";
+        ctx.fillRect(startX - 1 * vS, startY + 1 * vS, 4 * vS, 4 * vS);
+        ctx.fillStyle = "#444";
+        ctx.fillRect(startX - 1 * vS, startY + 4 * vS, 4 * vS, 1 * vS);
+        ctx.fillRect(startX + 2 * vS, startY + 1 * vS, 1 * vS, 4 * vS);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(startX, startY + 1 * vS, 2 * vS, 2 * vS);
+
+        // Outlines
+        ctx.fillStyle = "#000";
+        ctx.fillRect(startX - 2 * vS, startY + 1 * vS, 1 * vS, 4 * vS);
+        ctx.fillRect(startX + 3 * vS, startY + 1 * vS, 1 * vS, 4 * vS);
+        ctx.fillRect(startX - 1 * vS, startY, 4 * vS, 1 * vS);
+        ctx.fillRect(startX - 1 * vS, startY + 5 * vS, 1 * vS, 1 * vS);
+        ctx.fillRect(startX + 2 * vS, startY + 5 * vS, 1 * vS, 1 * vS);
+        ctx.fillRect(startX - 1 * vS, startY + 6 * vS, 1 * vS, 2 * vS);
+        ctx.fillRect(startX + 2 * vS, startY + 6 * vS, 1 * vS, 2 * vS);
       }
 
       drawHelmet(dH: number, vS: number, vOy: number, cImg?: HTMLImageElement) {
