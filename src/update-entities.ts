@@ -78,8 +78,8 @@ export function updateMeteors(game: GameState) {
           fc.maxProgress = 30 + j * 5;
           game.flyingCoins.push(fc);
         }
-        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#ffd700', 10, 3);
-        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#f80', 20, 5);
+        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#421', 10, 3);
+        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#210', 20, 5);
         game.shakeAmount = 6;
         P_MT.push(m);
         swapRemove(game.meteors, i);
