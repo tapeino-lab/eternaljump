@@ -317,29 +317,43 @@ import { spawnParticles } from './particles.js';
         let startY = FLR(-dH * vS + vOy - 5 * vS);
 
         // Stick
-        ctx.fillStyle = "#444";
+        ctx.fillStyle = "#888";
         ctx.fillRect(startX, startY + 4 * vS, 2 * vS, 4 * vS);
-        ctx.fillStyle = "#777";
+        ctx.fillStyle = "#ccc";
         ctx.fillRect(startX, startY + 4 * vS, 1 * vS, 4 * vS);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(startX, startY + 4 * vS, 1 * vS, 1 * vS);
 
         // Sphere
-        ctx.fillStyle = "#777";
+        ctx.fillStyle = "#ddd";
         ctx.fillRect(startX - 1 * vS, startY + 1 * vS, 4 * vS, 4 * vS);
-        ctx.fillStyle = "#444";
+        ctx.fillStyle = "#777";
         ctx.fillRect(startX - 1 * vS, startY + 4 * vS, 4 * vS, 1 * vS);
         ctx.fillRect(startX + 2 * vS, startY + 1 * vS, 1 * vS, 4 * vS);
         ctx.fillStyle = "#fff";
         ctx.fillRect(startX, startY + 1 * vS, 2 * vS, 2 * vS);
 
-        // Outlines
-        ctx.fillStyle = "#000";
-        ctx.fillRect(startX - 2 * vS, startY + 1 * vS, 1 * vS, 4 * vS);
-        ctx.fillRect(startX + 3 * vS, startY + 1 * vS, 1 * vS, 4 * vS);
-        ctx.fillRect(startX - 1 * vS, startY, 4 * vS, 1 * vS);
-        ctx.fillRect(startX - 1 * vS, startY + 5 * vS, 1 * vS, 1 * vS);
-        ctx.fillRect(startX + 2 * vS, startY + 5 * vS, 1 * vS, 1 * vS);
-        ctx.fillRect(startX - 1 * vS, startY + 6 * vS, 1 * vS, 2 * vS);
-        ctx.fillRect(startX + 2 * vS, startY + 6 * vS, 1 * vS, 2 * vS);
+        // Sparkle occasionally
+        let sparkPhase = (performance.now() / 80) % 80;
+        if (sparkPhase < 8) {
+          let seed = FLR(performance.now() / 6400);
+          let offsetX = SIN(seed * 7) * 4 * vS;
+          let offsetY = SIN(seed * 13) * 4 * vS;
+          ctx.save();
+          let sx = startX + 1 * vS + offsetX;
+          let sy = startY - 1 * vS + offsetY;
+          ctx.translate(sx + 0.5 * vS, sy + 0.5 * vS);
+          ctx.rotate(performance.now() / 100);
+          let scale = SIN((sparkPhase / 8) * PI) * 1.5;
+          ctx.scale(scale, scale);
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(-0.5 * vS, -4 * vS, 1 * vS, 8 * vS);
+          ctx.fillRect(-4 * vS, -0.5 * vS, 8 * vS, 1 * vS);
+          ctx.rotate(PI / 4);
+          ctx.fillRect(-0.5 * vS, -2 * vS, 1 * vS, 4 * vS);
+          ctx.fillRect(-2 * vS, -0.5 * vS, 4 * vS, 1 * vS);
+          ctx.restore();
+        }
       }
 
       drawHelmet(dH: number, vS: number, vOy: number, cImg?: HTMLImageElement) {
