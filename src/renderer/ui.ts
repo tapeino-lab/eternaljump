@@ -273,11 +273,12 @@ export function updateHUD(topColor) {
   let centerHtml = isTitle ? '' : scoreVal + 'm';
   let timeHtml = isTimerVisible ? 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>' : '';
 
+  let coinStr = coinDisplay.toString();
   let hc = cachedHudCoin;
   let hs = cachedHudScore;
   let ht = cachedHudTime;
-  if (hc && hc.innerHTML !== coinDisplay.toString()) hc.innerHTML = coinDisplay.toString();
-  if (hs && hs.innerHTML !== centerHtml) hs.innerHTML = centerHtml;
+  if (hc && hc.textContent !== coinStr) hc.textContent = coinStr;
+  if (hs && hs.textContent !== centerHtml) hs.textContent = centerHtml;
   if (ht && ht.innerHTML !== timeHtml) ht.innerHTML = timeHtml;
 
   let badge = cachedHudEquippedBadge;
