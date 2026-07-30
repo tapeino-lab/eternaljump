@@ -1,7 +1,7 @@
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, P_FC, getFc } from './entities/index.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, spawnDebris, spawnFireSparks, P_PT, P_PL, P_IT, P_CN, P_CL, P_FC, getFc } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
 import { initGame } from './lifecycle.js';
 
@@ -78,8 +78,10 @@ export function updateMeteors(game: GameState) {
           fc.maxProgress = 30 + j * 5;
           game.flyingCoins.push(fc);
         }
-        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#421', 10, 3);
-        spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#210', 20, 5);
+        spawnDebris(m.x, m.y, m.w, m.h, '#853', 3, 1.5);
+        spawnDebris(m.x, m.y, m.w, m.h, '#632', 4, 1.0);
+        spawnDebris(m.x, m.y, m.w, m.h, '#421', 5, 0.5);
+        spawnFireSparks(m.x + m.w / 2, m.y + m.h / 2, 10);
         game.shakeAmount = 6;
         P_MT.push(m);
         swapRemove(game.meteors, i);
