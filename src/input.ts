@@ -68,7 +68,7 @@ export class InputManager {
         if (e.target.closest('#controlArea')) {
           e.preventDefault();
           e.stopPropagation();
-          $('rankingModal')!.style.display = 'none';
+          $('rankingModal')!.style.display = 'none'; document.body.classList.remove('showing-ranking');
           $('tapToStartMsg')!.style.display = 'none';
           if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
             if (isAttractMode) {
@@ -447,7 +447,7 @@ export class InputManager {
     document.addEventListener('click', (e: any) => {
       const t = (e.target as HTMLElement).closest('button');
       if (t) {
-        if (t.id === 'closeRankBtn') $('rankingModal')!.style.display = 'none';
+        if (t.id === 'closeRankBtn') { $('rankingModal')!.style.display = 'none'; document.body.classList.remove('showing-ranking'); }
 
       }
     });

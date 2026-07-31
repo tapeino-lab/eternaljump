@@ -155,6 +155,7 @@ export const demoState = {
 
   active: false,
   phase: 'none' as 'none' | 'ranking' | 'scroll' | 'wait',
+  rankingMode: 'ta' as 'ta' | 'height',
   startTime: 0,
   dist1: 0,
   dist2: 0,

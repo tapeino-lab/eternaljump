@@ -30,7 +30,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         $('rankingLoading').style.display = 'none';
         $('rankingContainer').style.display = 'none';
         $('resultContainer').style.display = 'flex';
-        $('rankingModal').style.display = 'flex';
+        $('rankingModal').style.display = 'flex'; document.body.classList.add('showing-ranking');
         $('tapToStartMsg').style.display = 'none';
         setIgnoreNextTap(true);
         
@@ -179,7 +179,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         $('resultContainer').style.display = 'none';
         $('rankingContainer').style.display = 'none';
         $('rankingLoading').style.display = 'flex';
-        $('rankingModal').style.display = 'flex';
+        $('rankingModal').style.display = 'flex'; document.body.classList.add('showing-ranking');
         setIgnoreNextTap(true);
         
         let s = [];
@@ -213,6 +213,8 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         let curLen = s.length;
         if (mode === 'height') {
             for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });
+        } else if (mode === 'ta') {
+            for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, t: 5 * 60000, coins: 0, lang: 'CPU', n: 'CPU --' });
         }
         
         let hl = false;

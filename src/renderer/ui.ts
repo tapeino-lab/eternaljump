@@ -205,13 +205,7 @@ export function updateHUD(topColor) {
   let effPlayTime = (game.state === 'clear') ? game.clearTime : game.playTime;
   let timeLeft = MAX(0, config.timeLimit - effPlayTime / 1000);
   
-  let t = Math.max(0, timeLeft * 1000);
-  let tMs = Math.floor(t % 1000);
-  let totalSec = Math.floor(t / 1000);
-  let mStr = Math.floor(totalSec / 60);
-  let sStr = (totalSec % 60).toString().padStart(2, '0');
-  let msStr = Math.floor(tMs / 100).toString();
-  let timeStr = `${mStr}:${sStr}.${msStr}`;
+  let timeStr = Math.ceil(timeLeft).toString();
 
   let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
   let isTimerVisible = !isAttractMode;
@@ -382,11 +376,19 @@ export function updateDemoRanking(ts: number) {
           container.style.display = 'none';
           container.style.opacity = '1';
           container.style.transition = 'none';
-          runAttractUICycle();
-          setTimeout(() => {
+          
+          if (demoState.rankingMode === 'ta') {
+            demoState.rankingMode = 'height';
             overlay.style.opacity = '0';
             setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-          }, 500);
+            import('../demo-ranking.js').then(m => m.startDemoRankingScroll(isAttractMode, 'height'));
+          } else {
+            runAttractUICycle();
+            setTimeout(() => {
+              overlay.style.opacity = '0';
+              setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+            }, 500);
+          }
         }, 1000);
       }, 3000);
     }

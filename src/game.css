@@ -1836,3 +1836,12 @@ body.no-fullscreen #hud-time {
   animation: coinAddPopup 2.8s ease-out forwards;
   z-index: 20;
 }
+
+body.showing-ranking .btn-instagram {
+  right: auto;
+  left: 10px;
+}
+
+body.showing-ranking #btnInstagram {
+  display: flex !important;
+}

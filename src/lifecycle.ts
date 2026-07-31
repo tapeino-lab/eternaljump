@@ -85,7 +85,7 @@ export function resetAttractTimer() {
     let tn = document.getElementById('gamePlayerName');
     if (tn) tn.style.display = 'none';
     setAuto(true);
-    startDemoRankingScroll(isAttractMode);
+    startDemoRankingScroll(isAttractMode, demoState.rankingMode);
   }, 3000);
 }
 
@@ -98,12 +98,13 @@ export function startAttractCycle() {
   }
   isAttractMode = true;
   demoState.active = false;
+  demoState.rankingMode = 'ta';
   fireworksSystem.launch();
   
   let btnInsta = $('btnInstagram');
   if (btnInsta) btnInsta.style.display = 'flex';
 
-  $('rankingModal').style.display = 'none';
+  $('rankingModal').style.display = 'none'; document.body.classList.remove('showing-ranking');
   $('demoRankingContainer').style.display = 'none';
   $('tapToStartMsg').innerText = 'TAP TO START';
   $('tapToStartMsg').style.display = 'block';
@@ -123,6 +124,7 @@ export function runAttractUICycle() {
   config.scoreMultiplier = tM;
   game.startScore = tS;
   game.demoMode = true;
+  demoState.rankingMode = 'ta';
   
   let tnDisplay = $('titleNameDisplay');
   if(tnDisplay) tnDisplay.style.display = 'flex';
@@ -152,7 +154,7 @@ export function startRealGame() {
   let btnInsta = $('btnInstagram');
   if (btnInsta) btnInsta.style.display = 'none';
 
-  $('rankingModal').style.display = 'none';
+  $('rankingModal').style.display = 'none'; document.body.classList.remove('showing-ranking');
   $('demoRankingContainer').style.display = 'none';
   $('tapToStartMsg').style.display = 'none';
   const tn = document.getElementById('gamePlayerName');
@@ -238,7 +240,7 @@ export function updateAutoCruiseBtnVisibility() {
 export function resetGameState(isConsecutive) {
   document.body.classList.remove('game-paused');
   $('pauseScreen').style.display = 'none';
-  $('rankingModal').style.display = 'none';
+  $('rankingModal').style.display = 'none'; document.body.classList.remove('showing-ranking');
   
   // オブジェクトプールへの返却 (メモリ効率向上)
   if (game.platforms) P_PL.releaseAll(game.platforms);
