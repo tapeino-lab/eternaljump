@@ -227,6 +227,36 @@ export function updateShopUI() {
       }
     }
   });
+
+  const equippedSlots = document.querySelectorAll('.shop-slot');
+  if (equippedSlots) {
+    let equippedList = Object.keys(game.equipped || {}).filter(id => game.equipped![id]);
+    for (let i = 0; i < 3; i++) {
+      let slot = equippedSlots[i] as HTMLElement;
+      if (i < equippedList.length) {
+        let itemId = equippedList[i];
+        let itemConf = SHOP_ITEMS.find(item => item.id === itemId);
+        if (itemConf) {
+          slot.innerHTML = itemConf.iconSvg;
+          slot.style.border = "2px solid rgba(255, 255, 255, 0.8)";
+          slot.style.background = "rgba(255, 255, 255, 0.2)";
+          slot.style.cursor = "pointer";
+          slot.setAttribute('data-id', itemId);
+          let svg = slot.querySelector('svg');
+          if (svg) {
+            svg.setAttribute('width', '20');
+            svg.setAttribute('height', '20');
+          }
+        }
+      } else {
+        slot.innerHTML = '';
+        slot.style.border = "2px dashed rgba(255, 255, 255, 0.3)";
+        slot.style.background = "transparent";
+        slot.style.cursor = "default";
+        slot.removeAttribute('data-id');
+      }
+    }
+  }
 }
 
 export const AUTOCRUISE_QUOTES = [
@@ -270,6 +300,17 @@ export function initShop() {
     });
   }
 
+  document.querySelectorAll('.shop-slot').forEach(slot => {
+    slot.addEventListener('click', () => {
+      let id = slot.getAttribute('data-id');
+      if (id && game.equipped && game.equipped[id]) {
+        game.equipped[id] = false;
+        secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
+        updateShopUI();
+      }
+    });
+  });
+
   document.querySelectorAll('.shop-item').forEach(itemCard => {
     itemCard.addEventListener('click', () => {
       let buyBtn = itemCard.querySelector('.shop-item-buy') as HTMLButtonElement;
@@ -278,6 +319,14 @@ export function initShop() {
 
       if (game.inventory[id]) {
         if (!game.equipped) game.equipped = {};
+        if (!game.equipped[id]) {
+          let numEquipped = Object.values(game.equipped).filter(Boolean).length;
+          if (numEquipped >= 3) {
+            itemCard.classList.add('shake-effect');
+            setTimeout(() => itemCard.classList.remove('shake-effect'), 300);
+            return;
+          }
+        }
         game.equipped[id] = !game.equipped[id];
         updateShopUI();
       } else {
@@ -287,7 +336,11 @@ export function initShop() {
         // Complete award unlock - totalCoins is NOT deducted!
         game.inventory[id] = true;
         if (!game.equipped) game.equipped = {};
-        game.equipped[id] = true; // Immediately equip upon purchase
+        
+        let numEquipped = Object.values(game.equipped).filter(Boolean).length;
+        if (numEquipped < 3) {
+          game.equipped[id] = true; // Auto equip if slot available
+        }
 
         secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
         secureStorage.setItem('JUMP_INVENTORY', game.inventory);
@@ -308,9 +361,7 @@ export function initShop() {
   const resetBtn = $('shopResetBtn');
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
-      game.inventory = {};
       game.equipped = {};
-      secureStorage.setItem('JUMP_INVENTORY', game.inventory);
       secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
       updateShopUI();
     });
