@@ -191,6 +191,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
                 document.getElementById('btnTabTA').style.background = '#fff';
                 document.getElementById('btnTabTA').style.color = '#000';
                 document.getElementById('rankingHeaderScore').innerText = 'TIME';
+                Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => (el as HTMLElement).style.opacity = '0');
             }
         } else {
             s = await RankingAPI.getScores();
@@ -200,6 +201,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
                 document.getElementById('btnTabTA').style.background = '#333';
                 document.getElementById('btnTabTA').style.color = '#fff';
                 document.getElementById('rankingHeaderScore').innerText = 'HEIGHT';
+                Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => (el as HTMLElement).style.opacity = '1');
             }
         }
 
