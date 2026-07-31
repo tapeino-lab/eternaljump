@@ -390,7 +390,8 @@ export function runAI(entity: Player) {
   }
 
   // Stuck/Collision breakout movement (irregular/random breakout maneuver)
-  let isStuckBreakout = (entity.stagnationTimer >= 120 || isStuck);
+  let isGroundedBreakoutCheck = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
+  let isStuckBreakout = (entity.stagnationTimer >= 120 || isStuck) && (entity.vy <= 0 || isGroundedBreakoutCheck);
   if (isStuckBreakout) {
     if (entity.breakoutTimer && entity.breakoutTimer > 0) {
       entity.breakoutTimer--;
@@ -687,13 +688,13 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       } else {
         let absDy = dy < 0 ? -dy : dy;
-        score -= absDy * 100; // Penalize platforms below more heavily (increased from 50 to 100) to keep drive upward
-        // When descending, heavily encourage landing on platforms directly or closely beneath the player
+        score -= absDy * 150; // Penalize platforms below more heavily to keep drive upward and prefer closer platforms when falling
+        // When descending, encourage landing on platforms that are reachable
         if (initialVy >= 0 || entity.vy > 0) {
           if (eff_dx === 0) {
-            score += 20000; // Large landing guarantee bonus for platforms directly under player
+            score += 5000;
           } else if (eff_dx < 20) {
-            score += 10000 - eff_dx * 200;
+            score += 5000 - eff_dx * 250;
           }
         }
       }
@@ -779,7 +780,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     }
 
     // BREAKOUT target diversification: If stuck, force target switching to break stagnation loops
-    let isStuckBreakout = (entity.stagnationTimer >= 120 || isStuck);
+    let isStuckBreakout = (entity.stagnationTimer >= 120 || isStuck) && (entity.vy <= 0 || isGroundedOnPlatform);
     if (isStuckBreakout) {
       // 1. Add a penalty to the current target/locked target to encourage switching to a new target
       if (entity.aiTarget === cand || entity.aiLockedTarget === cand) {
