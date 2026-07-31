@@ -92,8 +92,9 @@ export class InputManager {
           !e.target.closest('#pauseScreen') && 
           !e.target.closest('#nameEditModal') && 
           !e.target.closest('#rankingModal')) {
+        e.preventDefault();
         e.stopPropagation();
-        togglePause();
+        togglePause(e);
       }
       return true;
     }

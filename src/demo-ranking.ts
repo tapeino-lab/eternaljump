@@ -3,23 +3,33 @@ import { demoState } from './state.js';
 import { RankingAPI } from './ranking.js';
 import { LootLockerAPI } from './lootlocker.js';
 
-export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' | 'height' = 'height') {
+export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' | 'height' = 'height', isTransition: boolean = false) {
+  if (!isTransition) {
+      const oldHeader = document.getElementById('demoHeaderOld');
+      if (oldHeader) oldHeader.remove();
+      const oldTop3 = document.getElementById('demoTop3Old');
+      if (oldTop3) oldTop3.remove();
+      const oldOthers = document.getElementById('demoOthersWrapperOld');
+      if (oldOthers) oldOthers.remove();
+  }
   if (!isAttractMode) return;
-  $('demoRankingContainer').style.display = 'block';
-  $('demoRankingContainer').style.opacity = '1';
-  $('demoRankingContainer').style.transition = 'none';
-  $('demoRankingContainer').style.background = 'rgba(0,0,0,0.3)';
-  $('demoLoading').style.display = 'flex';
+  if (!isTransition) {
+    $('demoRankingContainer').style.display = 'block';
+    $('demoRankingContainer').style.opacity = '1';
+    $('demoRankingContainer').style.transition = 'none';
+    $('demoRankingContainer').style.background = 'rgba(0,0,0,0.3)';
+    $('demoLoading').style.display = 'flex';
+  }
   $('demoHeader').innerHTML = '';
   $('demoTop3').innerHTML = '';
   $('demoOthers').innerHTML = '';
   
   let s = mode === 'ta' ? await RankingAPI.getTimeAttackScores() : await RankingAPI.getScores();
   if (!isAttractMode) {
-    $('demoLoading').style.display = 'none';
+    if (!isTransition) $('demoLoading').style.display = 'none';
     return;
   }
-  $('demoLoading').style.display = 'none';
+  if (!isTransition) $('demoLoading').style.display = 'none';
   
   let curLen = s.length;
   let maxLen = mode === 'ta' ? 10 : 100;

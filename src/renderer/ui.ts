@@ -354,7 +354,24 @@ export function updateDemoRanking(ts: number) {
       others.style.transform = 'translateY(0px)';
       othersWrapper.style.maskImage = 'none';
       othersWrapper.style.webkitMaskImage = 'none';
+      
+      let oldHeader = document.getElementById('demoHeaderOld');
+      let oldTop3 = document.getElementById('demoTop3Old');
+      let oldOthersWrapper = document.getElementById('demoOthersWrapperOld');
+      if (oldHeader && oldTop3 && oldOthersWrapper) {
+          let oldY = demoState.fixedHeaderY - currentScrolled;
+          oldHeader.style.transform = `translateY(${oldY}px)`;
+          oldTop3.style.transform = `translateY(${oldY + demoState.headerH}px)`;
+          oldOthersWrapper.style.transform = `translateY(${oldY + demoState.headerH + demoState.t3H + demoState.gap}px)`;
+      }
     } else {
+      let oldHeader = document.getElementById('demoHeaderOld');
+      if (oldHeader) {
+          oldHeader.remove();
+          document.getElementById('demoTop3Old')?.remove();
+          document.getElementById('demoOthersWrapperOld')?.remove();
+      }
+      
       header.style.transform = `translateY(${demoState.fixedHeaderY}px)`;
       top3.style.transform = `translateY(${demoState.fixedTop3Y}px)`;
       othersWrapper.style.transform = `translateY(${demoState.fixedTop3Y + demoState.t3H + demoState.gap}px)`;
@@ -368,28 +385,41 @@ export function updateDemoRanking(ts: number) {
       demoState.phase = 'wait';
       setTimeout(() => {
         if (!isAttractMode) return;
-        overlay.style.display = 'block';
-        overlay.offsetHeight;
-        overlay.style.opacity = '1';
-        setTimeout(() => {
-          if (!isAttractMode) return;
-          container.style.display = 'none';
-          container.style.opacity = '1';
-          container.style.transition = 'none';
-          
-          if (demoState.rankingMode === 'ta') {
+        
+        if (demoState.rankingMode === 'ta') {
             demoState.rankingMode = 'height';
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-            import('../demo-ranking.js').then(m => m.startDemoRankingScroll(isAttractMode, 'height'));
-          } else {
-            runAttractUICycle();
+            
+            // Clone current elements
+            const oldHeader = header.cloneNode(true) as HTMLElement;
+            const oldTop3 = top3.cloneNode(true) as HTMLElement;
+            const oldOthersWrapper = othersWrapper.cloneNode(true) as HTMLElement;
+            
+            oldHeader.id = 'demoHeaderOld';
+            oldTop3.id = 'demoTop3Old';
+            oldOthersWrapper.id = 'demoOthersWrapperOld';
+            
+            container.appendChild(oldHeader);
+            container.appendChild(oldTop3);
+            container.appendChild(oldOthersWrapper);
+            
+            import('../demo-ranking.js').then(m => m.startDemoRankingScroll(isAttractMode, 'height', true));
+        } else {
+            overlay.style.display = 'block';
+            overlay.offsetHeight;
+            overlay.style.opacity = '1';
             setTimeout(() => {
-              overlay.style.opacity = '0';
-              setTimeout(() => { overlay.style.display = 'none'; }, 1000);
-            }, 500);
-          }
-        }, 1000);
+              if (!isAttractMode) return;
+              container.style.display = 'none';
+              container.style.opacity = '1';
+              container.style.transition = 'none';
+              
+              runAttractUICycle();
+              setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.display = 'none'; }, 1000);
+              }, 500);
+            }, 1000);
+        }
       }, 3000);
     }
   }

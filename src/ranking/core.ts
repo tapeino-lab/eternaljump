@@ -137,15 +137,50 @@ import { RankingAPI } from './api.js';
         RankingAPI.prefetchedScoresPromise = null;
         return s;
       }
+      
+      export const prefetchTAScores = function(forceNetwork = false) {
+        RankingAPI.prefetchedTAScoresPromise = (async () => {
+          const isConfigured = await LootLockerAPI.checkConfig();
+          if (isConfigured) {
+            let scores = null;
+            let now = Date.now();
+            let lastFetch = parseInt(safeStorage.getItem('LL_LAST_TA_FETCH') || '0');
+            
+            // Cache for 60 seconds during play, or 10 minutes in demo mode
+            let cacheDuration = (game && game.state === 'demo') ? 600000 : 60000;
+            if (!forceNetwork && (now - lastFetch) < cacheDuration) {
+              try {
+                let cached = safeStorage.getItem('LL_CACHED_TA_LEADERBOARD');
+                if (cached) scores = JSON.parse(cached);
+              } catch(e) {
+                safeStorage.removeItem('LL_CACHED_TA_LEADERBOARD');
+              }
+            }
+            
+            if (!scores) {
+              scores = await LootLockerAPI.getTimeAttackScores(100);
+              if (scores && scores.length > 0) {
+                safeStorage.setItem('LL_CACHED_TA_LEADERBOARD', JSON.stringify(scores));
+                safeStorage.setItem('LL_LAST_TA_FETCH', now.toString());
+              } else {
+                try {
+                  let cached = safeStorage.getItem('LL_CACHED_TA_LEADERBOARD');
+                  if (cached) scores = JSON.parse(cached);
+                } catch(e) {
+                  safeStorage.removeItem('LL_CACHED_TA_LEADERBOARD');
+                }
+              }
+            }
+            
+            return scores;
+          }
+          return [];
+        })();
+      }
+
       export const getTimeAttackScores = async function(bypassCache = false) {
         if (bypassCache || !RankingAPI.prefetchedTAScoresPromise) {
-          RankingAPI.prefetchedTAScoresPromise = (async () => {
-            const isConfigured = await LootLockerAPI.checkConfig();
-            if (isConfigured) {
-              return await LootLockerAPI.getTimeAttackScores();
-            }
-            return [];
-          })();
+          RankingAPI.prefetchTAScores(bypassCache);
         }
         const s = await RankingAPI.prefetchedTAScoresPromise;
         RankingAPI.prefetchedTAScoresPromise = null;
@@ -219,6 +254,7 @@ import { RankingAPI } from './api.js';
         }
         // Start background prefetch of scores immediately for latest values
         RankingAPI.prefetchScores(game.isNewRecord);
+        RankingAPI.prefetchTAScores(game.isNewTARecord);
 }
       export const reset = function() {
         try {
