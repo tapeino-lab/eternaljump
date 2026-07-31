@@ -688,14 +688,15 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       } else {
         let absDy = dy < 0 ? -dy : dy;
-        score -= absDy * 150; // Penalize platforms below more heavily to keep drive upward and prefer closer platforms when falling
-        // When descending, encourage landing on platforms that are reachable
+        // When descending, encourage landing on platforms that are reachable by heavily prioritizing horizontal alignment
         if (initialVy >= 0 || entity.vy > 0) {
+          score -= absDy * 10;
+          score -= eff_dx * 500;
           if (eff_dx === 0) {
-            score += 5000;
-          } else if (eff_dx < 20) {
-            score += 5000 - eff_dx * 250;
+            score += 20000;
           }
+        } else {
+          score -= absDy * 150; // Penalize platforms below more heavily to keep drive upward
         }
       }
       score -= eff_dx * 1.5; // Minimal lateral penalty so reachable far platforms are pursued
@@ -752,8 +753,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       } else {
         // Prefer platforms that are closer below and horizontally aligned
         let absDy = -dy; // positive distance below
-        fbScore = -absDy * 100 - eff_dx * 20;
-        if (eff_dx === 0) fbScore += 5000;
+        fbScore = -absDy * 10 - eff_dx * 500;
+        if (eff_dx === 0) fbScore += 20000;
       }
     } else {
       // While ascending, prioritize climbing upward

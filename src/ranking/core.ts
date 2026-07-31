@@ -136,7 +136,21 @@ import { RankingAPI } from './api.js';
         const s = await RankingAPI.prefetchedScoresPromise;
         RankingAPI.prefetchedScoresPromise = null;
         return s;
-}
+      }
+      export const getTimeAttackScores = async function(bypassCache = false) {
+        if (bypassCache || !RankingAPI.prefetchedTAScoresPromise) {
+          RankingAPI.prefetchedTAScoresPromise = (async () => {
+            const isConfigured = await LootLockerAPI.checkConfig();
+            if (isConfigured) {
+              return await LootLockerAPI.getTimeAttackScores();
+            }
+            return [];
+          })();
+        }
+        const s = await RankingAPI.prefetchedTAScoresPromise;
+        RankingAPI.prefetchedTAScoresPromise = null;
+        return s;
+      }
       export const saveScore = async function(a, t, c, r) {
         markHasPlayed();
         if (game.demoMode && !game.allowAutoRank) return;
@@ -171,6 +185,9 @@ import { RankingAPI } from './api.js';
             if (res) {
               safeStorage.setItem('LL_LAST_FETCH', '0'); // Force fetch next time
             }
+          }
+          if (r === 'CLEAR' || a >= 144000) {
+            await LootLockerAPI.submitTimeAttackScore(t, a, c, l);
           }
         } else {
           try {

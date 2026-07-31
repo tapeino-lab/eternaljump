@@ -162,6 +162,10 @@
 
         <div id="rankingContainer" class="result-container">
           <h1 class="ranking-title">RANKING</h1>
+          <div id="rankingTabs" style="display: flex; gap: 4px; margin-bottom: 4px;">
+            <button id="btnTabHeight" style="flex: 1; padding: 4px; font-size: 8px; font-family: 'Press Start 2P', monospace; background: #fff; color: #000; border: none; cursor: pointer;">HEIGHT</button>
+            <button id="btnTabTA" style="flex: 1; padding: 4px; font-size: 8px; font-family: 'Press Start 2P', monospace; background: #333; color: #fff; border: 1px solid #555; cursor: pointer;">TIME ATTACK</button>
+          </div>
           <div class="ranking-list-inner">
             <table class="ranking-table-header-table">
               <thead class="ranking-thead-transparent">
@@ -170,7 +174,7 @@
                   <th style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;box-sizing:border-box;">LANG</th>
                   <th style="width:4px;padding:0;box-sizing:border-box;"></th>
                   <th style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;box-sizing:border-box;">NAME</th>
-                  <th style="padding:4px 0;text-align:center;white-space:nowrap;overflow:hidden;box-sizing:border-box;">HEIGHT</th>
+                  <th id="rankingHeaderScore" style="padding:4px 0;text-align:center;white-space:nowrap;overflow:hidden;box-sizing:border-box;">HEIGHT</th>
                   <th style="padding:4px 4px 4px 0;text-align:right;width:32px;white-space:nowrap;overflow:hidden;box-sizing:border-box;" class="ranking-th-coin"><div class="ranking-th-coin-inner"><div class="coin-icon c-icon-no-margin"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div></th>
                 </tr>
               </thead>

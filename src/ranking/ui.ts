@@ -135,23 +135,46 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
           $('tapToStartMsg').style.display = 'block';
         }, 50);
 }
-      export const showRanking = async function(state) {
+      export const showRanking = async function(state, mode = 'height') {
         RankingAPI.isShowingResult = false;
         $('resultContainer').style.display = 'none';
         $('rankingContainer').style.display = 'none';
         $('rankingLoading').style.display = 'flex';
         $('rankingModal').style.display = 'flex';
         setIgnoreNextTap(true);
-        let s = await RankingAPI.getScores();
+        
+        let s = [];
+        if (mode === 'ta') {
+            s = await RankingAPI.getTimeAttackScores();
+            if (document.getElementById('btnTabTA')) {
+                document.getElementById('btnTabHeight').style.background = '#333';
+                document.getElementById('btnTabHeight').style.color = '#fff';
+                document.getElementById('btnTabTA').style.background = '#fff';
+                document.getElementById('btnTabTA').style.color = '#000';
+                document.getElementById('rankingHeaderScore').innerText = 'TIME';
+            }
+        } else {
+            s = await RankingAPI.getScores();
+            if (document.getElementById('btnTabTA')) {
+                document.getElementById('btnTabHeight').style.background = '#fff';
+                document.getElementById('btnTabHeight').style.color = '#000';
+                document.getElementById('btnTabTA').style.background = '#333';
+                document.getElementById('btnTabTA').style.color = '#fff';
+                document.getElementById('rankingHeaderScore').innerText = 'HEIGHT';
+            }
+        }
+
         let pid = LootLockerAPI.playerIdentifier;
         let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : null;
         let pRank = s.find(x => x.id === pid || (pIdVal && x.id === pIdVal));
-        if (pRank) game.lastRank = pRank.rank;
+        if (pRank && mode === 'height') game.lastRank = pRank.rank;
         
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
         
         let curLen = s.length;
-        for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });
+        if (mode === 'height') {
+            for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, alt: 2000, coins: 0, lang: 'CPU', n: 'CPU --' });
+        }
         
         let hl = false;
         let isPlayerInList = false;
@@ -188,8 +211,17 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             }
             if (lang.length > 3) lang = lang.substring(0, 3);
             if (name.length > 2) name = name.substring(0, 2);
+            
+            let displayScore = `${escapeHTML(r.alt)}m`;
+            if (mode === 'ta' && r.t) {
+                let totalSec = Math.floor(r.t / 1000);
+                let mStr = Math.floor(totalSec / 60);
+                let sStr = (totalSec % 60).toString().padStart(2, '0');
+                displayScore = `<span style="color:#0ff;">${mStr}:${sStr}</span>`;
+            }
+
             let rankStyle = (typeof rNum === 'number' && rNum >= 100) ? 'font-size:7px;letter-spacing:-0.5px;padding-left:2px;' : '';
-            return `<tr${idAttr} style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;${rankStyle}">${m}${rNum}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${escapeHTML(r.alt)}m</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
+            return `<tr${idAttr} style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;${rankStyle}">${m}${rNum}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${displayScore}</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${escapeHTML(r.coins || 0)}</td></tr>`;
         };
 
         let top3HTML = '';
@@ -204,7 +236,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             }
         });
         
-        if (!isPlayerInList && (pRank || game.personalBest)) {
+        if (!isPlayerInList && mode === 'height' && (pRank || game.personalBest)) {
             let r = pRank || game.personalBest;
             r.rank = r.rank || '???';
             r.id = pid;
@@ -219,6 +251,18 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         $('rankingLoading').style.display = 'none';
         $('rankingContainer').style.display = 'flex';
         
+        // Tab setup
+        if (document.getElementById('btnTabHeight') && !document.getElementById('btnTabHeight').onclick) {
+            document.getElementById('btnTabHeight').onclick = (e) => {
+                e.stopPropagation();
+                showRanking(state, 'height');
+            };
+            document.getElementById('btnTabTA').onclick = (e) => {
+                e.stopPropagation();
+                showRanking(state, 'ta');
+            };
+        }
+
         setTimeout(() => {
           let myRow = document.getElementById('myRankRow');
           if (myRow) {
