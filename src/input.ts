@@ -392,7 +392,7 @@ export class InputManager {
           } else if (e.target.closest('#btnResumePause')) {
             e.preventDefault();
             e.stopPropagation();
-            togglePause();
+            togglePause(e);
           } else if (e.target.closest('#btnTitlePause')) {
             e.preventDefault();
             e.stopPropagation();
@@ -422,7 +422,7 @@ export class InputManager {
           } else if (e.target.id === 'pauseScreen') {
             e.preventDefault();
             e.stopPropagation();
-            togglePause();
+            togglePause(e);
           } else {
             e.stopPropagation();
           }

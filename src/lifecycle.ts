@@ -445,12 +445,14 @@ export function togglePause(e?: any) {
       $('tapToStartMsg').innerText = 'TAP TO RESUME';
     }
     $('tapToStartMsg').style.display = 'block';
-  } else {
+} else {
     $('tapToStartMsg').style.display = isAttractMode ? 'block' : 'none';
     if (isAttractMode) {
         $('tapToStartMsg').innerText = 'TAP TO START';
         resetAttractTimer();
     }
+    setIgnoreNextTap(true);
+    setTimeout(() => setIgnoreNextTap(false), 50);
   }
   if (game.isPaused) {
     const pNameInput = document.getElementById('pausePlayerNameInput') as HTMLInputElement;
