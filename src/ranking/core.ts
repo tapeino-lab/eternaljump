@@ -159,6 +159,7 @@ import { RankingAPI } from './api.js';
         game.lastScoreId = pid;
         let pbKey = RankingAPI.pbKey;
         game.isNewRecord = false;
+        game.isNewTARecord = false;
         game.personalBest = null;
         let cObj = { alt: game.lastScoreObj.alt, coins: game.lastScoreObj.coins, time: game.lastScoreObj.time };
         
@@ -175,6 +176,17 @@ import { RankingAPI } from './api.js';
           game.isNewRecord = true;
           secureStorage.setItem(pbKey, cObj);
           game.personalBest = cObj;
+        }
+
+        let isNewTARecordLocal = false;
+        if (r === 'CLEAR' || a >= 144000) {
+          let taPbKey = RankingAPI.taPbKey;
+          let localTAPB = secureStorage.getItem<any>(taPbKey, null);
+          if (!localTAPB || t < localTAPB.time) {
+            isNewTARecordLocal = true;
+            game.isNewTARecord = true;
+            secureStorage.setItem(taPbKey, { time: t });
+          }
         }
 
         const isConfigured = await LootLockerAPI.checkConfig();

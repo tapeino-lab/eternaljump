@@ -1,12 +1,13 @@
 import { safeStorage } from "../safeStorage.js";
 import { RankingAPI } from './api.js';
-import { hasLootLocker, syncPersonalBest, prefetchScores, getScores, saveScore, reset } from './core.js';
+import { hasLootLocker, syncPersonalBest, prefetchScores, getScores, getTimeAttackScores, saveScore, reset } from './core.js';
 import { show, showResult, showRanking } from './ui.js';
 
 RankingAPI.hasLootLocker = hasLootLocker;
 RankingAPI.syncPersonalBest = syncPersonalBest;
 RankingAPI.prefetchScores = prefetchScores;
 RankingAPI.getScores = getScores;
+RankingAPI.getTimeAttackScores = getTimeAttackScores;
 RankingAPI.saveScore = saveScore;
 RankingAPI.reset = reset;
 RankingAPI.show = show;

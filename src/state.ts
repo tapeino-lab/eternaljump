@@ -53,6 +53,7 @@ export function createInitialGameState(): GameState {
     lastUI: '',
     flockDir: 1,
     isNewRecord: false,
+  isNewTARecord: false,
     personalBest: null,
     showAIThoughts: false
   } as unknown as GameState;
@@ -139,6 +140,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.lastRank = initial.lastRank;
   game.lastScoreObj = initial.lastScoreObj;
   game.isNewRecord = initial.isNewRecord;
+  game.isNewTARecord = false;
   game.personalBest = personalBest;
   game.clearTime = initial.clearTime;
   game.lastUI = initial.lastUI;

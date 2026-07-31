@@ -181,7 +181,7 @@ function getEquippedIconSVG(id: string | null): string {
 
 let lastCoinVal = -1;
 let lastScoreVal = -1;
-let lastTimeCeil = -1;
+let lastTimeStr = '';
 let lastTimeStyle = '';
 let lastIsTitleState: boolean | null = null;
 let lastIsTimerVisState: boolean | null = null;
@@ -204,7 +204,14 @@ export function updateHUD(topColor) {
   
   let effPlayTime = (game.state === 'clear') ? game.clearTime : game.playTime;
   let timeLeft = MAX(0, config.timeLimit - effPlayTime / 1000);
-  let timeCeil = Math.ceil(timeLeft);
+  
+  let t = Math.max(0, timeLeft * 1000);
+  let tMs = Math.floor(t % 1000);
+  let totalSec = Math.floor(t / 1000);
+  let mStr = Math.floor(totalSec / 60);
+  let sStr = (totalSec % 60).toString().padStart(2, '0');
+  let msStr = Math.floor(tMs / 100).toString();
+  let timeStr = `${mStr}:${sStr}.${msStr}`;
 
   let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
   let isTimerVisible = !isAttractMode;
@@ -229,7 +236,7 @@ export function updateHUD(topColor) {
   if (
     lastCoinVal === coinDisplay &&
     lastScoreVal === scoreVal &&
-    lastTimeCeil === timeCeil &&
+    lastTimeStr === timeStr &&
     lastTimeStyle === timeNumStyle &&
     lastIsTitleState === isTitle &&
     lastIsTimerVisState === isTimerVisible &&
@@ -240,7 +247,7 @@ export function updateHUD(topColor) {
 
   lastCoinVal = coinDisplay;
   lastScoreVal = scoreVal;
-  lastTimeCeil = timeCeil;
+  lastTimeStr = timeStr;
   lastTimeStyle = timeNumStyle;
   lastIsTitleState = isTitle;
   lastIsTimerVisState = isTimerVisible;
@@ -273,7 +280,6 @@ export function updateHUD(topColor) {
     cachedHudEquippedIcon = document.getElementById('hud-equipped-icon');
   }
 
-  let timeStr = timeCeil.toString().padStart(3, '0');
   let centerHtml = isTitle ? '' : scoreVal + 'm';
   let timeHtml = isTimerVisible ? 'TIME <span style="' + timeNumStyle + '">' + timeStr + '</span>' : '';
 

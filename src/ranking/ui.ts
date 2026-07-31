@@ -119,6 +119,45 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             }
           }
           
+          let timeContainer = $('resultTimeContainer');
+          if (timeContainer) {
+            if (state === 'clear') {
+              timeContainer.style.display = 'block';
+              let t = game.lastScoreObj.time || 0;
+              let tMs = t % 1000;
+              let totalSec = Math.floor(t / 1000);
+              let mStr = Math.floor(totalSec / 60);
+              let sStr = (totalSec % 60).toString().padStart(2, '0');
+              let msStr = Math.floor(tMs / 100).toString();
+              $('resultScoreTime').innerText = `${mStr}:${sStr}.${msStr}`;
+              
+              let timeLabel = $('resultTimeLabel');
+              if (game.isNewTARecord) {
+                timeLabel.innerText = 'NEW TIME RECORD!';
+                timeLabel.style.color = '#ff00ff';
+                timeLabel.style.animation = 'superBlink 0.25s steps(1) infinite';
+                timeLabel.style.textShadow = '0 0 8px #f0f, 0 0 16px #ff0';
+                
+                let scoreTime = $('resultScoreTime');
+                scoreTime.style.color = '#ff00ff';
+                scoreTime.style.animation = 'superBlink 0.25s steps(1) infinite';
+                scoreTime.style.textShadow = '0 0 8px #f0f, 0 0 16px #ff0';
+              } else {
+                timeLabel.innerText = 'TIME';
+                timeLabel.style.color = '#fff';
+                timeLabel.style.animation = '';
+                timeLabel.style.textShadow = '';
+                
+                let scoreTime = $('resultScoreTime');
+                scoreTime.style.color = '#0ff';
+                scoreTime.style.animation = '';
+                scoreTime.style.textShadow = '';
+              }
+            } else {
+              timeContainer.style.display = 'none';
+            }
+          }
+
           let showBest = (!game.isNewRecord && game.personalBest);
           if (showBest) {
             $('bestScoreContainer').style.display = 'block';
@@ -214,10 +253,13 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             
             let displayScore = `${escapeHTML(r.alt)}m`;
             if (mode === 'ta' && r.t) {
-                let totalSec = Math.floor(r.t / 1000);
+                let t = r.t;
+                let tMs = t % 1000;
+                let totalSec = Math.floor(t / 1000);
                 let mStr = Math.floor(totalSec / 60);
                 let sStr = (totalSec % 60).toString().padStart(2, '0');
-                displayScore = `<span style="color:#0ff;">${mStr}:${sStr}</span>`;
+                let msStr = Math.floor(tMs / 100).toString();
+                displayScore = `<span style="color:#0ff;">${mStr}:${sStr}.${msStr}</span>`;
             }
 
             let rankStyle = (typeof rNum === 'number' && rNum >= 100) ? 'font-size:7px;letter-spacing:-0.5px;padding-left:2px;' : '';
