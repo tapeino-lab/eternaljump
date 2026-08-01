@@ -1005,12 +1005,46 @@ body.no-fullscreen #hud-time {
   margin-bottom: 10px;
 }
 
+.ranking-tab-btn {
+  flex: 1;
+  padding: 4px;
+  font-size: 8px;
+  font-family: 'Press Start 2P', monospace;
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #555;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  box-sizing: border-box;
+}
+
+.ranking-tab-btn.active {
+  color: #000;
+  border: 1px solid #fff;
+  animation: tabInnerPulse 1.6s infinite ease-in-out;
+}
+
+@keyframes tabInnerPulse {
+  0% {
+    background-color: rgba(255, 255, 255, 0.65);
+  }
+  92% {
+    background-color: rgba(255, 255, 255, 1);
+  }
+  96% {
+    background-color: rgba(255, 255, 255, 0.65);
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.65);
+  }
+}
+
 .ranking-table-wrapper {
   border: 1px solid #fff;
   border-radius: 4px;
   background: rgba(0,0,0,0.75);
   margin-bottom: 10px;
-  max-height: 180px;
+  max-height: 126px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;

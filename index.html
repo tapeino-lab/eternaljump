@@ -172,11 +172,8 @@
         </div>
 
         <div id="rankingContainer" class="result-container">
-          <h1 class="ranking-title">RANKING</h1>
-          <div id="rankingTabs" style="display: flex; gap: 4px; margin-bottom: 4px;">
-            <button id="btnTabHeight" style="flex: 1; padding: 4px; font-size: 8px; font-family: 'Press Start 2P', monospace; background: #fff; color: #000; border: none; cursor: pointer;">HEIGHT</button>
-            <button id="btnTabTA" style="flex: 1; padding: 4px; font-size: 8px; font-family: 'Press Start 2P', monospace; background: #333; color: #fff; border: 1px solid #555; cursor: pointer;">TIME ATTACK</button>
-          </div>
+          <div class="ranking-title-spacer" style="height: 22px; margin-bottom: 10px;"></div>
+          <h1 class="ranking-title" style="margin: 0 0 6px 0;">RANKING</h1>
           <div class="ranking-list-inner">
             <table class="ranking-table-header-table">
               <thead class="ranking-thead-transparent">
@@ -214,6 +211,10 @@
                 </tbody>
               </table>
             </div>
+          </div>
+          <div id="rankingTabs" style="display: flex; gap: 4px; margin-top: 6px;">
+            <button id="btnTabHeight" class="ranking-tab-btn active">HEIGHT</button>
+            <button id="btnTabTA" class="ranking-tab-btn">TIME ATTACK</button>
           </div>
         </div>
       </div>

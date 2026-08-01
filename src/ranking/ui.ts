@@ -186,20 +186,40 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         if (mode === 'ta') {
             s = await RankingAPI.getTimeAttackScores();
             if (document.getElementById('btnTabTA')) {
-                document.getElementById('btnTabHeight').style.background = '#333';
-                document.getElementById('btnTabHeight').style.color = '#fff';
-                document.getElementById('btnTabTA').style.background = '#fff';
-                document.getElementById('btnTabTA').style.color = '#000';
+                const btnH = document.getElementById('btnTabHeight');
+                const btnTA = document.getElementById('btnTabTA');
+                if (btnH) {
+                    btnH.style.background = '';
+                    btnH.style.color = '';
+                    btnH.style.border = '';
+                    btnH.classList.remove('active');
+                }
+                if (btnTA) {
+                    btnTA.style.background = '';
+                    btnTA.style.color = '';
+                    btnTA.style.border = '';
+                    btnTA.classList.add('active');
+                }
                 document.getElementById('rankingHeaderScore').innerText = 'TIME';
                 Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => (el as HTMLElement).style.opacity = '0');
             }
         } else {
             s = await RankingAPI.getScores();
             if (document.getElementById('btnTabTA')) {
-                document.getElementById('btnTabHeight').style.background = '#fff';
-                document.getElementById('btnTabHeight').style.color = '#000';
-                document.getElementById('btnTabTA').style.background = '#333';
-                document.getElementById('btnTabTA').style.color = '#fff';
+                const btnH = document.getElementById('btnTabHeight');
+                const btnTA = document.getElementById('btnTabTA');
+                if (btnH) {
+                    btnH.style.background = '';
+                    btnH.style.color = '';
+                    btnH.style.border = '';
+                    btnH.classList.add('active');
+                }
+                if (btnTA) {
+                    btnTA.style.background = '';
+                    btnTA.style.color = '';
+                    btnTA.style.border = '';
+                    btnTA.classList.remove('active');
+                }
                 document.getElementById('rankingHeaderScore').innerText = 'HEIGHT';
                 Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => (el as HTMLElement).style.opacity = '1');
             }
