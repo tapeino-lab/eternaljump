@@ -77,7 +77,7 @@ drawCloudCaches();
 
 export function drawBG(ts) {
   let scoreTop = (game.baseScoreY - game.cameraY) * config.scoreMultiplier;
-  let sT = FLR(scoreTop);
+  let sT = FLR(scoreTop / 50); // Optimize: Only redraw gradient when score changes significantly
   if (sT !== lastBGScore) {
     let scoreBottom = (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier;
     let grad = bgCtx.createLinearGradient(0, 0, 0, config.gameHeight);
