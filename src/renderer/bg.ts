@@ -42,6 +42,9 @@ let lastBGScore = -1;
 
 export function resetBGScore() {
   lastBGScore = -1;
+  // Force reallocation in case the browser purged the offscreen canvas
+  bgCache.width = 1;
+  bgCache.height = config.gameHeight;
 }
 
 export const cloudCaches: HTMLCanvasElement[] = [];

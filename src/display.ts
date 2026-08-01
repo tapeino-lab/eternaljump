@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { game, demoState } from './state.js';
 import { togglePause } from './lifecycle.js';
 import { resetBGScore, drawCloudCaches } from './renderer/bg.js';
+import { render } from './renderer/index.js';
 
 import { checkUpdateAndReload } from './pwa.js';
 import { MAX, FLR, RND, $ } from './utils.js';
@@ -95,6 +96,8 @@ export let groundCached = false;
 
 function drawGroundCache() {
   if (IMG.gnd.complete && IMG.gnd.naturalWidth > 0) {
+    groundCache.width = config.gameWidth; // Force reallocation
+    groundCache.height = 400;
     let p = gCtx.createPattern(IMG.gnd, 'repeat');
     gCtx.fillStyle = p;
     gCtx.fillRect(0, 0, config.gameWidth, 400);
@@ -106,11 +109,20 @@ IMG.gnd.onload = drawGroundCache;
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
+    // Explicitly reset dimensions to force the browser (especially iOS Safari) 
+    // to allocate a new backing store if it was purged while in the background.
+    if (cvs) {
+      cvs.width = config.gameWidth;
+      cvs.height = config.gameHeight;
+      if (ctx) ctx.imageSmoothingEnabled = false;
+    }
     resize();
     updateCtrlCenter();
     drawGroundCache();
     drawCloudCaches();
     resetBGScore();
+    // Render immediately so the user doesn't see a black screen waiting for the next rAF
+    render(performance.now());
   } else {
     if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
       togglePause();
@@ -205,8 +217,8 @@ function resize() {
     wrap.style.transformOrigin = 'center center';
   }
   if (cvs) {
-    cvs.width = config.gameWidth;
-    cvs.height = config.gameHeight;
+    if (cvs.width !== config.gameWidth) cvs.width = config.gameWidth;
+    if (cvs.height !== config.gameHeight) cvs.height = config.gameHeight;
     cvs.style.width = '100%';
     cvs.style.height = '100%';
     if (ctx) ctx.imageSmoothingEnabled = false;
