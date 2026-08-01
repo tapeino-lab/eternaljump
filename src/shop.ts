@@ -10,6 +10,8 @@ export interface ShopItemConfig {
   iconSvg: string;
 }
 
+const LOCK_ICON = `<svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor" style="display:block; margin:auto;"><path d="M5 6V4.5a3 3 0 1 1 6 0V6h.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H5zm1.5 0h3V4.5a1.5 1.5 0 0 0-3 0V6z"/></svg>`;
+
 export const SHOP_ITEMS: ShopItemConfig[] = [
   {
     id: 'mushroom',
@@ -139,7 +141,7 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     id: 'rod',
     name: 'IRON ROD',
     desc: 'Get coins from meteors',
-    price: 25000,
+    price: 20000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <rect x="10" y="1" width="1" height="1" fill="#fff"/><rect x="11" y="1" width="1" height="1" fill="#777"/><rect x="12" y="1" width="1" height="1" fill="#777"/><rect x="13" y="1" width="1" height="1" fill="#444"/><rect x="9" y="2" width="1" height="1" fill="#fff"/><rect x="10" y="2" width="1" height="1" fill="#fff"/><rect x="11" y="2" width="1" height="1" fill="#fff"/><rect x="12" y="2" width="1" height="1" fill="#777"/><rect x="13" y="2" width="1" height="1" fill="#444"/><rect x="14" y="2" width="1" height="1" fill="#222"/><rect x="9" y="3" width="1" height="1" fill="#777"/><rect x="10" y="3" width="1" height="1" fill="#fff"/><rect x="11" y="3" width="1" height="1" fill="#777"/><rect x="12" y="3" width="1" height="1" fill="#777"/><rect x="13" y="3" width="1" height="1" fill="#444"/><rect x="14" y="3" width="1" height="1" fill="#222"/><rect x="9" y="4" width="1" height="1" fill="#777"/><rect x="10" y="4" width="1" height="1" fill="#777"/><rect x="11" y="4" width="1" height="1" fill="#777"/><rect x="12" y="4" width="1" height="1" fill="#444"/><rect x="13" y="4" width="1" height="1" fill="#222"/><rect x="14" y="4" width="1" height="1" fill="#222"/><rect x="8" y="5" width="1" height="1" fill="#888"/><rect x="9" y="5" width="1" height="1" fill="#444"/><rect x="10" y="5" width="1" height="1" fill="#444"/><rect x="11" y="5" width="1" height="1" fill="#444"/><rect x="12" y="5" width="1" height="1" fill="#222"/><rect x="13" y="5" width="1" height="1" fill="#222"/><rect x="14" y="5" width="1" height="1" fill="#222"/><rect x="7" y="6" width="1" height="1" fill="#888"/><rect x="8" y="6" width="1" height="1" fill="#888"/><rect x="9" y="6" width="1" height="1" fill="#555"/><rect x="10" y="6" width="1" height="1" fill="#222"/><rect x="11" y="6" width="1" height="1" fill="#222"/><rect x="12" y="6" width="1" height="1" fill="#222"/><rect x="13" y="6" width="1" height="1" fill="#222"/><rect x="6" y="7" width="1" height="1" fill="#888"/><rect x="7" y="7" width="1" height="1" fill="#888"/><rect x="8" y="7" width="1" height="1" fill="#555"/><rect x="9" y="7" width="1" height="1" fill="#333"/><rect x="10" y="7" width="1" height="1" fill="#333"/><rect x="5" y="8" width="1" height="1" fill="#888"/><rect x="6" y="8" width="1" height="1" fill="#888"/><rect x="7" y="8" width="1" height="1" fill="#555"/><rect x="8" y="8" width="1" height="1" fill="#333"/><rect x="9" y="8" width="1" height="1" fill="#333"/><rect x="4" y="9" width="1" height="1" fill="#888"/><rect x="5" y="9" width="1" height="1" fill="#888"/><rect x="6" y="9" width="1" height="1" fill="#555"/><rect x="7" y="9" width="1" height="1" fill="#333"/><rect x="8" y="9" width="1" height="1" fill="#333"/><rect x="3" y="10" width="1" height="1" fill="#888"/><rect x="4" y="10" width="1" height="1" fill="#888"/><rect x="5" y="10" width="1" height="1" fill="#555"/><rect x="6" y="10" width="1" height="1" fill="#333"/><rect x="7" y="10" width="1" height="1" fill="#333"/><rect x="2" y="11" width="1" height="1" fill="#888"/><rect x="3" y="11" width="1" height="1" fill="#888"/><rect x="4" y="11" width="1" height="1" fill="#555"/><rect x="5" y="11" width="1" height="1" fill="#333"/><rect x="6" y="11" width="1" height="1" fill="#333"/><rect x="1" y="12" width="1" height="1" fill="#888"/><rect x="2" y="12" width="1" height="1" fill="#888"/><rect x="3" y="12" width="1" height="1" fill="#555"/><rect x="4" y="12" width="1" height="1" fill="#333"/><rect x="5" y="12" width="1" height="1" fill="#333"/><rect x="1" y="13" width="1" height="1" fill="#888"/><rect x="2" y="13" width="1" height="1" fill="#555"/><rect x="3" y="13" width="1" height="1" fill="#333"/><rect x="4" y="13" width="1" height="1" fill="#333"/><rect x="1" y="14" width="1" height="1" fill="#555"/><rect x="2" y="14" width="1" height="1" fill="#333"/><rect x="3" y="14" width="1" height="1" fill="#333"/>
  </svg>`
@@ -170,7 +172,7 @@ export function renderShopItemsDOM() {
           <div class="shop-item-name">${item.name}</div>
         </div>
         <button class="shop-item-buy" data-id="${item.id}" data-price="${item.price}">
-          <span class="btn-get-label">GET</span>
+          <span class="btn-get-label" style="display:flex; justify-content:center; align-items:center;">${LOCK_ICON}</span>
           <div class="shop-price-tag" style="display:flex; align-items:center; gap:2px;">
             <div class="coin-icon" style="transform: translateY(-0.5px);">
               <div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div>
@@ -223,7 +225,7 @@ export function updateShopUI() {
         buyBtn.classList.add('can-get');
         buyBtn.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; min-height: 14px;"><span style="font-size: 9px;">GET</span></div>';
       } else {
-        buyBtn.innerHTML = '<span class="btn-get-label">GET</span><div class="shop-price-tag" style="display:flex; align-items:center; gap:2px;"><div class="coin-icon" style="transform: translateY(-0.5px);"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div><span class="shop-price-val">' + price + '</span></div>';
+        buyBtn.innerHTML = '<span class="btn-get-label" style="display:flex; justify-content:center; align-items:center;">' + LOCK_ICON + '</span><div class="shop-price-tag" style="display:flex; align-items:center; gap:2px;"><div class="coin-icon" style="transform: translateY(-0.5px);"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div><span class="shop-price-val">' + price + '</span></div>';
       }
     }
   });
