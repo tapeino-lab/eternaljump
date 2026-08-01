@@ -1,5 +1,5 @@
 import { game, demoState } from '../state.js';
-import { ctx, IMG } from '../display.js';
+import { ctx, IMG, restoreGameCanvas } from '../display.js';
 import { isAttractMode, runAttractUICycle, setIgnoreNextTap } from '../lifecycle.js';
 import { fireworksSystem } from '../fireworks.js';
 import { airplaneSystem } from '../airplane.js';
@@ -39,6 +39,10 @@ export function drawUILayer(topColor: any, ts: number) {
 }
 
 export function render(ts: number) {
+  if (!ctx || (ctx.isContextLost && ctx.isContextLost())) {
+    if (!restoreGameCanvas()) return;
+  }
+
   let topColor = drawBackgroundLayer(ts);
 
   let sX = 0, sY = 0;

@@ -54,11 +54,30 @@ for (let k in B64) {
 
 let isFirstPlay = true;
 
-const cvs = $('gameCanvas') as HTMLCanvasElement;
-export const ctx = cvs.getContext('2d', { alpha: false });
+const cvsElement = $('gameCanvas') as HTMLCanvasElement;
+export let cvs = cvsElement;
+export let ctx = cvs ? cvs.getContext('2d', { alpha: false }) : null;
 if (ctx) {
   ctx.imageSmoothingEnabled = false;
 }
+
+export function setupCanvasListeners(c: HTMLCanvasElement) {
+  if (!c) return;
+  c.addEventListener('contextlost', (e) => {
+    e.preventDefault();
+    console.warn('[Canvas] Context lost, restoring canvas...');
+    setTimeout(restoreGameCanvas, 50);
+  });
+  c.addEventListener('contextrestored', () => {
+    console.log('[Canvas] Context restored');
+    restoreGameCanvas();
+  });
+}
+
+if (cvs) {
+  setupCanvasListeners(cvs);
+}
+
 const ui = $('ui');
 const btnL = $('btnLeft');
 const btnR = $('btnRight');
@@ -91,56 +110,103 @@ document.addEventListener('pwa-update-available', () => {
 export const groundCache = document.createElement('canvas');
 groundCache.width = config.gameWidth;
 groundCache.height = 400;
-const gCtx = groundCache.getContext('2d', { alpha: false });
+let gCtx = groundCache.getContext('2d', { alpha: false });
 export let groundCached = false;
 
-function drawGroundCache() {
-  if (IMG.gnd.complete && IMG.gnd.naturalWidth > 0) {
+export function drawGroundCache() {
+  if (IMG.gnd && IMG.gnd.complete && IMG.gnd.naturalWidth > 0) {
     groundCache.width = config.gameWidth; // Force reallocation
     groundCache.height = 400;
-    let p = gCtx.createPattern(IMG.gnd, 'repeat');
-    gCtx.fillStyle = p;
-    gCtx.fillRect(0, 0, config.gameWidth, 400);
-    groundCached = true;
+    if (!gCtx || (gCtx.isContextLost && gCtx.isContextLost())) {
+      gCtx = groundCache.getContext('2d', { alpha: false });
+    }
+    if (gCtx) {
+      let p = gCtx.createPattern(IMG.gnd, 'repeat');
+      if (p) {
+        gCtx.fillStyle = p;
+        gCtx.fillRect(0, 0, config.gameWidth, 400);
+        groundCached = true;
+      }
+    }
   }
 }
 
 IMG.gnd.onload = drawGroundCache;
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    // Explicitly reset dimensions to force the browser (especially iOS Safari) 
-    // to allocate a new backing store if it was purged while in the background.
-    if (cvs) {
-      cvs.width = config.gameWidth;
-      cvs.height = config.gameHeight;
-      if (ctx) ctx.imageSmoothingEnabled = false;
+export function restoreGameCanvas(): boolean {
+  try {
+    const oldCvs = ($('gameCanvas') || document.querySelector('canvas')) as HTMLCanvasElement;
+    const canvasWrap = $('canvasWrapper');
+
+    // Create a fresh canvas element to replace any corrupted or purged canvas DOM element
+    const newCvs = document.createElement('canvas');
+    newCvs.id = 'gameCanvas';
+    newCvs.width = config.gameWidth;
+    newCvs.height = config.gameHeight;
+    newCvs.style.width = '100%';
+    newCvs.style.height = '100%';
+    newCvs.style.imageRendering = 'pixelated';
+
+    if (oldCvs && oldCvs.parentNode) {
+      oldCvs.parentNode.replaceChild(newCvs, oldCvs);
+    } else if (canvasWrap) {
+      canvasWrap.innerHTML = '';
+      canvasWrap.appendChild(newCvs);
     }
-    resize();
-    updateCtrlCenter();
+
+    cvs = newCvs;
+    ctx = newCvs.getContext('2d', { alpha: false });
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false;
+    }
+
+    setupCanvasListeners(newCvs);
+
     drawGroundCache();
     drawCloudCaches();
     resetBGScore();
-    // Render immediately so the user doesn't see a black screen waiting for the next rAF
+
+    for (let k in B64) {
+      if (IMG[k] && IMG[k].complete && IMG[k].naturalWidth > 0) {
+        GREEN_IMG[k] = generateGreenVariant(IMG[k]);
+      }
+    }
+
+    resize();
+    updateCtrlCenter();
     render(performance.now());
+    return true;
+  } catch (e) {
+    console.error('Failed to restore canvas:', e);
+    return false;
+  }
+}
+
+function handleAppResume() {
+  if (document.visibilityState === 'visible') {
+    if (!cvs || !ctx || (ctx.isContextLost && ctx.isContextLost()) || cvs.width === 0) {
+      restoreGameCanvas();
+    } else {
+      cvs.width = config.gameWidth;
+      cvs.height = config.gameHeight;
+      if (ctx) ctx.imageSmoothingEnabled = false;
+      resize();
+      updateCtrlCenter();
+      drawGroundCache();
+      drawCloudCaches();
+      resetBGScore();
+      render(performance.now());
+    }
   } else {
     if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
       togglePause();
     }
   }
-});
+}
 
-cvs.addEventListener('contextlost', (e) => {
-  e.preventDefault();
-});
-
-cvs.addEventListener('contextrestored', () => {
-  resize();
-  updateCtrlCenter();
-  drawGroundCache();
-  drawCloudCaches();
-  resetBGScore();
-});
+document.addEventListener('visibilitychange', handleAppResume);
+window.addEventListener('pageshow', handleAppResume);
+window.addEventListener('focus', handleAppResume);
 
 (window as any).gameScale = 1;
 export let ctrlCenterX = 0;
