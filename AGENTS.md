@@ -12,6 +12,10 @@
 ## Asset & Font Rendering
 - **Canvas Text & Custom Fonts**: Always ensure proper font loading / re-rendering checks for canvas text (such as retro fonts in offscreen canvases) so custom web fonts render reliably without falling back to default system fonts.
 
+## Reporting & Communication
+- **Mandatory Reporting**: At the end of every response where code changes were made, you MUST provide a clear summary of what was discussed and the exact changes implemented.
+- **Version and Commit Message**: You MUST always include the updated version number (e.g., `v2.05.37`) and a concise, 1-line English commit message in a code block for the user to copy.
+
 ## Git Workflow
 - **No Automatic Git Commits**: DO NOT run `git commit` or `git add` in the terminal. Doing so breaks the AI Studio GitHub export UI because it requires uncommitted changes. 
 - **Suggested Commit Message**: At the end of every response where code changes were made, always provide a concise, 1-line commit message in a code block or easily copyable format for the user to paste into the AI Studio GitHub commit UI.
