@@ -94,7 +94,29 @@ export function hideBottomToast() {
   }
 }
 
+let toastEventsInitialized = false;
+function initToastEventBlockers() {
+  if (toastEventsInitialized) return;
+  const toast = document.getElementById('bottomToast');
+  if (!toast) return;
+
+  const blockEvent = (e: Event) => {
+    e.stopPropagation();
+    if (typeof (e as any).stopImmediatePropagation === 'function') {
+      (e as any).stopImmediatePropagation();
+    }
+  };
+
+  ['touchstart', 'touchend', 'touchmove', 'mousedown', 'mouseup', 'click', 'pointerdown', 'pointerup'].forEach(evName => {
+    toast.addEventListener(evName, blockEvent, { capture: true });
+  });
+
+  toastEventsInitialized = true;
+}
+
 export function showBottomToast(text: string, actionLabel: string, onAction: () => void) {
+  initToastEventBlockers();
+
   const toast = document.getElementById('bottomToast');
   const toastText = document.getElementById('bottomToastText');
   const btnAction = document.getElementById('bottomToastBtnAction');
@@ -111,12 +133,28 @@ export function showBottomToast(text: string, actionLabel: string, onAction: () 
   btnAction.parentNode?.replaceChild(newBtnAction, btnAction);
   btnLater.parentNode?.replaceChild(newBtnLater, btnLater);
 
-  newBtnAction.addEventListener('click', () => {
+  const handleAction = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
     onAction();
+  };
+
+  const handleLater = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    hideBottomToast();
+  };
+
+  newBtnAction.addEventListener('click', handleAction);
+  newBtnAction.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    handleAction(e);
   });
 
-  newBtnLater.addEventListener('click', () => {
-    hideBottomToast();
+  newBtnLater.addEventListener('click', handleLater);
+  newBtnLater.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    handleLater(e);
   });
 
   // Slide up
@@ -143,13 +181,17 @@ function checkAndTriggerPwaToast() {
         'Add',
         () => {
           sessionStorage.setItem('dismiss_pwa_toast', '1');
-          hideBottomToast();
           if (deferredInstallPrompt) {
-            deferredInstallPrompt.prompt();
-            deferredInstallPrompt.userChoice.then(() => {
-              deferredInstallPrompt = null;
+            const promptEvent = deferredInstallPrompt;
+            deferredInstallPrompt = null;
+            promptEvent.prompt();
+            promptEvent.userChoice.then((choice: any) => {
+              console.log('[PWA] User choice:', choice);
+            }).catch((err: any) => {
+              console.error('[PWA] Prompt error:', err);
             });
           }
+          hideBottomToast();
         }
       );
     }, 1500);

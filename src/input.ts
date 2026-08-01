@@ -50,6 +50,7 @@ export class InputManager {
   }
 
   private handleGlobalCapture(e: any): boolean {
+    if (e.target.closest('#bottomToast')) return false;
     if (e.target.closest('#autoCruiseBtn')) return false;
     if ($('nameEditModal')?.style.display === 'flex') return false;
 
