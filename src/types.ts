@@ -63,6 +63,7 @@ export interface GameState {
   isBenchmarking?: boolean;
   personalBest: any;
   showAIThoughts?: boolean;
+  meteorOverheat: number;
 }
 
 export type { Player, NPC, Platform, Particle, Item, Coin, FlyingCoin, Meteor, Bird, BackgroundCloud as Cloud };

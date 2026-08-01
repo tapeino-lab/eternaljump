@@ -377,8 +377,13 @@ export function updateDemoRanking(ts: number) {
       othersWrapper.style.transform = `translateY(${demoState.fixedTop3Y + demoState.t3H + demoState.gap}px)`;
       let othersScrolled = currentScrolled - demoState.dist1;
       others.style.transform = `translateY(${-othersScrolled}px)`;
-      othersWrapper.style.maskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
-      othersWrapper.style.webkitMaskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+      if (demoState.dist2 > 0) {
+        othersWrapper.style.maskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+        othersWrapper.style.webkitMaskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+      } else {
+        othersWrapper.style.maskImage = 'none';
+        othersWrapper.style.webkitMaskImage = 'none';
+      }
     }
     
     if (progress >= 1) {

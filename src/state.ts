@@ -55,7 +55,8 @@ export function createInitialGameState(): GameState {
     isNewRecord: false,
   isNewTARecord: false,
     personalBest: null,
-    showAIThoughts: false
+    showAIThoughts: false,
+    meteorOverheat: 0
   } as unknown as GameState;
 
   Object.defineProperties(obj, {
@@ -145,6 +146,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.clearTime = initial.clearTime;
   game.lastUI = initial.lastUI;
   game.showAIThoughts = oldShowAIThoughts;
+  game.meteorOverheat = 0;
 }
 
 export function isEquipped(game: GameState, id: string): boolean {

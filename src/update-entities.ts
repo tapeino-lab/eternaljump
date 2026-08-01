@@ -70,7 +70,16 @@ export function updateMeteors(game: GameState) {
         }
         spawnParticles(m.x + m.w / 2, m.y, '#fff', 15, 4);
       } else if (isPunchingUp && game.equipped?.['rod']) {
-        let reward = m.isLarge ? 3 : 1;
+        let heatIncrease = m.isLarge ? 40 : 20;
+        let potentialReward = m.isLarge ? 3 : 1;
+        let reward = 0;
+        let prob = Math.max(0, 1.0 - (game.meteorOverheat / 100));
+        for (let j = 0; j < potentialReward; j++) {
+          if (Math.random() < prob) {
+            reward++;
+          }
+        }
+        game.meteorOverheat = Math.min(100, game.meteorOverheat + heatIncrease);
         for (let j = 0; j < reward; j++) {
           if (game.scoreCoin < 999) game.scoreCoin++;
           game.totalCoins++;
@@ -78,10 +87,19 @@ export function updateMeteors(game: GameState) {
           fc.maxProgress = 30 + j * 5;
           game.flyingCoins.push(fc);
         }
-        spawnDebris(m.x, m.y, m.w, m.h, '#853', 3, 1.5);
-        spawnDebris(m.x, m.y, m.w, m.h, '#632', 4, 1.0);
-        spawnDebris(m.x, m.y, m.w, m.h, '#421', 5, 0.5);
-        spawnFireSparks(m.x + m.w / 2, m.y + m.h / 2, 10);
+        let sBase = m.isLarge ? 1.0 : 0.5;
+        let cBase = m.isLarge ? 1.0 : 0.4;
+        if (reward === 0) {
+          spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#eee', 6, 2);
+          spawnParticles(m.x + m.w / 2, m.y + m.h / 2, '#ddd', 6, 1.5);
+          spawnDebris(m.x, m.y, m.w, m.h, '#853', Math.ceil(3 * cBase), 1.5 * sBase);
+          spawnDebris(m.x, m.y, m.w, m.h, '#632', Math.ceil(4 * cBase), 1.0 * sBase);
+        } else {
+          spawnDebris(m.x, m.y, m.w, m.h, '#853', Math.ceil(3 * cBase), 1.5 * sBase);
+          spawnDebris(m.x, m.y, m.w, m.h, '#632', Math.ceil(4 * cBase), 1.0 * sBase);
+          spawnDebris(m.x, m.y, m.w, m.h, '#421', Math.ceil(5 * cBase), 0.5 * sBase);
+          spawnFireSparks(m.x + m.w / 2, m.y + m.h / 2, m.isLarge ? 10 : 4);
+        }
         game.shakeAmount = 6;
         P_MT.push(m);
         swapRemove(game.meteors, i);

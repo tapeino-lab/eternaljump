@@ -17,7 +17,13 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
   if (nY < game.highestCameraY) game.highestCameraY = nY;
   
   game.cameraY = MIN(nY, game.highestCameraY + config.gameHeight * config.recoveryScreens);
-  if (game.player.y < game.highestPlayerY) game.highestPlayerY = game.player.y;
+  if (game.player.y < game.highestPlayerY) {
+    let delta = game.highestPlayerY - game.player.y;
+    if (game.meteorOverheat > 0) {
+      game.meteorOverheat = Math.max(0, game.meteorOverheat - delta * 0.5);
+    }
+    game.highestPlayerY = game.player.y;
+  }
   
   game.score = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
   
