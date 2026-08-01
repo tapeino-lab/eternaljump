@@ -399,6 +399,7 @@ export function updateDemoRanking(ts: number) {
     
     if (progress >= 1) {
       demoState.phase = 'wait';
+      const waitDuration = (demoState.rankingMode === 'ta') ? 1500 : 3000;
       setTimeout(() => {
         if (!isAttractMode) return;
         
@@ -436,7 +437,7 @@ export function updateDemoRanking(ts: number) {
               }, 500);
             }, 1000);
         }
-      }, 3000);
+      }, waitDuration);
     }
   }
 }
