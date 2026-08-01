@@ -1,5 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#000000" />
-  <polygon points="256,100 150,400 362,400" fill="#ffffff" />
-  <circle cx="256" cy="300" r="40" fill="#000000" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0d0e15" rx="96" />
+  <rect x="16" y="16" width="480" height="480" fill="none" stroke="#2a2d3d" stroke-width="8" rx="80" />
+  
+  <!-- Pixel Grid Art Group (scaled) -->
+  <g transform="translate(64, 64) scale(12)">
+    <!-- Fishing Rod Stick (Diagonal Pixel Art) -->
+    <!-- Grip / Handle -->
+    <rect x="4" y="28" width="2" height="2" fill="#8b5cf6" />
+    <rect x="5" y="27" width="2" height="2" fill="#a78bfa" />
+    <rect x="6" y="26" width="2" height="2" fill="#c4b5fd" />
+    
+    <!-- Reel -->
+    <rect x="7" y="24" width="3" height="3" fill="#f59e0b" />
+    <rect x="8" y="25" width="1" height="1" fill="#fff" />
+
+    <!-- Rod Blank -->
+    <rect x="8" y="23" width="2" height="2" fill="#06b6d4" />
+    <rect x="10" y="21" width="2" height="2" fill="#06b6d4" />
+    <rect x="12" y="19" width="2" height="2" fill="#22d3ee" />
+    <rect x="14" y="17" width="2" height="2" fill="#22d3ee" />
+    <rect x="16" y="15" width="2" height="2" fill="#67e8f9" />
+    <rect x="18" y="13" width="2" height="2" fill="#67e8f9" />
+    <rect x="20" y="11" width="2" height="2" fill="#a5f3fc" />
+    <rect x="22" y="9" width="2" height="2" fill="#ffffff" />
+    <rect x="24" y="7" width="2" height="2" fill="#ffffff" />
+
+    <!-- Fishing Line & Sparkles -->
+    <path d="M 25 7 Q 28 14, 26 22" fill="none" stroke="#f43f5e" stroke-width="0.8" stroke-dasharray="1,1" />
+
+    <!-- Lure / Star Piercing Light -->
+    <polygon points="26,20 28,22 26,24 24,22" fill="#facc15" />
+    <rect x="25.5" y="21.5" width="1" height="1" fill="#ffffff" />
+
+    <!-- Star Pixel 1 -->
+    <rect x="26" y="4" width="2" height="2" fill="#facc15" />
+    <rect x="25" y="5" width="4" height="0.8" fill="#facc15" />
+
+    <!-- Star Pixel 2 -->
+    <rect x="4" y="8" width="2" height="2" fill="#38bdf8" />
+    
+    <!-- Small Fish Silhouette -->
+    <rect x="14" y="26" width="4" height="2" fill="#f43f5e" />
+    <rect x="18" y="25" width="2" height="4" fill="#f43f5e" />
+    <rect x="12" y="26.5" width="2" height="1" fill="#fb7185" />
+    <rect x="15" y="26.3" width="1" height="1" fill="#ffffff" />
+  </g>
 </svg>

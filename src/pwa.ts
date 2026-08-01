@@ -75,6 +75,14 @@ export async function checkUpdateAndReload() {
 let toastTimer: any = null;
 let deferredInstallPrompt: any = null;
 
+// Always capture beforeinstallprompt at top level as early as possible
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  console.log('[PWA] beforeinstallprompt captured!');
+  checkAndTriggerPwaToast();
+});
+
 export function hideBottomToast() {
   const toast = document.getElementById('bottomToast');
   if (toast) {
@@ -104,7 +112,6 @@ export function showBottomToast(text: string, actionLabel: string, onAction: () 
   btnLater.parentNode?.replaceChild(newBtnLater, btnLater);
 
   newBtnAction.addEventListener('click', () => {
-    hideBottomToast();
     onAction();
   });
 
@@ -127,6 +134,37 @@ function isInAppBrowser(): boolean {
   return /FB_IAB|FB4A|Instagram|Line|Twitter|MicroMessenger|Snapchat|KAKAOTALK/i.test(ua);
 }
 
+function checkAndTriggerPwaToast() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+  if (!isStandalone && !sessionStorage.getItem('dismiss_pwa_toast')) {
+    setTimeout(() => {
+      showBottomToast(
+        'Add to Home Screen',
+        'Add',
+        () => {
+          sessionStorage.setItem('dismiss_pwa_toast', '1');
+          if (deferredInstallPrompt) {
+            hideBottomToast();
+            deferredInstallPrompt.prompt();
+            deferredInstallPrompt.userChoice.then(() => {
+              deferredInstallPrompt = null;
+            });
+          } else {
+            // Fallback for browsers that don't support beforeinstallprompt or where prompt isn't ready
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+            const msg = isIOS
+              ? 'Tap Share button -> Add to Home Screen'
+              : 'Tap Menu (⋮) -> Add to Home screen';
+            showBottomToast(msg, 'OK', () => {
+              hideBottomToast();
+            });
+          }
+        }
+      );
+    }, 1500);
+  }
+}
+
 export function setupToastPrompts() {
   // 1. In-App Browser Prompt
   if (isInAppBrowser()) {
@@ -137,6 +175,7 @@ export function setupToastPrompts() {
           'Open',
           () => {
             sessionStorage.setItem('dismiss_iab_toast', '1');
+            hideBottomToast();
             const url = window.location.href;
             const isAndroid = /Android/i.test(navigator.userAgent);
             if (isAndroid) {
@@ -155,35 +194,8 @@ export function setupToastPrompts() {
     }
   }
 
-  // 2. Install PWA Prompt
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredInstallPrompt = e;
-
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-    if (!isStandalone && !sessionStorage.getItem('dismiss_pwa_toast')) {
-      setTimeout(() => {
-        showBottomToast(
-          'Add to Home Screen',
-          'Add',
-          () => {
-            sessionStorage.setItem('dismiss_pwa_toast', '1');
-            if (deferredInstallPrompt) {
-              deferredInstallPrompt.prompt();
-              deferredInstallPrompt.userChoice.then(() => {
-                deferredInstallPrompt = null;
-              });
-            }
-          }
-        );
-      }, 2000);
-    }
-  });
+  // 2. Install PWA Prompt check
+  checkAndTriggerPwaToast();
 }
-
-// Prevent default install prompt from showing randomly
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-});
 
 
