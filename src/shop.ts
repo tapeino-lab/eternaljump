@@ -10,7 +10,7 @@ export interface ShopItemConfig {
   iconSvg: string;
 }
 
-const LOCK_ICON = `<svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor" style="display:block; margin:auto;"><path d="M5 6V4.5a3 3 0 1 1 6 0V6h.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H5zm1.5 0h3V4.5a1.5 1.5 0 0 0-3 0V6z"/></svg>`;
+const LOCK_ICON = `<svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" style="display:block; margin:auto;"><path d="M5 6V4.5a3 3 0 1 1 6 0V6h.5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H5zm1.5 0h3V4.5a1.5 1.5 0 0 0-3 0V6z"/></svg>`;
 
 export const SHOP_ITEMS: ShopItemConfig[] = [
   {
