@@ -333,7 +333,7 @@ export function updateDemoRanking(ts: number) {
       demoState.fixedHeaderY = demoState.containerH * 0.15;
       demoState.fixedTop3Y = demoState.fixedHeaderY + demoState.headerH;
       demoState.gap = 8;
-      demoState.wH = MIN(147, demoState.containerH - demoState.fixedTop3Y - demoState.t3H - demoState.gap);
+      demoState.wH = demoState.containerH - demoState.fixedTop3Y - demoState.t3H - demoState.gap;
       othersWrapper.style.height = demoState.wH + 'px';
       demoState.dist1 = demoState.containerH - demoState.fixedHeaderY;
       demoState.dist2 = MAX(0, demoState.otH - demoState.wH + 40);
