@@ -16,5 +16,9 @@
 - **No Automatic Git Commits**: DO NOT run `git commit` or `git add` in the terminal. Doing so breaks the AI Studio GitHub export UI because it requires uncommitted changes. 
 - **Suggested Commit Message**: At the end of every response where code changes were made, always provide a concise, 1-line commit message in a code block or easily copyable format for the user to paste into the AI Studio GitHub commit UI.
 
+## State Retention & No Unprompted Reverts
+- **Implicit Approval**: Any code modifications made in previous turns that the user does not explicitly mention or complain about must be treated as fully approved.
+- **No Reverts**: Never revert, overwrite, or undo previously made changes (e.g. styling, logic, features) unless explicitly instructed to do so by the user. Be extremely careful not to accidentally lose changes when replacing file contents.
+
 <!-- UI sync -->
 
