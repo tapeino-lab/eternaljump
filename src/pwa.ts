@@ -100,15 +100,14 @@ function initToastEventBlockers() {
   const toast = document.getElementById('bottomToast');
   if (!toast) return;
 
-  const blockEvent = (e: Event) => {
+  // Stop propagation in bubbling phase so buttons still receive clicks/touches,
+  // but events don't reach document/canvas game handlers.
+  const stopProp = (e: Event) => {
     e.stopPropagation();
-    if (typeof (e as any).stopImmediatePropagation === 'function') {
-      (e as any).stopImmediatePropagation();
-    }
   };
 
-  ['touchstart', 'touchend', 'touchmove', 'mousedown', 'mouseup', 'click', 'pointerdown', 'pointerup'].forEach(evName => {
-    toast.addEventListener(evName, blockEvent, { capture: true });
+  ['touchstart', 'touchend', 'touchmove', 'mousedown', 'mouseup', 'pointerdown', 'pointerup', 'click'].forEach(evName => {
+    toast.addEventListener(evName, stopProp, { capture: false });
   });
 
   toastEventsInitialized = true;
@@ -133,38 +132,26 @@ export function showBottomToast(text: string, actionLabel: string, onAction: () 
   btnAction.parentNode?.replaceChild(newBtnAction, btnAction);
   btnLater.parentNode?.replaceChild(newBtnLater, btnLater);
 
-  const handleAction = (e: Event) => {
+  newBtnAction.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     onAction();
-  };
+  });
 
-  const handleLater = (e: Event) => {
+  newBtnLater.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
     hideBottomToast();
-  };
-
-  newBtnAction.addEventListener('click', handleAction);
-  newBtnAction.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    handleAction(e);
-  });
-
-  newBtnLater.addEventListener('click', handleLater);
-  newBtnLater.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    handleLater(e);
   });
 
   // Slide up
   toast.classList.add('visible');
 
-  // Auto slide down after 7 seconds
+  // Auto slide down after 10 seconds
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     hideBottomToast();
-  }, 7000);
+  }, 10000);
 }
 
 function isInAppBrowser(): boolean {
@@ -214,11 +201,17 @@ export function setupToastPrompts() {
             if (isAndroid) {
               const intentUrl = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
               window.location.href = intentUrl;
+              setTimeout(() => {
+                window.open(url, '_system') || (window.location.href = url);
+              }, 500);
             } else {
               if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).catch(() => {});
               }
-              window.open(url, '_system');
+              const newWin = window.open(url, '_blank');
+              if (!newWin) {
+                window.location.href = url;
+              }
             }
           }
         );
