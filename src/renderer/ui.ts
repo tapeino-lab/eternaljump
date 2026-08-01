@@ -352,8 +352,10 @@ export function updateDemoRanking(ts: number) {
       top3.style.transform = `translateY(${headerY + demoState.headerH}px)`;
       othersWrapper.style.transform = `translateY(${headerY + demoState.headerH + demoState.t3H + demoState.gap}px)`;
       others.style.transform = 'translateY(0px)';
-      othersWrapper.style.maskImage = 'none';
-      othersWrapper.style.webkitMaskImage = 'none';
+      if (othersWrapper.style.maskImage !== 'none') {
+        othersWrapper.style.maskImage = 'none';
+        othersWrapper.style.webkitMaskImage = 'none';
+      }
       
       let oldHeader = document.getElementById('demoHeaderOld');
       let oldTop3 = document.getElementById('demoTop3Old');
@@ -372,17 +374,26 @@ export function updateDemoRanking(ts: number) {
           document.getElementById('demoOthersWrapperOld')?.remove();
       }
       
-      header.style.transform = `translateY(${demoState.fixedHeaderY}px)`;
-      top3.style.transform = `translateY(${demoState.fixedTop3Y}px)`;
-      othersWrapper.style.transform = `translateY(${demoState.fixedTop3Y + demoState.t3H + demoState.gap}px)`;
+      let targetHeaderY = `translateY(${demoState.fixedHeaderY}px)`;
+      if (header.style.transform !== targetHeaderY) {
+        header.style.transform = targetHeaderY;
+        top3.style.transform = `translateY(${demoState.fixedTop3Y}px)`;
+        othersWrapper.style.transform = `translateY(${demoState.fixedTop3Y + demoState.t3H + demoState.gap}px)`;
+      }
+
       let othersScrolled = currentScrolled - demoState.dist1;
       others.style.transform = `translateY(${-othersScrolled}px)`;
+      
       if (demoState.dist2 > 0) {
-        othersWrapper.style.maskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
-        othersWrapper.style.webkitMaskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+        if (othersWrapper.style.maskImage === 'none' || !othersWrapper.style.maskImage) {
+          othersWrapper.style.maskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+          othersWrapper.style.webkitMaskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
+        }
       } else {
-        othersWrapper.style.maskImage = 'none';
-        othersWrapper.style.webkitMaskImage = 'none';
+        if (othersWrapper.style.maskImage !== 'none') {
+          othersWrapper.style.maskImage = 'none';
+          othersWrapper.style.webkitMaskImage = 'none';
+        }
       }
     }
     
