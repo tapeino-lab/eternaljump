@@ -71,12 +71,18 @@ export function updateMeteors(game: GameState) {
         spawnParticles(m.x + m.w / 2, m.y, '#fff', 15, 4);
       } else if (isPunchingUp && game.equipped?.['rod']) {
         let heatIncrease = m.isLarge ? 40 : 20;
-        let potentialReward = m.isLarge ? 3 : 1;
+        let maxCoins = m.isLarge ? 3 : 2;
         let reward = 0;
-        let prob = Math.max(0, 1.0 - (game.meteorOverheat / 100));
-        for (let j = 0; j < potentialReward; j++) {
-          if (Math.random() < prob) {
-            reward++;
+        
+        let baseProb = Math.max(0, 1.0 - (game.meteorOverheat / 100));
+        if (Math.random() < baseProb) {
+          reward = 1;
+          // 通常ジャンプの初速(5.5)を超えた分から確率が上がり、速度13以上で最大(1.0)になるようにする
+          let speedRatio = Math.min(1.0, Math.max(0, Math.abs(game.player.vy) - 5.5) / 7.5);
+          for (let j = 1; j < maxCoins; j++) {
+            if (Math.random() < speedRatio) {
+              reward++;
+            }
           }
         }
         game.meteorOverheat = Math.min(100, game.meteorOverheat + heatIncrease);
