@@ -1845,3 +1845,92 @@ body.showing-ranking .btn-instagram {
 body.showing-ranking #btnInstagram {
   display: flex !important;
 }
+
+/* Bottom Slide Toast Popup */
+.bottom-toast {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(140%);
+  z-index: 99999;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  background: rgba(18, 18, 22, 0.94);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  padding: 12px 14px;
+  box-sizing: border-box;
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  color: #fff;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bottom-toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bottom-toast-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bottom-toast-text {
+  font-size: 9px;
+  line-height: 1.5;
+  color: #f0f0f0;
+  flex: 1;
+  word-break: break-word;
+}
+
+.bottom-toast-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.bottom-toast-btn {
+  font-family: 'Press Start 2P', monospace, sans-serif;
+  font-size: 9px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  font-weight: bold;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.bottom-toast-btn:active {
+  transform: scale(0.95);
+}
+
+.bottom-toast-btn.primary {
+  background: #3b82f6;
+  color: #fff;
+  border: 1px solid #60a5fa;
+}
+
+.bottom-toast-btn.primary:hover {
+  background: #2563eb;
+}
+
+.bottom-toast-btn.secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: #aaa;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.bottom-toast-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+

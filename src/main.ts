@@ -5,6 +5,7 @@ import { setupInputListeners } from './input.js';
 import { setupKeyboardUI } from './keyboard.js';
 import { initShop } from './shop.js';
 import { startAttractCycle } from './lifecycle.js';
+import { setupToastPrompts } from './pwa.js';
 import { $ } from './utils.js';
 import './display.js';
 
@@ -20,6 +21,7 @@ if (tVer) {
 
 setupKeyboardUI();
 initShop();
+setupToastPrompts();
 startAttractCycle();
 
 // Trigger UI sync

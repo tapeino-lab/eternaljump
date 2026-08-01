@@ -71,8 +71,119 @@ export async function checkUpdateAndReload() {
   }
 }
 
-// Prevent the "Install PWA" prompt from appearing
+// Handle bottom toast slide prompts
+let toastTimer: any = null;
+let deferredInstallPrompt: any = null;
+
+export function hideBottomToast() {
+  const toast = document.getElementById('bottomToast');
+  if (toast) {
+    toast.classList.remove('visible');
+  }
+  if (toastTimer) {
+    clearTimeout(toastTimer);
+    toastTimer = null;
+  }
+}
+
+export function showBottomToast(text: string, actionLabel: string, onAction: () => void) {
+  const toast = document.getElementById('bottomToast');
+  const toastText = document.getElementById('bottomToastText');
+  const btnAction = document.getElementById('bottomToastBtnAction');
+  const btnLater = document.getElementById('bottomToastBtnLater');
+
+  if (!toast || !toastText || !btnAction || !btnLater) return;
+
+  toastText.textContent = text;
+  btnAction.textContent = actionLabel;
+
+  // Replace nodes to strip old listeners
+  const newBtnAction = btnAction.cloneNode(true) as HTMLElement;
+  const newBtnLater = btnLater.cloneNode(true) as HTMLElement;
+  btnAction.parentNode?.replaceChild(newBtnAction, btnAction);
+  btnLater.parentNode?.replaceChild(newBtnLater, btnLater);
+
+  newBtnAction.addEventListener('click', () => {
+    hideBottomToast();
+    onAction();
+  });
+
+  newBtnLater.addEventListener('click', () => {
+    hideBottomToast();
+  });
+
+  // Slide up
+  toast.classList.add('visible');
+
+  // Auto slide down after 7 seconds
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    hideBottomToast();
+  }, 7000);
+}
+
+function isInAppBrowser(): boolean {
+  const ua = navigator.userAgent || '';
+  return /FB_IAB|FB4A|Instagram|Line|Twitter|MicroMessenger|Snapchat|KAKAOTALK/i.test(ua);
+}
+
+export function setupToastPrompts() {
+  // 1. In-App Browser Prompt
+  if (isInAppBrowser()) {
+    if (!sessionStorage.getItem('dismiss_iab_toast')) {
+      setTimeout(() => {
+        showBottomToast(
+          'Open in Default Browser',
+          'Open',
+          () => {
+            sessionStorage.setItem('dismiss_iab_toast', '1');
+            const url = window.location.href;
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (isAndroid) {
+              const intentUrl = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+              window.location.href = intentUrl;
+            } else {
+              if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).catch(() => {});
+              }
+              window.open(url, '_system');
+            }
+          }
+        );
+      }, 1200);
+      return;
+    }
+  }
+
+  // 2. Install PWA Prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    if (!isStandalone && !sessionStorage.getItem('dismiss_pwa_toast')) {
+      setTimeout(() => {
+        showBottomToast(
+          'Add to Home Screen',
+          'Add',
+          () => {
+            sessionStorage.setItem('dismiss_pwa_toast', '1');
+            if (deferredInstallPrompt) {
+              deferredInstallPrompt.prompt();
+              deferredInstallPrompt.userChoice.then(() => {
+                deferredInstallPrompt = null;
+              });
+            }
+          }
+        );
+      }, 2000);
+    }
+  });
+}
+
+// Prevent default install prompt from showing randomly
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
 });
+
 
