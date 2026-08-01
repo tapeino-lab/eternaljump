@@ -161,28 +161,50 @@ function isInAppBrowser(): boolean {
 
 function checkAndTriggerPwaToast() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-  if (!isStandalone && !sessionStorage.getItem('dismiss_pwa_toast')) {
-    setTimeout(() => {
+  if (isStandalone || sessionStorage.getItem('dismiss_pwa_toast')) {
+    return;
+  }
+
+  // Only show install toast if deferredInstallPrompt is available
+  if (!deferredInstallPrompt) {
+    return;
+  }
+
+  setTimeout(() => {
+    // Re-check standalone & session item inside timeout
+    const isStillNotStandalone = !(window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone);
+    if (isStillNotStandalone && !sessionStorage.getItem('dismiss_pwa_toast')) {
       showBottomToast(
         'Add to Home Screen',
         'Add',
-        () => {
+        async () => {
           sessionStorage.setItem('dismiss_pwa_toast', '1');
           if (deferredInstallPrompt) {
-            const promptEvent = deferredInstallPrompt;
-            deferredInstallPrompt = null;
-            promptEvent.prompt();
-            promptEvent.userChoice.then((choice: any) => {
+            try {
+              const promptEvent = deferredInstallPrompt;
+              deferredInstallPrompt = null;
+              hideBottomToast();
+              await promptEvent.prompt();
+              const choice = await promptEvent.userChoice;
               console.log('[PWA] User choice:', choice);
-            }).catch((err: any) => {
-              console.error('[PWA] Prompt error:', err);
-            });
+            } catch (err) {
+              console.error('[PWA] Prompt call error:', err);
+            }
+          } else {
+            hideBottomToast();
+            // Fallback user guidance
+            setTimeout(() => {
+              showBottomToast(
+                'Use Browser Menu (⋮) to Add',
+                'OK',
+                () => hideBottomToast()
+              );
+            }, 300);
           }
-          hideBottomToast();
         }
       );
-    }, 1500);
-  }
+    }
+  }, 1000);
 }
 
 export function setupToastPrompts() {
@@ -220,7 +242,7 @@ export function setupToastPrompts() {
     }
   }
 
-  // 2. Install PWA Prompt check
+  // 2. Install PWA Prompt check (will trigger if beforeinstallprompt already fired)
   checkAndTriggerPwaToast();
 }
 
