@@ -6,7 +6,10 @@ import { setupKeyboardUI } from './keyboard.js';
 import { initShop } from './shop.js';
 import { startAttractCycle } from './lifecycle.js';
 import { $ } from './utils.js';
+import { initInAppGuide, showPWAInstallModal, getSyncUrl } from './inapp-guide.js';
 import './display.js';
+
+initInAppGuide();
 
 game.player = new Player();
 initSpawner(game);
@@ -22,4 +25,26 @@ setupKeyboardUI();
 initShop();
 startAttractCycle();
 
-// Trigger UI sync
+const btnPwa = $('btnPwaInstall');
+if (btnPwa) {
+  btnPwa.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showPWAInstallModal();
+  });
+}
+
+const btnCopySync = $('btnCopySyncUrlPause');
+if (btnCopySync) {
+  btnCopySync.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = getSyncUrl();
+    navigator.clipboard.writeText(url).then(() => {
+      alert('データ引き継ぎURLをコピーしました！\n別のブラウザでこのURLを開けば同じプレイヤーデータでプレイできます。');
+    }).catch(() => {
+      prompt('以下のデータ引き継ぎURLをコピーしてください:', url);
+    });
+  });
+}
+

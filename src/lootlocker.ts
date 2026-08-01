@@ -105,12 +105,12 @@ export const LootLockerAPI = {
       return false;
     }
 
+    this.playerIdentifier = safeStorage.getItem('LL_PID') || this.playerIdentifier;
     
     if (!this.playerIdentifier) {
       this.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
       safeStorage.setItem('LL_PID', this.playerIdentifier);
       this.log(`Generated new Player Identifier: ${this.playerIdentifier}`, 'info');
-      
     } else {
       this.log(`Loaded existing Player Identifier: ${this.playerIdentifier}`, 'info');
     }
