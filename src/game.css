@@ -1852,7 +1852,7 @@ body.showing-ranking #btnInstagram {
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%) translateY(140%);
-  z-index: 99999;
+  z-index: 2147483647;
   width: calc(100% - 32px);
   max-width: 420px;
   background: rgba(18, 18, 22, 0.94);

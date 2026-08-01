@@ -143,20 +143,11 @@ function checkAndTriggerPwaToast() {
         'Add',
         () => {
           sessionStorage.setItem('dismiss_pwa_toast', '1');
+          hideBottomToast();
           if (deferredInstallPrompt) {
-            hideBottomToast();
             deferredInstallPrompt.prompt();
             deferredInstallPrompt.userChoice.then(() => {
               deferredInstallPrompt = null;
-            });
-          } else {
-            // Fallback for browsers that don't support beforeinstallprompt or where prompt isn't ready
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-            const msg = isIOS
-              ? 'Tap Share button -> Add to Home Screen'
-              : 'Tap Menu (⋮) -> Add to Home screen';
-            showBottomToast(msg, 'OK', () => {
-              hideBottomToast();
             });
           }
         }
