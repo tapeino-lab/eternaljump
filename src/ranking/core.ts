@@ -134,7 +134,9 @@ import { RankingAPI } from './api.js';
           RankingAPI.prefetchScores(bypassCache);
         }
         const s = await RankingAPI.prefetchedScoresPromise;
-        RankingAPI.prefetchedScoresPromise = null;
+        if (bypassCache) {
+          RankingAPI.prefetchedScoresPromise = null;
+        }
         return s;
       }
       
@@ -183,7 +185,9 @@ import { RankingAPI } from './api.js';
           RankingAPI.prefetchTAScores(bypassCache);
         }
         const s = await RankingAPI.prefetchedTAScoresPromise;
-        RankingAPI.prefetchedTAScoresPromise = null;
+        if (bypassCache) {
+          RankingAPI.prefetchedTAScoresPromise = null;
+        }
         return s;
       }
       export const saveScore = async function(a, t, c, r) {

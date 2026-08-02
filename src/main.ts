@@ -7,6 +7,7 @@ import { initShop } from './shop.js';
 import { startAttractCycle } from './lifecycle.js';
 import { setupToastPrompts } from './pwa.js';
 import { $ } from './utils.js';
+import { RankingAPI } from './ranking/index.js';
 import './display.js';
 
 game.player = new Player();
@@ -22,6 +23,11 @@ if (tVer) {
 setupKeyboardUI();
 initShop();
 setupToastPrompts();
+
+// Early prefetch ranking data in background at application startup
+RankingAPI.prefetchScores();
+RankingAPI.prefetchTAScores();
+
 startAttractCycle();
 
 // Trigger UI sync
