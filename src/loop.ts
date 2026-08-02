@@ -31,7 +31,9 @@ let lastLoopCheckState = {
   demoActive: null as boolean | null,
   isPaused: null as boolean | null,
   gameState: null as string | null,
-  aiActive: null as boolean | null
+  aiActive: null as boolean | null,
+  isRankingOpen: null as boolean | null,
+  isShopOpen: null as boolean | null
 };
 
 export function loop(ts: number) {
@@ -59,13 +61,18 @@ export function loop(ts: number) {
     }
   }
 
+  const isRankingOpen = $('rankingModal')?.style.display === 'flex';
+  const isShopOpen = $('shopModal')?.style.display === 'flex';
+
   // DOM Status check only when key state properties change or on state transitions
   const stateChanged = (
     lastLoopCheckState.isAttractMode !== isAttractMode ||
     lastLoopCheckState.demoActive !== demoState.active ||
     lastLoopCheckState.isPaused !== game.isPaused ||
     lastLoopCheckState.gameState !== game.state ||
-    lastLoopCheckState.aiActive !== game.aiActive
+    lastLoopCheckState.aiActive !== game.aiActive ||
+    lastLoopCheckState.isRankingOpen !== isRankingOpen ||
+    lastLoopCheckState.isShopOpen !== isShopOpen
   );
 
   if (stateChanged) {
@@ -74,6 +81,8 @@ export function loop(ts: number) {
     lastLoopCheckState.isPaused = game.isPaused;
     lastLoopCheckState.gameState = game.state;
     lastLoopCheckState.aiActive = game.aiActive;
+    lastLoopCheckState.isRankingOpen = isRankingOpen;
+    lastLoopCheckState.isShopOpen = isShopOpen;
 
     if (!cachedTitleVersion) cachedTitleVersion = $('titleVersion');
     const tVer = cachedTitleVersion;
