@@ -45,9 +45,48 @@ export const markHasPlayed = (): void => {
 
 export const getLang = (): string => {
   try {
-    let l = (navigator.language || (navigator as any).userLanguage || '').split('-')[0].toLowerCase();
-    let m: Record<string, string> = { ja: 'JPN', en: 'ENG', zh: 'CHN', ko: 'KOR', es: 'SPA', fr: 'FRA', de: 'GER', ru: 'RUS', it: 'ITA', pt: 'POR' };
-    return m[l] || (l.length >= 3 ? l.substring(0, 3).toUpperCase() : '---');
+    const raw = (navigator.language || (navigator as any).userLanguage || '').toLowerCase();
+    if (!raw) return '---';
+
+    // Region-specific mappings (e.g. pt-br -> BRA, en-us -> USA)
+    const localeMap: Record<string, string> = {
+      'pt-br': 'BRA',
+      'en-us': 'USA',
+      'es-cl': 'CHI',
+      'es-do': 'DOM',
+      'en-ng': 'NGR',
+      'pt-pt': 'POR',
+    };
+    if (localeMap[raw]) return localeMap[raw];
+
+    // Primary language tag mappings
+    const lang = raw.split('-')[0];
+    const langMap: Record<string, string> = {
+      ja: 'JPN',
+      en: 'ENG',
+      zh: 'CHN',
+      ko: 'KOR',
+      es: 'SPA',
+      fr: 'FRA',
+      de: 'GER',
+      ru: 'RUS',
+      it: 'ITA',
+      pt: 'POR',
+      lt: 'LTU', // Lithuanian
+      lv: 'LVA', // Latvian
+      rsl: 'RSL', // Russian Sign Language
+      hy: 'ARM', // Armenian
+      he: 'ISR', // Hebrew (Israel)
+      iw: 'ISR', // Legacy Hebrew code
+      da: 'DNK', // Danish (Scandinavia)
+      no: 'NOR', // Norwegian (Scandinavia)
+      nb: 'NOR',
+      nn: 'NOR',
+      sv: 'SWE', // Swedish (Scandinavia)
+    };
+    if (langMap[lang]) return langMap[lang];
+
+    return lang.length >= 3 ? lang.substring(0, 3).toUpperCase() : '---';
   } catch (e) {
     return '---';
   }
