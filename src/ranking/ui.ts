@@ -181,10 +181,21 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         $('rankingLoading').style.display = 'flex';
         $('rankingModal').style.display = 'flex'; document.body.classList.add('showing-ranking');
         setIgnoreNextTap(true);
+        setTimeout(() => setIgnoreNextTap(false), 50);
         
         let s = [];
         if (mode === 'ta') {
             s = await RankingAPI.getTimeAttackScores();
+        } else {
+            s = await RankingAPI.getScores();
+        }
+
+        if ($('rankingModal')?.style.display === 'none' || !document.body.classList.contains('showing-ranking')) {
+            $('rankingLoading').style.display = 'none';
+            return;
+        }
+
+        if (mode === 'ta') {
             if (document.getElementById('btnTabTA')) {
                 const btnH = document.getElementById('btnTabHeight');
                 const btnTA = document.getElementById('btnTabTA');
@@ -204,7 +215,6 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
                 Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => (el as HTMLElement).style.opacity = '0');
             }
         } else {
-            s = await RankingAPI.getScores();
             if (document.getElementById('btnTabTA')) {
                 const btnH = document.getElementById('btnTabHeight');
                 const btnTA = document.getElementById('btnTabTA');
