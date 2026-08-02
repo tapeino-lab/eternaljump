@@ -111,8 +111,9 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
     if (!c.collected && game.player.x < c.x - ox + c.hitW && game.player.x + game.player.w > c.x - ox && game.player.y < c.y - oy + c.hitH && game.player.y + game.player.h > c.y - oy) {
       c.collected = true;
       c.dead = true;
-      if (game.scoreCoin < 999) game.scoreCoin++;
-      game.flyingCoins.push(getFc(c.x + c.w / 2, c.y + c.h / 2));
+      game.flyingCoins.push(getFc(c.x + c.w / 2, c.y + c.h / 2, () => {
+        if (game.scoreCoin < 999) game.scoreCoin++;
+      }));
     }
   }
 
