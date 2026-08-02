@@ -13,6 +13,7 @@ export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' 
       if (oldOthers) oldOthers.remove();
   }
   if (!isAttractMode) return;
+  demoState.active = true;
   if (!isTransition) {
     $('demoRankingContainer').style.display = 'block';
     $('demoRankingContainer').style.opacity = '1';
