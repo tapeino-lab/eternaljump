@@ -1044,7 +1044,7 @@ body.no-fullscreen #hud-time {
   border-radius: 4px;
   background: rgba(0,0,0,0.75);
   margin-bottom: 10px;
-  max-height: 126px;
+  max-height: 145px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
