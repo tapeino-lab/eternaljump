@@ -42,7 +42,7 @@ export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' 
     }
   }
   
-  let headerHtml = `<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:24px;padding-left:4px;vertical-align:middle;font-weight:normal;">#</th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;font-weight:normal;">LANG</th><th style="padding:4px 0;width:4px;padding:0;vertical-align:middle;font-weight:normal;"></th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;font-weight:normal;">NAME</th><th style="padding:4px 0;text-align:center;vertical-align:middle;font-weight:normal;">${mode === 'ta' ? 'TIME' : 'HEIGHT'}</th><th style="padding:4px 0;width:32px;padding-right:4px;vertical-align:middle;font-weight:normal;">${mode === 'ta' ? '' : '<div style="display:flex;justify-content:center;align-items:center;height:8px;"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div>'}</th></tr></table>`;
+  let headerHtml = `<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;"><tr style="color:rgba(255,255,255,0.85);font-size:8px;"><th style="padding:4px 0;text-align:left;width:24px;padding-left:4px;vertical-align:middle;font-weight:normal;">#</th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;font-weight:normal;">LANG</th><th style="padding:4px 0;width:4px;padding:0;vertical-align:middle;font-weight:normal;"></th><th style="padding:4px 0;text-align:center;width:32px;vertical-align:middle;font-weight:normal;">NAME</th><th style="padding:4px 0;text-align:center;vertical-align:middle;font-weight:normal;">${mode === 'ta' ? 'TIME' : 'HEIGHT'}</th><th style="padding:4px 0;width:${mode === 'ta' ? '8px' : '32px'};padding-right:4px;vertical-align:middle;font-weight:normal;">${mode === 'ta' ? '' : '<div style="display:flex;justify-content:center;align-items:center;height:8px;"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></div>'}</th></tr></table>`;
   $('demoHeader').innerHTML = headerHtml;
   
   let t3Html = '<table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:9px;">';
@@ -90,9 +90,9 @@ export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' 
         let totalSec = Math.floor(t / 1000);
         let mStr = Math.floor(totalSec / 60);
         let sStr = (totalSec % 60).toString().padStart(2, '0');
-        let msStr = Math.floor(tMs / 100).toString();
+        let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
         displayScore = `<span style="color:#fff;">${mStr}:${sStr}.${msStr}</span>`;
-        displayCoins = `<td style="text-align:right;padding:${pt};padding-right:4px;width:32px;white-space:nowrap;overflow:hidden;vertical-align:middle;"></td>`;
+        displayCoins = `<td style="text-align:right;padding:${pt};padding-right:4px;width:8px;white-space:nowrap;overflow:hidden;vertical-align:middle;"></td>`;
     }
 
     let row = `<tr style="color:${color};font-weight:${fw};${bg}"><td style="padding:${pt};text-align:left;width:24px;white-space:nowrap;overflow:hidden;padding-left:4px;vertical-align:middle;${rankStyle}">${m}${rankNum}</td><td style="padding:${pt};text-align:center;width:32px;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:${pt};text-align:center;width:32px;white-space:nowrap;overflow:hidden;vertical-align:middle;font-size:8px;">${escapeHTML(name)}</td><td style="text-align:right;padding:${pt};white-space:nowrap;overflow:hidden;vertical-align:middle;">${displayScore}</td>${displayCoins}</tr>`;

@@ -128,7 +128,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
               let totalSec = Math.floor(t / 1000);
               let mStr = Math.floor(totalSec / 60);
               let sStr = (totalSec % 60).toString().padStart(2, '0');
-              let msStr = Math.floor(tMs / 100).toString();
+              let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
               $('resultScoreTime').innerText = `${mStr}:${sStr}.${msStr}`;
               
               let timeLabel = $('resultTimeLabel');
@@ -212,7 +212,10 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
                     btnTA.classList.add('active');
                 }
                 document.getElementById('rankingHeaderScore').innerText = 'TIME';
-                Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => (el as HTMLElement).style.opacity = '0');
+                Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => {
+                    (el as HTMLElement).style.opacity = '0';
+                    (el as HTMLElement).style.width = '8px';
+                });
             }
         } else {
             if (document.getElementById('btnTabTA')) {
@@ -231,7 +234,10 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
                     btnTA.classList.remove('active');
                 }
                 document.getElementById('rankingHeaderScore').innerText = 'HEIGHT';
-                Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => (el as HTMLElement).style.opacity = '1');
+                Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => {
+                    (el as HTMLElement).style.opacity = '1';
+                    (el as HTMLElement).style.width = '32px';
+                });
             }
         }
 
@@ -287,19 +293,21 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             
             let displayScore = `${escapeHTML(r.alt)}m`;
             let displayCoins = escapeHTML(r.coins || 0);
+            let coinWidth = '32px';
             if (mode === 'ta' && r.t) {
                 let t = r.t;
                 let tMs = t % 1000;
                 let totalSec = Math.floor(t / 1000);
                 let mStr = Math.floor(totalSec / 60);
                 let sStr = (totalSec % 60).toString().padStart(2, '0');
-                let msStr = Math.floor(tMs / 100).toString();
+                let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
                 displayScore = `<span style="color:#fff;">${mStr}:${sStr}.${msStr}</span>`;
                 displayCoins = '';
+                coinWidth = '8px';
             }
 
             let rankStyle = (typeof rNum === 'number' && rNum >= 100) ? 'font-size:7px;letter-spacing:-0.5px;padding-left:2px;' : '';
-            return `<tr${idAttr} style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;${rankStyle}">${m}${rNum}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${displayScore}</td><td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${displayCoins}</td></tr>`;
+            return `<tr${idAttr} style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;${rankStyle}">${m}${rNum}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:right;white-space:nowrap;overflow:hidden;">${displayScore}</td><td style="padding:4px 4px 4px 0;text-align:right;width:${coinWidth};color:#ffb;white-space:nowrap;overflow:hidden;">${displayCoins}</td></tr>`;
         };
 
         let top3HTML = '';
