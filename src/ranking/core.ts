@@ -18,7 +18,9 @@ import { RankingAPI } from './api.js';
           const isConfigured = await LootLockerAPI.checkConfig();
           if (!isConfigured) return;
           let onlinePB = await LootLockerAPI.getMemberScore();
+          let onlineTAPB = await LootLockerAPI.getMemberTAScore();
           let pbKey = RankingAPI.pbKey;
+          let taPbKey = RankingAPI.taPbKey;
           
           let pending = [];
           try {
@@ -47,6 +49,13 @@ import { RankingAPI } from './api.js';
               if (game.personalBest) {
                 game.personalBest = null;
               }
+            }
+          }
+
+          if (onlineTAPB && typeof onlineTAPB.time === 'number') {
+            let localTAPB = secureStorage.getItem<any>(taPbKey, null);
+            if (!localTAPB || typeof localTAPB.time !== 'number' || onlineTAPB.time < localTAPB.time) {
+              secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
             }
           }
         })();
@@ -221,10 +230,12 @@ import { RankingAPI } from './api.js';
         if (r === 'CLEAR' || a >= 144000) {
           let taPbKey = RankingAPI.taPbKey;
           let localTAPB = secureStorage.getItem<any>(taPbKey, null);
-          if (!localTAPB || t < localTAPB.time) {
+          if (!localTAPB || typeof localTAPB.time !== 'number' || t < localTAPB.time) {
             isNewTARecordLocal = true;
             game.isNewTARecord = true;
             secureStorage.setItem(taPbKey, { time: t });
+          } else {
+            game.isNewTARecord = false;
           }
         }
 

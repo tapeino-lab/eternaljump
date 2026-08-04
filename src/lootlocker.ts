@@ -261,6 +261,39 @@ export const LootLockerAPI = {
     return null;
   },
 
+  getMemberTAScore: async function() {
+    if (!this.taLeaderboardId) return null;
+    if (!await this.init()) return null;
+    try {
+      let r;
+      if (this.isDirectMode) {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.taLeaderboardId}/member/${this.playerId}`;
+        r = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-token': this.sessionToken
+          }
+        });
+      } else {
+        r = await fetch(`/api/lootlocker/leaderboards/member?member_id=${this.playerId}&session_token=${encodeURIComponent(this.sessionToken)}&leaderboard_id=${this.taLeaderboardId}`);
+      }
+      if (r.ok) {
+        let d = await r.json();
+        if (d && typeof d.score === 'number') {
+          let time = 1000000000 - d.score;
+          return { time, rank: d.rank || null };
+        } else {
+          return { notFound: true };
+        }
+      } else if (r.status === 404 || r.status === 400) {
+        return { notFound: true };
+      }
+    } catch(e) {
+      this.log(`Failed to fetch member TA score: ${e.message}`, 'error');
+    }
+    return null;
+  },
+
   setPlayerName: async function(name) {
     if (!await this.init()) return;
     try {
