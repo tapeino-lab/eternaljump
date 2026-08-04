@@ -168,7 +168,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             let localTAPB = secureStorage.getItem<any>(RankingAPI.taPbKey, null);
             let timeRow = $('bestScoreTimeRow');
             if (timeRow) {
-              if (localTAPB && typeof localTAPB.time === 'number') {
+              if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0 && localTAPB.time < 86400000) {
                 let t = localTAPB.time;
                 let tMs = t % 1000;
                 let totalSec = Math.floor(t / 1000);

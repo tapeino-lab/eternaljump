@@ -52,10 +52,24 @@ import { RankingAPI } from './api.js';
             }
           }
 
-          if (onlineTAPB && typeof onlineTAPB.time === 'number') {
-            let localTAPB = secureStorage.getItem<any>(taPbKey, null);
-            if (!localTAPB || typeof localTAPB.time !== 'number' || onlineTAPB.time < localTAPB.time) {
+          // Clean up corrupted local TAPB if time > 24 hours
+          let localTAPBCheck = secureStorage.getItem<any>(taPbKey, null);
+          if (localTAPBCheck && (typeof localTAPBCheck.time !== 'number' || localTAPBCheck.time >= 86400000 || localTAPBCheck.time <= 0)) {
+            secureStorage.removeItem(taPbKey);
+          }
+
+          if (onlineTAPB && typeof onlineTAPB.time === 'number' && onlineTAPB.time > 0 && onlineTAPB.time < 86400000) {
+            if (pending.length === 0) {
               secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
+            } else {
+              let localTAPB = secureStorage.getItem<any>(taPbKey, null);
+              if (!localTAPB || typeof localTAPB.time !== 'number' || onlineTAPB.time <= localTAPB.time) {
+                secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
+              }
+            }
+          } else if (onlineTAPB && onlineTAPB.notFound) {
+            if (pending.length === 0) {
+              secureStorage.removeItem(taPbKey);
             }
           }
         })();
@@ -275,6 +289,7 @@ import { RankingAPI } from './api.js';
         try {
           secureStorage.removeItem(RankingAPI.key);
           secureStorage.removeItem(RankingAPI.pbKey);
+          secureStorage.removeItem(RankingAPI.taPbKey);
           alert('RANKING CLEARED!')
         } catch (e) {}
 }
