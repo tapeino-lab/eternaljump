@@ -56,7 +56,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         
         if (game.lastScoreObj) {
           const scoreLabel = document.querySelector('.result-score-label') as HTMLElement;
-          if (game.isNewRecord) {
+          if (game.isNewRecord || game.isNewTARecord) {
             if (scoreLabel) {
               scoreLabel.innerText = 'NEW RECORD!';
               scoreLabel.style.color = '#ff00ff';
@@ -193,6 +193,9 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         }, 50);
 }
       export const showRanking = async function(state, mode = 'height') {
+        if (RankingAPI.isShowingResult && game.isNewTARecord && !game.isNewRecord) {
+            mode = 'ta';
+        }
         RankingAPI.isShowingResult = false;
         $('resultContainer').style.display = 'none';
         $('rankingContainer').style.display = 'none';
