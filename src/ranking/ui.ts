@@ -165,22 +165,29 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             $('bestScoreAlt').innerText = game.personalBest.alt + 'm';
             $('bestScoreCoins').innerHTML = '&times; ' + (game.personalBest.coins || 0);
 
-            let localTAPB = secureStorage.getItem<any>(RankingAPI.taPbKey, null);
-            let timeRow = $('bestScoreTimeRow');
-            if (timeRow) {
-              if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0 && localTAPB.time < 86400000) {
-                let t = localTAPB.time;
-                let tMs = t % 1000;
-                let totalSec = Math.floor(t / 1000);
-                let mStr = Math.floor(totalSec / 60);
-                let sStr = (totalSec % 60).toString().padStart(2, '0');
-                let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
-                $('bestScoreTimeVal').innerText = `${mStr}:${sStr}.${msStr}`;
-              } else {
-                $('bestScoreTimeVal').innerText = '-:--.--';
+            let updateBestTimeUI = () => {
+              let localTAPB = secureStorage.getItem<any>(RankingAPI.taPbKey, null);
+              let timeRow = $('bestScoreTimeRow');
+              if (timeRow) {
+                if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0 && localTAPB.time < 86400000) {
+                  let t = localTAPB.time;
+                  let tMs = t % 1000;
+                  let totalSec = Math.floor(t / 1000);
+                  let mStr = Math.floor(totalSec / 60);
+                  let sStr = (totalSec % 60).toString().padStart(2, '0');
+                  let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
+                  $('bestScoreTimeVal').innerText = `${mStr}:${sStr}.${msStr}`;
+                } else {
+                  $('bestScoreTimeVal').innerText = '-:--.--';
+                }
+                timeRow.style.display = 'block';
               }
-              timeRow.style.display = 'block';
-            }
+            };
+
+            updateBestTimeUI();
+            RankingAPI.syncPersonalBest(true).then(() => {
+              updateBestTimeUI();
+            });
           } else {
             $('bestScoreContainer').style.display = 'none';
           }
@@ -204,6 +211,8 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         setIgnoreNextTap(true);
         setTimeout(() => setIgnoreNextTap(false), 50);
         
+        await RankingAPI.syncPersonalBest(true);
+
         let s = [];
         if (mode === 'ta') {
             s = await RankingAPI.getTimeAttackScores();

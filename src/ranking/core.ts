@@ -12,7 +12,10 @@ import { RankingAPI } from './api.js';
       export const hasLootLocker = function() {
         return LootLockerAPI.hasLootLockerConfig === true;
 }
-      export const syncPersonalBest = function() {
+      export const syncPersonalBest = function(bypassCache = false) {
+        if (bypassCache) {
+          RankingAPI.syncPersonalBestPromise = null;
+        }
         if (RankingAPI.syncPersonalBestPromise) return RankingAPI.syncPersonalBestPromise;
         RankingAPI.syncPersonalBestPromise = (async () => {
           const isConfigured = await LootLockerAPI.checkConfig();

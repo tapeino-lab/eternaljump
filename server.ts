@@ -49,9 +49,10 @@ async function startServer() {
   // Proxy routes for fetching a specific member's score from LootLocker Leaderboard
   app.get("/api/lootlocker/leaderboards/member", async (req, res) => {
     const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
-    const leaderboardId = process.env.LOOTLOCKER_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2';
+    const defaultLeaderboardId = process.env.LOOTLOCKER_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2';
     const memberId = req.query.member_id as string;
     const sessionToken = req.query.session_token as string;
+    const leaderboardId = (req.query.leaderboard_id as string) || defaultLeaderboardId;
 
     try {
       const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/leaderboards/${leaderboardId}/member/${memberId}`, {
