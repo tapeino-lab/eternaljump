@@ -465,17 +465,31 @@ export function togglePause(e?: any) {
     const pb = document.getElementById('pauseBest');
     if (pb) {
         let d = secureStorage.getItem<any>(RankingAPI.pbKey, null);
-        if (d && typeof d.alt === 'number') {
-            pb.innerHTML = `<div style="text-align:center; margin-top:4px;">
-              <div style="color:#ddd; font-size:12px; font-weight:bold; margin-bottom:4px;">${d.alt}m</div>
-              <div class="coin-align" style="font-size:9px; color:#dd8;">
-                <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
-                <span>&times; ${d.coins || 0}</span>
-              </div>
-            </div>`;
-        } else {
-            pb.innerHTML = '';
+        let localTAPB = secureStorage.getItem<any>(RankingAPI.taPbKey, null);
+        let timeStr = '-:--.--';
+        if (localTAPB && typeof localTAPB.time === 'number') {
+            let t = localTAPB.time;
+            let tMs = t % 1000;
+            let totalSec = Math.floor(t / 1000);
+            let mStr = Math.floor(totalSec / 60);
+            let sStr = (totalSec % 60).toString().padStart(2, '0');
+            let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
+            timeStr = `${mStr}:${sStr}.${msStr}`;
         }
+
+        let altVal = (d && typeof d.alt === 'number') ? `${d.alt}m` : '0m';
+        let coinVal = (d && typeof d.coins === 'number') ? d.coins : 0;
+
+        pb.innerHTML = `<div style="text-align:center; margin-top:4px;">
+          <div style="color:#ddd; font-size:12px; font-weight:bold; margin-bottom:4px;">${altVal}</div>
+          <div class="coin-align" style="font-size:9px; color:#dd8; margin-bottom:6px;">
+            <div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div>
+            <span>&times; ${coinVal}</span>
+          </div>
+          <div style="font-size:10px; color:#fff; font-weight:bold; margin-top:4px;">
+            ${timeStr}
+          </div>
+        </div>`;
     }
   } else {
     const pNameInput = document.getElementById('pausePlayerNameInput') as HTMLInputElement;

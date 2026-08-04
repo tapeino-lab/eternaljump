@@ -131,25 +131,26 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
               let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
               $('resultScoreTime').innerText = `${mStr}:${sStr}.${msStr}`;
               
+              let scoreTime = $('resultScoreTime');
               let timeLabel = $('resultTimeLabel');
               if (game.isNewTARecord) {
-                timeLabel.innerText = 'NEW TIME RECORD!';
-                timeLabel.style.color = '#ff00ff';
-                timeLabel.style.animation = 'superBlink 0.25s steps(1) infinite';
-                timeLabel.style.textShadow = '0 0 8px #f0f, 0 0 16px #ff0';
-                
-                let scoreTime = $('resultScoreTime');
+                if (timeLabel) {
+                  timeLabel.innerText = 'NEW TIME RECORD!';
+                  timeLabel.style.color = '#ff00ff';
+                  timeLabel.style.animation = 'superBlink 0.25s steps(1) infinite';
+                  timeLabel.style.textShadow = '0 0 8px #f0f, 0 0 16px #ff0';
+                }
                 scoreTime.style.color = '#ff00ff';
                 scoreTime.style.animation = 'superBlink 0.25s steps(1) infinite';
                 scoreTime.style.textShadow = '0 0 8px #f0f, 0 0 16px #ff0';
               } else {
-                timeLabel.innerText = 'TIME';
-                timeLabel.style.color = '#fff';
-                timeLabel.style.animation = '';
-                timeLabel.style.textShadow = '';
-                
-                let scoreTime = $('resultScoreTime');
-                scoreTime.style.color = '#0ff';
+                if (timeLabel) {
+                  timeLabel.innerText = 'TIME';
+                  timeLabel.style.color = '#fff';
+                  timeLabel.style.animation = '';
+                  timeLabel.style.textShadow = '';
+                }
+                scoreTime.style.color = '#fff';
                 scoreTime.style.animation = '';
                 scoreTime.style.textShadow = '';
               }
@@ -163,6 +164,23 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             $('bestScoreContainer').style.display = 'block';
             $('bestScoreAlt').innerText = game.personalBest.alt + 'm';
             $('bestScoreCoins').innerHTML = '&times; ' + (game.personalBest.coins || 0);
+
+            let localTAPB = secureStorage.getItem<any>(RankingAPI.taPbKey, null);
+            let timeRow = $('bestScoreTimeRow');
+            if (timeRow) {
+              if (localTAPB && typeof localTAPB.time === 'number') {
+                let t = localTAPB.time;
+                let tMs = t % 1000;
+                let totalSec = Math.floor(t / 1000);
+                let mStr = Math.floor(totalSec / 60);
+                let sStr = (totalSec % 60).toString().padStart(2, '0');
+                let msStr = Math.floor(tMs / 10).toString().padStart(2, '0');
+                $('bestScoreTimeVal').innerText = `${mStr}:${sStr}.${msStr}`;
+              } else {
+                $('bestScoreTimeVal').innerText = '-:--.--';
+              }
+              timeRow.style.display = 'block';
+            }
           } else {
             $('bestScoreContainer').style.display = 'none';
           }
