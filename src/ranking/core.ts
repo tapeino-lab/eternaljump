@@ -45,6 +45,10 @@ import { RankingAPI } from './api.js';
 
             if (onlineIsBetter || pending.length === 0) {
               secureStorage.setItem(pbKey, onlinePB);
+              if (game.personalBest && game.personalBest.alt === onlinePB.alt) {
+                game.personalBest.time = onlinePB.time;
+                game.personalBest.coins = onlinePB.coins;
+              }
             }
           } else if (onlinePB && onlinePB.notFound) {
             if (pending.length === 0) {
