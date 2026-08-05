@@ -462,8 +462,9 @@ export function togglePause(e?: any) {
       let name = parts.length > 1 ? parts[1] : (parts[0] || '??');
       pNameInput.value = name;
     }
-    const pb = document.getElementById('pauseBest');
-    if (pb) {
+    const updatePauseBestUI = () => {
+      const pb = document.getElementById('pauseBest');
+      if (pb) {
         let d = secureStorage.getItem<any>(RankingAPI.pbKey, null);
         let localTAPB = secureStorage.getItem<any>(RankingAPI.taPbKey, null);
         let timeStr = '-:--.--';
@@ -490,7 +491,12 @@ export function togglePause(e?: any) {
             ${timeStr}
           </div>
         </div>`;
-    }
+      }
+    };
+    updatePauseBestUI();
+    RankingAPI.syncPersonalBest(true).then(() => {
+      updatePauseBestUI();
+    });
   } else {
     const pNameInput = document.getElementById('pausePlayerNameInput') as HTMLInputElement;
     if (pNameInput) {

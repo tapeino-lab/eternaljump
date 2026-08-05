@@ -236,7 +236,7 @@ export const LootLockerAPI = {
       }
       if (r.ok) {
         let d = await r.json();
-        if (d && typeof d.score === 'number') {
+        if (d && typeof d.score === 'number' && d.score > 0 && d.rank !== 0) {
           let score = d.score;
           let alt = Math.floor(score / 1000);
           let coins = score % 1000;
@@ -279,9 +279,13 @@ export const LootLockerAPI = {
       }
       if (r.ok) {
         let d = await r.json();
-        if (d && typeof d.score === 'number') {
+        if (d && typeof d.score === 'number' && d.score > 0 && d.rank !== 0) {
           let time = 1000000000 - d.score;
-          return { time, rank: d.rank || null };
+          if (time > 0 && time < 86400000) {
+            return { time, rank: d.rank || null };
+          } else {
+            return { notFound: true };
+          }
         } else {
           return { notFound: true };
         }

@@ -215,9 +215,9 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
 
         let s = [];
         if (mode === 'ta') {
-            s = await RankingAPI.getTimeAttackScores();
+            s = await RankingAPI.getTimeAttackScores(true);
         } else {
-            s = await RankingAPI.getScores();
+            s = await RankingAPI.getScores(true);
         }
 
         if ($('rankingModal')?.style.display === 'none' || !document.body.classList.contains('showing-ranking')) {

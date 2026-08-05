@@ -86,7 +86,7 @@ import { RankingAPI } from './api.js';
         RankingAPI.prefetchedScoresPromise = (async () => {
           const isConfigured = await LootLockerAPI.checkConfig();
           if (isConfigured) {
-            await RankingAPI.syncPersonalBest();
+            await RankingAPI.syncPersonalBest(forceNetwork);
             let scores = null;
             let now = Date.now();
             let lastFetch = parseInt(safeStorage.getItem('LL_LAST_FETCH') || '0');
@@ -104,8 +104,9 @@ import { RankingAPI } from './api.js';
             }
             
             if (!scores) {
-              scores = await LootLockerAPI.getScores(100);
-              if (scores && scores.length > 0) {
+              let fetched = await LootLockerAPI.getScores(100);
+              if (Array.isArray(fetched)) {
+                scores = fetched;
                 safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
                 safeStorage.setItem('LL_LAST_FETCH', now.toString());
               } else {
@@ -124,6 +125,7 @@ import { RankingAPI } from './api.js';
               if (pending.length > 0) {
                 let pid = LootLockerAPI.playerIdentifier;
                 let playerName = getPlayerName();
+                if (!scores) scores = [];
                 pending.forEach(p => {
                   scores.push({ id: pid, alt: p.alt, coins: p.coins, lang: p.lang, n: playerName, t: p.t });
                 });
@@ -146,7 +148,7 @@ import { RankingAPI } from './api.js';
               safeStorage.removeItem('LL_PENDING_SCORES');
             }
             
-            return scores;
+            return scores || [];
           } else {
             try {
               let s = secureStorage.getItem<any[]>(RankingAPI.key, []);
@@ -174,6 +176,7 @@ import { RankingAPI } from './api.js';
         RankingAPI.prefetchedTAScoresPromise = (async () => {
           const isConfigured = await LootLockerAPI.checkConfig();
           if (isConfigured) {
+            await RankingAPI.syncPersonalBest(forceNetwork);
             let scores = null;
             let now = Date.now();
             let lastFetch = parseInt(safeStorage.getItem('LL_LAST_TA_FETCH') || '0');
@@ -190,8 +193,9 @@ import { RankingAPI } from './api.js';
             }
             
             if (!scores) {
-              scores = await LootLockerAPI.getTimeAttackScores(100);
-              if (scores && scores.length > 0) {
+              let fetched = await LootLockerAPI.getTimeAttackScores(100);
+              if (Array.isArray(fetched)) {
+                scores = fetched;
                 safeStorage.setItem('LL_CACHED_TA_LEADERBOARD', JSON.stringify(scores));
                 safeStorage.setItem('LL_LAST_TA_FETCH', now.toString());
               } else {
@@ -204,7 +208,7 @@ import { RankingAPI } from './api.js';
               }
             }
             
-            return scores;
+            return scores || [];
           }
           return [];
         })();
