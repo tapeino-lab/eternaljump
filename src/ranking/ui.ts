@@ -417,12 +417,12 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         }
 
         // Background fetch latest personal best & leaderboard scores
-        RankingAPI.syncPersonalBest(false);
+        RankingAPI.syncPersonalBest(true);
         let s = [];
         if (mode === 'ta') {
-            s = await RankingAPI.getTimeAttackScores(false);
+            s = await RankingAPI.getTimeAttackScores(true);
         } else {
-            s = await RankingAPI.getScores(false);
+            s = await RankingAPI.getScores(true);
         }
 
         if ($('rankingModal')?.style.display === 'none' || !document.body.classList.contains('showing-ranking')) {
