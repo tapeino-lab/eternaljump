@@ -224,6 +224,53 @@ import { RankingAPI } from './api.js';
         }
         return s;
       }
+      export function updateOptimisticCache(alt: number, coins: number, time: number, isTA: boolean = false) {
+        try {
+          let pid = LootLockerAPI.playerIdentifier;
+          let playerName = getPlayerName();
+          let lang = getLang();
+
+          if (!isTA) {
+            let raw = safeStorage.getItem('LL_CACHED_LEADERBOARD');
+            let scores: any[] = raw ? JSON.parse(raw) : [];
+            let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (s.n && s.n === playerName));
+            let myEntry = { id: pid, alt, coins, time, lang, n: playerName };
+
+            if (existingIndex !== -1) {
+              let current = scores[existingIndex];
+              if (alt > current.alt || (alt === current.alt && coins > current.coins) || (alt === current.alt && coins === current.coins && time < current.time)) {
+                scores[existingIndex] = { ...current, ...myEntry };
+              }
+            } else {
+              scores.push(myEntry);
+            }
+            scores.sort((A, B) => (B.alt || 0) - (A.alt || 0) || (B.coins || 0) - (A.coins || 0) || (A.time || 0) - (B.time || 0));
+            scores = scores.slice(0, 100);
+            scores.forEach((item, idx) => item.rank = idx + 1);
+            safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
+          } else {
+            let raw = safeStorage.getItem('LL_CACHED_TA_LEADERBOARD');
+            let scores: any[] = raw ? JSON.parse(raw) : [];
+            let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (s.n && s.n === playerName));
+            let myEntry = { id: pid, alt, coins, t: time, time, lang, n: playerName };
+
+            if (existingIndex !== -1) {
+              let current = scores[existingIndex];
+              let curT = (typeof current.t === 'number') ? current.t : current.time;
+              if (typeof curT !== 'number' || time < curT) {
+                scores[existingIndex] = { ...current, ...myEntry };
+              }
+            } else {
+              scores.push(myEntry);
+            }
+            scores.sort((A, B) => ((typeof A.t === 'number') ? A.t : A.time || 0) - ((typeof B.t === 'number') ? B.t : B.time || 0));
+            scores = scores.slice(0, 100);
+            scores.forEach((item, idx) => item.rank = idx + 1);
+            safeStorage.setItem('LL_CACHED_TA_LEADERBOARD', JSON.stringify(scores));
+          }
+        } catch(e) {}
+      }
+
       export const saveScore = async function(a, t, c, r) {
         markHasPlayed();
         if (game.demoMode && !game.allowAutoRank) return;
@@ -264,17 +311,39 @@ import { RankingAPI } from './api.js';
           }
         }
 
+        // Perform immediate optimistic update to local cache
+        if (game.isNewRecord) {
+          updateOptimisticCache(MIN(a, 144000), c, t, false);
+        }
+        if (game.isNewTARecord) {
+          updateOptimisticCache(MIN(a, 144000), c, t, true);
+        }
+
         const isConfigured = await LootLockerAPI.checkConfig();
         
         if (isConfigured) {
+          // Immediately start background prefetch with current cache
+          RankingAPI.prefetchScores(false);
+          RankingAPI.prefetchTAScores(false);
+
+          let submitTasks: Promise<any>[] = [];
           if (isNewRecordLocal) {
-            let res = await LootLockerAPI.submitScore(a, c, t, l);
-            if (res) {
-              safeStorage.setItem('LL_LAST_FETCH', '0'); // Force fetch next time
-            }
+            submitTasks.push(LootLockerAPI.submitScore(a, c, t, l).then(res => {
+              if (res) safeStorage.setItem('LL_LAST_FETCH', '0');
+            }));
           }
           if (r === 'CLEAR' || a >= 144000) {
-            await LootLockerAPI.submitTimeAttackScore(t, a, c, l);
+            submitTasks.push(LootLockerAPI.submitTimeAttackScore(t, a, c, l).then(res => {
+              if (res) safeStorage.setItem('LL_LAST_TA_FETCH', '0');
+            }));
+          }
+
+          // When network submission completes, refresh cache from server
+          if (submitTasks.length > 0) {
+            Promise.all(submitTasks).then(() => {
+              RankingAPI.prefetchScores(true);
+              RankingAPI.prefetchTAScores(true);
+            });
           }
         } else {
           try {
@@ -292,9 +361,6 @@ import { RankingAPI } from './api.js';
             secureStorage.setItem(RankingAPI.key, s);
           } catch (e) {}
         }
-        // Start background prefetch of scores immediately for latest values
-        RankingAPI.prefetchScores(game.isNewRecord);
-        RankingAPI.prefetchTAScores(game.isNewTARecord);
 }
       export const reset = function() {
         try {

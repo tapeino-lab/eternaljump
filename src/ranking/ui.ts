@@ -199,32 +199,8 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
           $('tapToStartMsg').style.display = 'block';
         }, 50);
 }
-      export const showRanking = async function(state, mode = 'height') {
-        if (RankingAPI.isShowingResult && game.isNewTARecord && !game.isNewRecord) {
-            mode = 'ta';
-        }
-        RankingAPI.isShowingResult = false;
-        $('resultContainer').style.display = 'none';
-        $('rankingContainer').style.display = 'none';
-        $('rankingLoading').style.display = 'flex';
-        $('rankingModal').style.display = 'flex'; document.body.classList.add('showing-ranking');
-        setIgnoreNextTap(true);
-        setTimeout(() => setIgnoreNextTap(false), 50);
-        
-        await RankingAPI.syncPersonalBest(true);
-
-        let s = [];
-        if (mode === 'ta') {
-            s = await RankingAPI.getTimeAttackScores(true);
-        } else {
-            s = await RankingAPI.getScores(true);
-        }
-
-        if ($('rankingModal')?.style.display === 'none' || !document.body.classList.contains('showing-ranking')) {
-            $('rankingLoading').style.display = 'none';
-            return;
-        }
-
+      export const renderRankingTable = function(sList, state, mode) {
+        let s = sList ? [...sList] : [];
         if (mode === 'ta') {
             if (document.getElementById('btnTabTA')) {
                 const btnH = document.getElementById('btnTabHeight');
@@ -335,8 +311,9 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             let displayCoins = escapeHTML(r.coins || 0);
             let scoreAlign = 'right';
             let coinTdHtml = `<td style="padding:4px 4px 4px 0;text-align:right;width:32px;color:#ffb;white-space:nowrap;overflow:hidden;">${displayCoins}</td>`;
-            if (mode === 'ta' && r.t) {
-                let t = r.t;
+            let timeVal = (typeof r.t === 'number') ? r.t : r.time;
+            if (mode === 'ta' && typeof timeVal === 'number') {
+                let t = timeVal;
                 let tMs = t % 1000;
                 let totalSec = Math.floor(t / 1000);
                 let mStr = Math.floor(totalSec / 60);
@@ -410,4 +387,49 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
           }
           $('tapToStartMsg').style.display = 'block';
         }, 50);
-}
+      }
+
+      export const showRanking = async function(state, mode = 'height') {
+        if (RankingAPI.isShowingResult && game.isNewTARecord && !game.isNewRecord) {
+            mode = 'ta';
+        }
+        RankingAPI.isShowingResult = false;
+        $('resultContainer').style.display = 'none';
+        $('rankingContainer').style.display = 'none';
+        $('rankingModal').style.display = 'flex'; 
+        document.body.classList.add('showing-ranking');
+        setIgnoreNextTap(true);
+        setTimeout(() => setIgnoreNextTap(false), 50);
+
+        // Check local cache for immediate non-blocking rendering
+        let cached = null;
+        try {
+          let cacheKey = (mode === 'ta') ? 'LL_CACHED_TA_LEADERBOARD' : 'LL_CACHED_LEADERBOARD';
+          let raw = safeStorage.getItem(cacheKey);
+          if (raw) cached = JSON.parse(raw);
+        } catch (e) {}
+
+        if (cached && Array.isArray(cached) && cached.length > 0) {
+          $('rankingLoading').style.display = 'none';
+          renderRankingTable(cached, state, mode);
+        } else {
+          $('rankingLoading').style.display = 'flex';
+        }
+
+        // Background fetch latest personal best & leaderboard scores
+        RankingAPI.syncPersonalBest(false);
+        let s = [];
+        if (mode === 'ta') {
+            s = await RankingAPI.getTimeAttackScores(false);
+        } else {
+            s = await RankingAPI.getScores(false);
+        }
+
+        if ($('rankingModal')?.style.display === 'none' || !document.body.classList.contains('showing-ranking')) {
+            $('rankingLoading').style.display = 'none';
+            return;
+        }
+
+        // Render latest synced data
+        renderRankingTable(s, state, mode);
+      }
