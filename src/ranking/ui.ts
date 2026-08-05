@@ -246,8 +246,8 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
                 const headerScore = document.getElementById('rankingHeaderScore');
                 if (headerScore) {
                     headerScore.innerText = 'HEIGHT';
-                    headerScore.style.textAlign = 'right';
-                    headerScore.style.paddingRight = '4px';
+                    headerScore.style.textAlign = 'center';
+                    headerScore.style.paddingRight = '0';
                 }
                 Array.from(document.querySelectorAll('.ranking-th-coin')).forEach(el => {
                     (el as HTMLElement).style.display = '';
