@@ -1,6 +1,7 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 import { registerSW } from 'virtual:pwa-register';
+import { safeSessionStorage } from './safeStorage.js';
 
 
 let updatePending = false;
@@ -161,7 +162,7 @@ function isInAppBrowser(): boolean {
 
 function checkAndTriggerPwaToast() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-  if (isStandalone || sessionStorage.getItem('dismiss_pwa_toast')) {
+  if (isStandalone || safeSessionStorage.getItem('dismiss_pwa_toast')) {
     return;
   }
 
@@ -173,12 +174,12 @@ function checkAndTriggerPwaToast() {
   setTimeout(() => {
     // Re-check standalone & session item inside timeout
     const isStillNotStandalone = !(window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone);
-    if (isStillNotStandalone && !sessionStorage.getItem('dismiss_pwa_toast')) {
+    if (isStillNotStandalone && !safeSessionStorage.getItem('dismiss_pwa_toast')) {
       showBottomToast(
         'Add to Home Screen',
         'Add',
         async () => {
-          sessionStorage.setItem('dismiss_pwa_toast', '1');
+          safeSessionStorage.setItem('dismiss_pwa_toast', '1');
           if (deferredInstallPrompt) {
             try {
               const promptEvent = deferredInstallPrompt;
@@ -210,13 +211,13 @@ function checkAndTriggerPwaToast() {
 export function setupToastPrompts() {
   // 1. In-App Browser Prompt
   if (isInAppBrowser()) {
-    if (!sessionStorage.getItem('dismiss_iab_toast')) {
+    if (!safeSessionStorage.getItem('dismiss_iab_toast')) {
       setTimeout(() => {
         showBottomToast(
           'Open in Default Browser',
           'Open',
           () => {
-            sessionStorage.setItem('dismiss_iab_toast', '1');
+            safeSessionStorage.setItem('dismiss_iab_toast', '1');
             hideBottomToast();
             const url = window.location.href;
             const isAndroid = /Android/i.test(navigator.userAgent);

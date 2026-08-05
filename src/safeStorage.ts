@@ -21,6 +21,58 @@ function checkLocalStorageSupport(): boolean {
 
 let isLocalStorageAvailable = checkLocalStorageSupport();
 
+function checkSessionStorageSupport(): boolean {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) return false;
+    const testKey = '__safe_session_test__';
+    window.sessionStorage.setItem(testKey, '1');
+    window.sessionStorage.removeItem(testKey);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+let isSessionStorageAvailable = checkSessionStorageSupport();
+
+const sessionMemoryStore = new Map<string, string>();
+
+export const safeSessionStorage = {
+  getItem(key: string): string | null {
+    if (isSessionStorageAvailable) {
+      try {
+        const value = window.sessionStorage.getItem(key);
+        if (value !== null) return value;
+      } catch (e) {
+        isSessionStorageAvailable = false;
+      }
+    }
+    return sessionMemoryStore.get(key) ?? null;
+  },
+
+  setItem(key: string, value: string): void {
+    sessionMemoryStore.set(key, value);
+    if (isSessionStorageAvailable) {
+      try {
+        window.sessionStorage.setItem(key, value);
+      } catch (e) {
+        isSessionStorageAvailable = false;
+      }
+    }
+  },
+
+  removeItem(key: string): void {
+    sessionMemoryStore.delete(key);
+    if (isSessionStorageAvailable) {
+      try {
+        window.sessionStorage.removeItem(key);
+      } catch (e) {
+        isSessionStorageAvailable = false;
+      }
+    }
+  }
+};
+
 export const safeStorage = {
   getItem(key: string): string | null {
     if (isLocalStorageAvailable) {
