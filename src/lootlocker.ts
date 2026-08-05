@@ -1,6 +1,6 @@
 import { FLR, getPlayerName, escapeHTML, getLang } from './utils.js';
 import { game } from './state.js';
-import { safeStorage } from './safeStorage.js';
+import { safeStorage, safeCrypto } from './safeStorage.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -107,7 +107,7 @@ export const LootLockerAPI = {
 
     
     if (!this.playerIdentifier) {
-      this.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
+      this.playerIdentifier = safeCrypto.generateRandomId('p');
       safeStorage.setItem('LL_PID', this.playerIdentifier);
       this.log(`Generated new Player Identifier: ${this.playerIdentifier}`, 'info');
       
@@ -540,8 +540,7 @@ export const LootLockerAPI = {
 
 // Auto generate pid if missing
 if (!LootLockerAPI.playerIdentifier) {
-  LootLockerAPI.playerIdentifier = 'p_' + Math.random().toString(36).substring(2, 15);
+  LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
   safeStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
-  
 }
 
