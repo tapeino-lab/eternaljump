@@ -56,6 +56,7 @@ export interface GameState {
   lastScoreObj: any;
   allowAutoRank: boolean;
   clearTime: number;
+  debugUsed: boolean;
   lastUI: string;
   flockDir: number;
   isNewRecord: boolean;

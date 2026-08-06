@@ -272,6 +272,7 @@ import { RankingAPI } from './api.js';
       }
 
       export const saveScore = async function(a, t, c, r) {
+        if (game.debugUsed) return;
         markHasPlayed();
         if (game.demoMode && !game.allowAutoRank) return;
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;

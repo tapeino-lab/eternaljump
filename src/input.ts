@@ -6,6 +6,7 @@ import { isAttractMode, ignoreNextTap, setIgnoreNextTap, startRealGame, startAtt
 import { config } from './config.js';
 import { RankingAPI } from './ranking.js';
 import { FLR, MAX, MIN, $ } from './utils.js';
+import { getPl } from './entities/index.js';
 
 export class InputManager {
   public active = new Map<string, number>();

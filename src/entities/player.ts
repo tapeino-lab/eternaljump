@@ -58,6 +58,7 @@ import { spawnParticles } from './particles.js';
       platformTheyJumpedFrom?: any;
       aiLockedTarget?: any;
       aiLockedFromNormalJump?: boolean;
+      isCleared: boolean = false;
       recentExternalCollisionTimer: number = 0;
       inGreenMushroomChain: boolean = false;
       nearOtherEntityFrames?: number;
@@ -158,7 +159,9 @@ import { spawnParticles } from './particles.js';
           this.vx += cDir * (turn ? tx : ax);
           this.vx = MAX(-mx, MIN(mx, this.vx));
         } else {
-          this.vx *= (this.hitTimer > 0 ? 0.98 : config.frictionX);
+          let f = this.hitTimer > 0 ? 0.98 : config.frictionX;
+          if (this.isCleared) f = 0.96;
+          this.vx *= f;
           if (ABS(this.vx) < 0.05) this.vx = 0;
         }
         
@@ -224,7 +227,11 @@ import { spawnParticles } from './particles.js';
         
         let imgKey = isPwr ? 'pwr' : 'jmp';
         if (this.isNPC) {
-          imgKey = this.active ? ('n' + (this.npcIndex + 1) + 'j') : ('n' + (this.npcIndex + 1) + 's');
+          if (this.isCleared) {
+            imgKey = 'n' + (this.npcIndex + 1) + 's';
+          } else {
+            imgKey = this.active ? ('n' + (this.npcIndex + 1) + 'j') : ('n' + (this.npcIndex + 1) + 's');
+          }
         } else if (!isPwr) {
           if (game.state === 'gameover') {
             imgKey = 'fal';

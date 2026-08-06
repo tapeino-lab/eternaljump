@@ -127,6 +127,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
           let impact = game.player.vy;
           game.player.vy = -impact * 0.1;
           game.state = 'clear';
+          game.player.isCleared = true;
           document.body.classList.add('game-ended');
           game.endReason = 'CLEAR';
           if (!isAttractMode && !game.demoMode) {

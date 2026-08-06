@@ -217,7 +217,23 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
     }
     if (!npc.active) continue;
 
-    if (game.state === 'playing' && !(game.player.hitTimer > 0) && !(npc.hitTimer > 0) && game.player.x < npc.x + npc.w && game.player.x + game.player.w > npc.x && game.player.y < npc.y + npc.h && game.player.y + game.player.h > npc.y) {
+    if (npc.isCleared) {
+      if (game.player.x < npc.x + npc.w && game.player.x + game.player.w > npc.x && game.player.y < npc.y + npc.h && game.player.y + game.player.h > npc.y) {
+        let push = npc.x > game.player.x ? 0.5 : -0.5;
+        if (Math.abs(npc.vx) < 3) npc.vx += push;
+      }
+      for (let j = 0; j < game.npcs.length; j++) {
+        if (i === j) continue;
+        let otherNpc = game.npcs[j];
+        if (npc.x < otherNpc.x + otherNpc.w && npc.x + npc.w > otherNpc.x && npc.y < otherNpc.y + otherNpc.h && npc.y + npc.h > otherNpc.y) {
+          let push = 0;
+          if (npc.x > otherNpc.x) push = 0.5;
+          else if (npc.x < otherNpc.x) push = -0.5;
+          else push = (i > j) ? 0.5 : -0.5;
+          if (Math.abs(npc.vx) < 3) npc.vx += push;
+        }
+      }
+    } else if (game.state === 'playing' && !(game.player.hitTimer > 0) && !(npc.hitTimer > 0) && game.player.x < npc.x + npc.w && game.player.x + game.player.w > npc.x && game.player.y < npc.y + npc.h && game.player.y + game.player.h > npc.y) {
       let pStomp = (game.player.vy > 0 && (game.player.y + game.player.h - game.player.vy) <= npc.y + npc.h * 0.5);
       let nStomp = (npc.vy > 0 && (npc.y + npc.h - npc.vy) <= game.player.y + game.player.h * 0.5);
       
@@ -265,38 +281,17 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
         if (npc.y + npc.h >= p.y && npc.y + npc.h < p.y + p.h + npc.vy && npc.x + npc.w > p.x && npc.x < p.x + p.w) {
           if (p.type === 'goal') {
             npc.y = p.y - npc.h;
-            npc.vy = -npc.vy * 0.1;
-            if (game.state === 'playing') {
-              game.state = 'gameover';
-              document.body.classList.add('game-ended');
-              game.endReason = 'NPC_CLEAR';
-              game.clearTime = game.playTime;
-              game.shakeAmount = 0;
-              if (!isAttractMode && pBtn) {
-                // pBtn.style.display = 'none';
-              }
-              $('tapToStartMsg').style.display = 'none';
-              setIgnoreNextTap(true);
-              spawnParticles(npc.x + npc.w / 2, p.y, '#f00', 5);
-              let fA = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
-              RankingAPI.saveScore(fA, game.playTime, game.scoreCoin, 'NPC_CLEAR');
-              if (true) {
-                setTimeout(() => {
-                  if (game.state === 'gameover') {
-                    if (!isAttractMode) RankingAPI.show('gameover');
-                    else {
-                      setIgnoreNextTap(false);
-                      $('tapToStartMsg').style.display = 'block';
-                    }
-                  }
-                }, 800);
-              }
-              if (game.demoMode && !isAttractMode) {
-                setTimeout(function() {
-                  if (game.state === 'gameover') initGame(false);
-                }, 5000);
-              }
+            npc.vy = 0;
+            if (!npc.isCleared) {
+              npc.isCleared = true;
+              npc.squatTimer = 0;
+              npc.isSparkleJumping = false;
+              npc.aiPath = [];
+              npc.inputDir = 0;
+              spawnParticles(npc.x + npc.w / 2, p.y, '#fff', 5);
             }
+            onG = true;
+            npc.vx *= 0.96;
             continue;
           }
 

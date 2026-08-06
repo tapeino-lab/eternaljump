@@ -64,7 +64,7 @@ import { spawnParticles } from './particles.js';
           return;
         }
         this.frameCount++;
-        if (!(this.hitTimer > 0)) runAI(this);
+        if (!this.isCleared && !(this.hitTimer > 0)) runAI(this);
         super.update();
       }
     }

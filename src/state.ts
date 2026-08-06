@@ -50,6 +50,7 @@ export function createInitialGameState(): GameState {
     lastScoreObj: null,
     allowAutoRank: false,
     clearTime: 0,
+    debugUsed: false,
     lastUI: '',
     flockDir: 1,
     isNewRecord: false,
@@ -144,6 +145,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.isNewTARecord = false;
   game.personalBest = personalBest;
   game.clearTime = initial.clearTime;
+  game.debugUsed = initial.debugUsed;
   game.lastUI = initial.lastUI;
   game.showAIThoughts = oldShowAIThoughts;
   game.meteorOverheat = 0;
