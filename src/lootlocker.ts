@@ -22,6 +22,7 @@ export const LootLockerAPI = {
   domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '',
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
   taLeaderboardId: import.meta.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || '',
+  coinLeaderboardId: import.meta.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || '',
   playerIdentifier: safeStorage.getItem('LL_PID'),
   
   sessionToken: null,
@@ -439,6 +440,51 @@ export const LootLockerAPI = {
       return await r.json();
     } catch (e) {
       this.log(`TA Score submission failed: ${e.message}`, 'error');
+      return false;
+    }
+  },
+
+  submitTotalCoins: async function(totalCoins) {
+    if (!this.coinLeaderboardId) {
+      return false;
+    }
+    this.log(`Attempting to submit total coins: ${totalCoins}`, 'info');
+    if (!await this.init()) {
+      return false;
+    }
+    let sc = totalCoins;
+    let meta = JSON.stringify({ v: this.version });
+    try {
+      let r;
+      if (this.isDirectMode) {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.coinLeaderboardId}/submit`;
+        r = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-token': this.sessionToken
+          },
+          body: JSON.stringify({ score: sc, metadata: meta })
+        });
+      } else {
+        r = await fetch('/api/lootlocker/leaderboards/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            score: sc,
+            metadata: meta,
+            session_token: this.sessionToken,
+            leaderboard_id: this.coinLeaderboardId
+          })
+        });
+      }
+      if (r.ok) {
+        this.log('Total coins submitted successfully!', 'success');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      this.log(`Total coins submission failed: ${e.message}`, 'error');
       return false;
     }
   },

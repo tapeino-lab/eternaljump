@@ -338,6 +338,10 @@ import { RankingAPI } from './api.js';
               if (res) safeStorage.setItem('LL_LAST_TA_FETCH', '0');
             }));
           }
+          
+          if (typeof game.totalCoins === 'number') {
+            submitTasks.push(LootLockerAPI.submitTotalCoins(game.totalCoins));
+          }
 
           // When network submission completes, refresh cache from server
           if (submitTasks.length > 0) {
