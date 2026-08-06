@@ -346,7 +346,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
           if (seg < 0) seg = 0;
           if (seg >= p.count) seg = p.count - 1;
           p.squishTimers[seg] = 12;
-          p.breakOnSquish[seg] = true;
+          p.breakOnSquish[seg] = false;
           npc.squatTimer = 3;
           if (!p.isIcy && !p.noEffect) spawnParticles(npc.x + npc.w / 2, p.y, '#ccc', 3);
           npc.isSparkleJumping = (p.type === 'super' || p.isGlowing) && !p.noEffect;
