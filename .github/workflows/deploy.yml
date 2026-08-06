@@ -29,7 +29,7 @@ jobs:
           node-version: 20
           cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
@@ -37,7 +37,6 @@ jobs:
           VITE_LOOTLOCKER_DOMAIN_KEY: ${{ secrets.VITE_LOOTLOCKER_DOMAIN_KEY }}
           VITE_LOOTLOCKER_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_LEADERBOARD_ID }}
           VITE_LOOTLOCKER_TA_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_TA_LEADERBOARD_ID }}
-          VITE_LOOTLOCKER_COIN_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4

@@ -65,12 +65,7 @@ export async function checkUpdateAndReload() {
     console.log('Update found, applying and reloading...');
     updatePending = false;
     if (reloadSW) {
-      try {
-        await reloadSW(true);
-      } catch (e) {
-        console.warn('reloadSW failed:', e);
-      }
-      setTimeout(() => window.location.reload(), 500);
+      reloadSW(true);
     } else {
       window.location.reload();
     }
