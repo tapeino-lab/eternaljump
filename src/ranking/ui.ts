@@ -369,12 +369,14 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
 
         setTimeout(() => {
           let myRow = document.getElementById('myRankRow');
-          if (myRow) {
-              let wrap = $('rankingTableWrapper');
-              if (wrap.contains(myRow)) {
-                  let scrollPos = myRow.offsetTop - (wrap.clientHeight / 2) + (myRow.clientHeight / 2);
-                  wrap.scrollTop = scrollPos;
-              }
+          let wrap = $('rankingTableWrapper');
+          if (wrap) {
+            if (myRow && wrap.contains(myRow)) {
+                let scrollPos = myRow.offsetTop - (wrap.clientHeight / 2) + (myRow.clientHeight / 2);
+                wrap.scrollTop = scrollPos;
+            } else {
+                wrap.scrollTop = 0;
+            }
           }
         }, 10);
         
