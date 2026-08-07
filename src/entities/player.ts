@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
 import { game } from '../state.js';
-import { ctx, IMG, GREEN_IMG } from '../display.js';
+import { ctx, IMG, GREEN_IMG, SNOW_IMG, GREEN_SNOW_IMG } from '../display.js';
 
 import { dR } from '../renderer/core.js';
 
@@ -33,7 +33,7 @@ import { spawnParticles } from './particles.js';
       sameBounceCount: number = 0;
       stagnationTimer: number = 0;
       visitedHistory: any[] = [];
-      savedIntroImg: any = null;
+      savedIntroImgKey: any = null;
       frameCount: number = 0;
       isFalling: boolean = false;
       apexRecalculated: boolean = false;
@@ -94,7 +94,7 @@ import { spawnParticles } from './particles.js';
         this.apexRecalculated = false;
         this.highestReachedY = this.y;
         this.hitTimer = 0;
-        this.savedIntroImg = null;
+        this.savedIntroImgKey = null;
       }
       powerUp() {
         if (this.isPoweredUp) {
@@ -238,7 +238,7 @@ import { spawnParticles } from './particles.js';
           } else if (game.state === 'clear') {
             imgKey = 'jmp';
           } else if (game.state === 'intro_anim') {
-            imgKey = 'wlk2';
+            imgKey = (!this.isNPC && this.savedIntroImgKey) ? this.savedIntroImgKey : 'wlk2';
           } else if (this.squatTimer > 0) {
             imgKey = 'wlk3';
           } else if ((game.state === 'intro' || this.isIntro) && this.vy > 0) {
@@ -262,10 +262,18 @@ import { spawnParticles } from './particles.js';
           }
         }
         
-        let cImg: any = (game.state === 'intro_anim' && !this.isNPC && this.savedIntroImg) ? this.savedIntroImg : IMG[imgKey];
+        let cImg: any = IMG[imgKey];
         let drawImg: any = cImg;
-        if (!this.isNPC && game.equipped?.['mushroom'] && GREEN_IMG[imgKey]) {
-          drawImg = GREEN_IMG[imgKey];
+        if (!this.isNPC) {
+          const hasMushroom = game.equipped?.['mushroom'];
+          const hasSkates = game.equipped?.['skates'];
+          if (hasMushroom && hasSkates && GREEN_SNOW_IMG[imgKey]) {
+            drawImg = GREEN_SNOW_IMG[imgKey];
+          } else if (hasMushroom && GREEN_IMG[imgKey]) {
+            drawImg = GREEN_IMG[imgKey];
+          } else if (hasSkates && SNOW_IMG[imgKey]) {
+            drawImg = SNOW_IMG[imgKey];
+          }
         }
         
         let useSp = true;

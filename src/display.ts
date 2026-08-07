@@ -9,8 +9,10 @@ import { checkUpdateAndReload } from './pwa.js';
 import { MAX, FLR, RND, $ } from './utils.js';
 
 export const GREEN_IMG: Record<string, HTMLCanvasElement> = {};
+export const SNOW_IMG: Record<string, HTMLCanvasElement> = {};
+export const GREEN_SNOW_IMG: Record<string, HTMLCanvasElement> = {};
 
-function generateGreenVariant(img: HTMLImageElement): HTMLCanvasElement {
+function generateVariant(img: HTMLImageElement, doGreen: boolean, doSnow: boolean): HTMLCanvasElement {
   const cvs = document.createElement('canvas');
   cvs.width = img.naturalWidth || img.width || 16;
   cvs.height = img.naturalHeight || img.height || 16;
@@ -22,16 +24,29 @@ function generateGreenVariant(img: HTMLImageElement): HTMLCanvasElement {
     const imgData = c.getImageData(0, 0, cvs.width, cvs.height);
     const data = imgData.data;
     for (let i = 0; i < data.length; i += 4) {
+      const y = Math.floor((i / 4) / cvs.width);
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
       const a = data[i + 3];
+      
       if (a > 0) {
-        // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをエメラルドグリーン(#00d880)に置換
-        if (r > 180 && g < 50 && b < 50) {
-          data[i] = 0;       // Red
-          data[i + 1] = 216; // Green
-          data[i + 2] = 128; // Blue
+        if (doGreen) {
+          // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをエメラルドグリーン(#00d880)に置換
+          if (r > 180 && g < 50 && b < 50) {
+            data[i] = 0;       // Red
+            data[i + 1] = 216; // Green
+            data[i + 2] = 128; // Blue
+          }
+        }
+        if (doSnow && y >= Math.floor(cvs.height / 2)) {
+          // 濃い茶色 (R<120, R>60, G<80, B<50) をスノーブーツ色に置換
+          // 元の茶色は (96, 56, 20)
+          if (r < 120 && r > 60 && g < 80 && b < 50) {
+            data[i] = 210;     // Red (白水色)
+            data[i + 1] = 240; // Green
+            data[i + 2] = 255; // Blue
+          }
         }
       }
     }
@@ -41,14 +56,19 @@ function generateGreenVariant(img: HTMLImageElement): HTMLCanvasElement {
 }
 
 export const IMG: Record<string, HTMLImageElement> = {};
+
 for (let k in B64) {
   IMG[k] = new Image();
   IMG[k].onload = () => {
-    GREEN_IMG[k] = generateGreenVariant(IMG[k]);
+    GREEN_IMG[k] = generateVariant(IMG[k], true, false);
+    SNOW_IMG[k] = generateVariant(IMG[k], false, true);
+    GREEN_SNOW_IMG[k] = generateVariant(IMG[k], true, true);
   };
   IMG[k].src = B64[k];
   if (IMG[k].complete && IMG[k].naturalWidth > 0) {
-    GREEN_IMG[k] = generateGreenVariant(IMG[k]);
+    GREEN_IMG[k] = generateVariant(IMG[k], true, false);
+    SNOW_IMG[k] = generateVariant(IMG[k], false, true);
+    GREEN_SNOW_IMG[k] = generateVariant(IMG[k], true, true);
   }
 }
 
@@ -168,7 +188,9 @@ export function restoreGameCanvas(): boolean {
 
     for (let k in B64) {
       if (IMG[k] && IMG[k].complete && IMG[k].naturalWidth > 0) {
-        GREEN_IMG[k] = generateGreenVariant(IMG[k]);
+        GREEN_IMG[k] = generateVariant(IMG[k], true, false);
+        SNOW_IMG[k] = generateVariant(IMG[k], false, true);
+        GREEN_SNOW_IMG[k] = generateVariant(IMG[k], true, true);
       }
     }
 

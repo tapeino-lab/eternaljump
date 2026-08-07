@@ -276,7 +276,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
             game.introAnimTimer = 60;
             game.player.vx = 0;
             game.player.inputDir = 0;
-            game.player.savedIntroImg = (FLR(performance.now() / 100) % 3) === 0 ? IMG.wlk1 : ((FLR(performance.now() / 100) % 3) === 1 ? IMG.wlk2 : IMG.wlk3);
+            game.player.savedIntroImgKey = (FLR(performance.now() / 100) % 3) === 0 ? 'wlk1' : ((FLR(performance.now() / 100) % 3) === 1 ? 'wlk2' : 'wlk3');
             inputHandler.active.clear();
             inputHandler.update();
           }
