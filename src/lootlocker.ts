@@ -84,6 +84,13 @@ export const LootLockerAPI = {
     return false;
   },
 
+  syncTotalCoins: async function() {
+    let total = secureStorage.getItem('JUMP_TOTAL_COINS', 0);
+    if (total > 0) {
+      await this.submitCoinScore(total, getLang());
+    }
+  },
+
   submitPendingScores: async function() {
     try {
       let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
@@ -161,10 +168,6 @@ export const LootLockerAPI = {
       if (d.session_token) {
         this.sessionToken = d.session_token;
         setTimeout(() => this.submitPendingScores(), 2000);
-        setTimeout(() => {
-          let total = secureStorage.getItem('JUMP_TOTAL_COINS', 0);
-          if (total > 0) this.submitCoinScore(total, getLang());
-        }, 2500);
         this.playerId = d.player_id;
         safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
         this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');

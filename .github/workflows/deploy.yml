@@ -37,6 +37,7 @@ jobs:
           VITE_LOOTLOCKER_DOMAIN_KEY: ${{ secrets.VITE_LOOTLOCKER_DOMAIN_KEY }}
           VITE_LOOTLOCKER_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_LEADERBOARD_ID }}
           VITE_LOOTLOCKER_TA_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_TA_LEADERBOARD_ID }}
+          VITE_LOOTLOCKER_COIN_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4

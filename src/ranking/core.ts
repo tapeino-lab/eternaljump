@@ -20,6 +20,10 @@ import { RankingAPI } from './api.js';
         RankingAPI.syncPersonalBestPromise = (async () => {
           const isConfigured = await LootLockerAPI.checkConfig();
           if (!isConfigured) return;
+          
+          // Submit any updated total coins count at the beginning
+          LootLockerAPI.syncTotalCoins();
+          
           let onlinePB = await LootLockerAPI.getMemberScore();
           let onlineTAPB = await LootLockerAPI.getMemberTAScore();
           let pbKey = RankingAPI.pbKey;
