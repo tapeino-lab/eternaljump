@@ -1,6 +1,7 @@
 import { FLR, getPlayerName, escapeHTML, getLang } from './utils.js';
 import { game } from './state.js';
 import { safeStorage, safeCrypto } from './safeStorage.js';
+import { secureStorage } from './secureStorage.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -22,6 +23,7 @@ export const LootLockerAPI = {
   domainKey: import.meta.env.VITE_LOOTLOCKER_DOMAIN_KEY || '',
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
   taLeaderboardId: import.meta.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || '',
+  coinLeaderboardId: import.meta.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || '',
   playerIdentifier: safeStorage.getItem('LL_PID'),
   
   sessionToken: null,
@@ -159,6 +161,10 @@ export const LootLockerAPI = {
       if (d.session_token) {
         this.sessionToken = d.session_token;
         setTimeout(() => this.submitPendingScores(), 2000);
+        setTimeout(() => {
+          let total = secureStorage.getItem('JUMP_TOTAL_COINS', 0);
+          if (total > 0) this.submitCoinScore(total, getLang());
+        }, 2500);
         this.playerId = d.player_id;
         safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
         this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
@@ -391,6 +397,56 @@ export const LootLockerAPI = {
   cachedLeaderboardEtag: null,
   cachedLeaderboardData: null,
 
+  submitCoinScore: async function(coins, lang) {
+    if (!this.coinLeaderboardId) {
+      this.log('Coin submission skipped (no coin leaderboard ID)', 'info');
+      return false;
+    }
+    this.log(`Attempting to submit Coin score: ${coins} (Lang: ${lang})`, 'info');
+    if (!await this.init()) {
+      this.log('Coin Score submission aborted (Init Failed)', 'error');
+      return false;
+    }
+
+    let sc = Math.floor(coins);
+    let sig = generateSignature(0, sc, 0, lang);
+    let meta = JSON.stringify({ coins: sc, lang: lang, name: getPlayerName(), sig: sig });
+
+    try {
+      let r;
+      if (this.isDirectMode) {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.coinLeaderboardId}/submit`;
+        r = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-token': this.sessionToken
+          },
+          body: JSON.stringify({ score: sc, metadata: meta })
+        });
+      } else {
+        r = await fetch('/api/lootlocker/leaderboards/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            score: sc,
+            metadata: meta,
+            session_token: this.sessionToken,
+            leaderboard_id: this.coinLeaderboardId
+          })
+        });
+      }
+      if (!r.ok) {
+        this.log('Coin Score submission error', 'error');
+        return false;
+      }
+      this.log('Coin Score successfully submitted.', 'success');
+      return await r.json();
+    } catch (e) {
+      this.log(`Coin Score submission failed: ${e.message}`, 'error');
+      return false;
+    }
+  },
 
   submitTimeAttackScore: async function(t, a, c, l) {
     if (!this.taLeaderboardId) {
