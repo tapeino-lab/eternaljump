@@ -155,9 +155,14 @@ import { RankingAPI } from './api.js';
             return scores || [];
           } else {
             try {
+              let cached = safeStorage.getItem('LL_CACHED_LEADERBOARD');
+              if (cached) {
+                  let s = JSON.parse(cached);
+                  if (Array.isArray(s) && s.length > 0) return s;
+              }
               let s = secureStorage.getItem<any[]>(RankingAPI.key, []);
-              s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
-              return s.map((r, i) => ({ ...r, rank: i + 1 }));
+              s.sort((A: any, B: any) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
+              return s.map((r: any, i: number) => ({ ...r, rank: i + 1 }));
             } catch (e) {
               secureStorage.removeItem(RankingAPI.key);
               return [];
@@ -213,8 +218,18 @@ import { RankingAPI } from './api.js';
             }
             
             return scores || [];
+          } else {
+            try {
+              let cached = safeStorage.getItem('LL_CACHED_TA_LEADERBOARD');
+              if (cached) {
+                  let s = JSON.parse(cached);
+                  if (Array.isArray(s) && s.length > 0) return s;
+              }
+              return [];
+            } catch (e) {
+              return [];
+            }
           }
-          return [];
         })();
       }
 

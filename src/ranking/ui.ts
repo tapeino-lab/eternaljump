@@ -433,5 +433,9 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         }
 
         // Render latest synced data
-        renderRankingTable(s, state, mode);
+        if (s && s.length > 0) {
+            renderRankingTable(s, state, mode);
+        } else if (!cached || cached.length === 0) {
+            renderRankingTable([], state, mode);
+        }
       }
