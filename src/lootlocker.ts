@@ -192,9 +192,9 @@ export const LootLockerAPI = {
 
 
   getTimeAttackScores: async function(lm = 100) {
-    if (!this.taLeaderboardId) return [];
+    if (!this.taLeaderboardId) return null;
     this.log(`Attempting to fetch top ${lm} TA scores...`, 'info');
-    if (!await this.init()) return [];
+    if (!await this.init()) return null;
     try {
       let r;
       let headers = { 'Content-Type': 'application/json' };
@@ -207,7 +207,7 @@ export const LootLockerAPI = {
       }
       
       let d = await r.json();
-      if (!r.ok) return [];
+      if (!r.ok) return null;
       
       let validItems = [];
       d.items.forEach(i => {
@@ -224,7 +224,7 @@ export const LootLockerAPI = {
       return validItems;
     } catch(e) {
       this.log(`TA Score fetch failed: ${e.message}`, 'error');
-      return [];
+      return null;
     }
   },
 
@@ -506,7 +506,7 @@ export const LootLockerAPI = {
     this.log(`Attempting to fetch top ${lm} scores...`, 'info');
     if (!await this.init()) {
       this.log('Score fetch aborted (Init Failed)', 'error');
-      return [];
+      return null;
     }
     try {
       let r;
@@ -536,7 +536,7 @@ export const LootLockerAPI = {
       let d = await r.json();
       if (!r.ok) {
         this.log(`Score fetch error: ${JSON.stringify(d)}`, 'error');
-        return [];
+        return null;
       }
       
       if (r.headers.get('ETag')) {
@@ -545,7 +545,7 @@ export const LootLockerAPI = {
       
       if (!d.items) {
         this.log('No items returned in score list.', 'warning');
-        return [];
+        return null;
       }
       this.log(`Successfully fetched ${d.items.length} records!`, 'success');
       
@@ -585,7 +585,7 @@ export const LootLockerAPI = {
 
     } catch (e) {
       this.log(`Score fetch failed (offline?): ${e.message}`, 'error');
-      return [];
+      return null;
     }
   },
 
