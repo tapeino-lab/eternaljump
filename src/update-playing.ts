@@ -154,14 +154,14 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
             }, 800);
           }
           
-          if (game.demoMode && !game.isBenchmarking) {
+          if (game.demoMode && !game.isBenchmarking && isAttractMode) {
             setTimeout(function() {
               if (game.state === 'gameover' || game.state === 'clear') {
                 let earned = game.scoreCoin;
                 initGame();
                 if (isAttractMode) applyCoinCountUp(earned, 'DEMO BONUS', false);
               }
-            }, isAttractMode ? 2000 : 5000);
+            }, 2000);
           }
         } else {
           if (p.y < game.player.highestReachedY - 5) {

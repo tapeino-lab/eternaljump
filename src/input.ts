@@ -75,7 +75,7 @@ export class InputManager {
           if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
             if (isAttractMode) {
               startRealGame();
-            } else if (!game.demoMode) {
+            } else {
               let earned = game.scoreCoin;
               startAttractCycle();
               applyCoinCountUp(earned, 'COINS GET!', true, false);
@@ -119,12 +119,10 @@ export class InputManager {
     }
 
     if (game.state === 'gameover' || game.state === 'clear') {
-      if (!game.demoMode) {
-        if (ignoreNextTap) return true;
-        let earned = game.scoreCoin;
-        startAttractCycle();
-        applyCoinCountUp(earned, 'COINS GET!', true, false);
-      }
+      if (ignoreNextTap) return true;
+      let earned = game.scoreCoin;
+      startAttractCycle();
+      applyCoinCountUp(earned, 'COINS GET!', true, false);
       return true;
     }
 
