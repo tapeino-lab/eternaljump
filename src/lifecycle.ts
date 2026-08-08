@@ -14,7 +14,7 @@ import { Particle, Bird, Meteor, Player, NPC, Platform, Item, Coin, BackgroundCl
 import { LootLockerAPI } from "./lootlocker.js";
 import { RankingAPI } from "./ranking.js";
 import { RND, FLR, ABS, MAX, MIN, SIN, POW, PI, getLang, $, escapeHTML, getPlayerName } from "./utils.js";
-import { initSpawner, spawnGuideCoins, spawnCoins, spawnPlatform, getSafetyLineY, isInMushroomForbiddenZone } from './spawner.js';
+import { initSpawner, addPlatform, spawnGuideCoins, spawnCoins, spawnPlatform, getSafetyLineY, isInMushroomForbiddenZone } from './spawner.js';
 import { dR } from './renderer/core.js';
 import { resetBGScore } from './renderer/bg.js';
 import { render } from './renderer/index.js';
@@ -296,29 +296,29 @@ export function setupGameCameraAndPlayer(isConsecutive) {
 export function setupGameEnvironment(isConsecutive) {
   let pl1 = getPl(240, 'normal', true, 0, 96, 400);
   pl1.noEffect = true;
-  game.platforms.push(pl1);
+  addPlatform(pl1);
   
   let pl2 = getPl(240, 'normal', true, 128, config.gameWidth - 128, 400);
   pl2.noEffect = true;
-  game.platforms.push(pl2);
+  addPlatform(pl2);
   
   if (!isConsecutive) {
     let plCover = getPl(240, 'normal', true, 96, 32, 400);
     plCover.noEffect = true;
     plCover.isIntroCover = true;
-    game.platforms.push(plCover);
+    addPlatform(plCover);
   }
   
   let pl3 = getPl(416, 'super', false, 104, config.platformW, 32, 1);
   pl3.noEffect = true;
-  game.platforms.push(pl3);
+  addPlatform(pl3);
   
   let pl4 = getPl(416 + config.platformH, 'normal', true, 0, config.gameWidth, 400);
   pl4.noEffect = true;
-  game.platforms.push(pl4);
+  addPlatform(pl4);
   
   let sNY = getSafetyLineY();
-  game.platforms.push(getPl(sNY, 'normal', false, config.gameWidth / 2 - (config.platformW * 9) / 2, null, null, 9, false));
+  addPlatform(getPl(sNY, 'normal', false, config.gameWidth / 2 - (config.platformW * 9) / 2, null, null, 9, false));
   
   for (let i = 0; i < config.basePlatforms; i++) {
     let py = sNY - 80 - (i * (config.gameHeight / config.basePlatforms));
@@ -328,7 +328,7 @@ export function setupGameEnvironment(isConsecutive) {
     let sc = (game.baseScoreY - py) * config.scoreMultiplier;
     let tc = (sc < SCORE_THRESHOLDS.EASY && i % 3 === 0) ? MAX(2, 3 - FLR(sc / 8000)) : 1;
     let np = getPl(py, 'normal', false, null, null, null, tc, false);
-    game.platforms.push(np);
+    addPlatform(np);
     trySpawnBirdsOnPlatform(np, sc);
     
     if (sc < SCORE_THRESHOLDS.EASY) {
@@ -336,7 +336,7 @@ export function setupGameEnvironment(isConsecutive) {
       if (np2.isOverlapping) {
         P_PL.push(np2);
       } else {
-        game.platforms.push(np2);
+        addPlatform(np2);
         trySpawnBirdsOnPlatform(np2, (game.baseScoreY - np2.y) * config.scoreMultiplier);
       }
     } else if (sc < SCORE_THRESHOLDS.MEDIUM) {
@@ -346,7 +346,7 @@ export function setupGameEnvironment(isConsecutive) {
         if (np2.isOverlapping) {
           P_PL.push(np2);
         } else {
-          game.platforms.push(np2);
+          addPlatform(np2);
           trySpawnBirdsOnPlatform(np2, (game.baseScoreY - np2.y) * config.scoreMultiplier);
         }
       }

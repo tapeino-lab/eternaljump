@@ -35,7 +35,7 @@ export function getColorAtScore(s: number, out = sharedColorOut) {
 }
 
 const bgCache = document.createElement('canvas');
-bgCache.width = 1;
+bgCache.width = config.gameWidth;
 bgCache.height = config.gameHeight;
 const bgCtx = bgCache.getContext('2d', { alpha: false });
 let lastBGScore = -1;
@@ -43,7 +43,7 @@ let lastBGScore = -1;
 export function resetBGScore() {
   lastBGScore = -1;
   // Force reallocation in case the browser purged the offscreen canvas
-  bgCache.width = 1;
+  bgCache.width = config.gameWidth;
   bgCache.height = config.gameHeight;
 }
 
@@ -91,10 +91,10 @@ export function drawBG(ts) {
       grad.addColorStop(ratio, 'rgb(' + Math.round(c.r) + ',' + Math.round(c.g) + ',' + Math.round(c.b) + ')');
     }
     bgCtx.fillStyle = grad;
-    bgCtx.fillRect(0, 0, 1, config.gameHeight);
+    bgCtx.fillRect(0, 0, config.gameWidth, config.gameHeight);
     lastBGScore = sT;
   }
-  ctx.drawImage(bgCache, 0, 0, 1, config.gameHeight, 0, 0, config.gameWidth, config.gameHeight);
+  ctx.drawImage(bgCache, 0, 0);
   
   let currentVisScore = (scoreTop + (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier) / 2;
   let sA = 0;

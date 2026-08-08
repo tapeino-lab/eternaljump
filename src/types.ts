@@ -37,6 +37,7 @@ export interface GameState {
   cameraY: number;
   highestCameraY: number;
   highestPlayerY: number;
+  highestPlatform: Platform | null;
   score: number;
   scoreCoin: number;
   totalCoins: number;

@@ -67,15 +67,8 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
     }
   }
   
-  let getHp = () => {
-    let min = game.platforms[0];
-    for (let i = 1; i < game.platforms.length; i++) {
-      if (game.platforms[i].y < min.y) min = game.platforms[i];
-    }
-    return min;
-  };
   let hp;
-  while (game.platforms.length > 0 && (hp = getHp()) && hp.type !== 'goal' && hp.y > game.cameraY - config.gameHeight) {
+  while (game.platforms.length > 0 && (hp = game.highestPlatform) && hp.type !== 'goal' && hp.y > game.cameraY - config.gameHeight) {
     spawnPlatform();
   }
   

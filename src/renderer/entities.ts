@@ -135,11 +135,14 @@ export function drawGameEntities(ts) {
   game.player.draw();
   drawHorizontalPipe(ctx);
   
-  // Call the AI Thought Visualization System
-  drawAIThoughts(ctx);
+  // Call the AI Thought Visualization System (Development only)
+  if (import.meta.env.DEV) {
+    drawAIThoughts(ctx);
+  }
 }
 
 function drawAIThoughts(ctx: CanvasRenderingContext2D) {
+  if (!import.meta.env.DEV) return;
   if (!game.showAIThoughts) return;
 
   const entitiesToVisual: any[] = [];

@@ -9,6 +9,13 @@ export function initSpawner(gameInstance) {
   game = gameInstance;
 }
 
+export function addPlatform(p) {
+  game.platforms.push(p);
+  if (!game.highestPlatform || p.y < game.highestPlatform.y) {
+    game.highestPlatform = p;
+  }
+}
+
 export function spawnGuideCoins(sX, sY) {
   let clampedX = MAX(35, MIN(config.gameWidth - 35, sX));
   let shift = clampedX - sX;
@@ -114,14 +121,7 @@ export function getFirstGreenMushroomY(sNY: number = getSafetyLineY()): number {
 }
 
 export function getHighestPlatform() {
-  if (game.platforms.length === 0) return null;
-  let lP = game.platforms[0];
-  for (let i = 1; i < game.platforms.length; i++) {
-    if (game.platforms[i].y < lP.y) {
-      lP = game.platforms[i];
-    }
-  }
-  return lP;
+  return game.highestPlatform;
 }
 
 export function spawnPlatform() {
@@ -137,9 +137,9 @@ export function spawnPlatform() {
   y = adjustYForMushroomForbiddenZone(y, sNY);
   
   if (y <= game.goalY + 170) {
-    game.platforms.push(getPl(game.goalY + 170, 'normal', false, null, null, null, 1, true));
-    game.platforms.push(getPl(game.goalY + 85, 'normal', false, null, null, null, 1, true));
-    game.platforms.push(getPl(game.goalY, 'goal', false, 0, config.gameWidth, 32));
+    addPlatform(getPl(game.goalY + 170, 'normal', false, null, null, null, 1, true));
+    addPlatform(getPl(game.goalY + 85, 'normal', false, null, null, null, 1, true));
+    addPlatform(getPl(game.goalY, 'goal', false, 0, config.gameWidth, 32));
     return;
   }
   
@@ -147,7 +147,7 @@ export function spawnPlatform() {
   let lc = getLevelConfig(spS, RND, MAX, FLR);
   let t = lc.t;
   let np = getPl(y, t, false, null, null, null, lc.c, lc.icy);
-  game.platforms.push(np);
+  addPlatform(np);
   
   let genSub = lc.genSub;
   if (genSub) {
@@ -155,7 +155,7 @@ export function spawnPlatform() {
     if (np2.isOverlapping) {
       P_PL.push(np2);
     } else {
-      game.platforms.push(np2);
+      addPlatform(np2);
       trySpawnBirdsOnPlatform(np2, (game.baseScoreY - np2.y) * config.scoreMultiplier);
     }
   }

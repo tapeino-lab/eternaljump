@@ -34,6 +34,7 @@ export function createInitialGameState(): GameState {
     cameraY: 0,
     highestCameraY: 0,
     highestPlayerY: 0,
+    highestPlatform: null,
     inventory: {},
     equipped: {},
     lastCoinY: 0,
@@ -127,6 +128,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.cameraY = initial.cameraY;
   game.highestCameraY = initial.highestCameraY;
   game.highestPlayerY = initial.highestPlayerY;
+  game.highestPlatform = initial.highestPlatform;
   game.score = initial.score;
   game.scoreCoin = initial.scoreCoin;
 
