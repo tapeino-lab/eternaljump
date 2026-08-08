@@ -76,26 +76,18 @@ export function drawCloudCaches() {
     cloudCaches.push(c);
   }
 }
-drawCloudCaches();
-
 export function drawBG(ts) {
   let scoreTop = (game.baseScoreY - game.cameraY) * config.scoreMultiplier;
-  let sT = FLR(scoreTop / 50); // Optimize: Only redraw gradient when score changes significantly
-  if (sT !== lastBGScore) {
-    let scoreBottom = (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier;
-    let grad = bgCtx.createLinearGradient(0, 0, 0, config.gameHeight);
-    for (let i = 0; i <= 4; i++) {
-      let ratio = i / 4;
-      let s = scoreTop - (scoreTop - scoreBottom) * ratio;
-      let c = getColorAtScore(s);
-      grad.addColorStop(ratio, 'rgb(' + Math.round(c.r) + ',' + Math.round(c.g) + ',' + Math.round(c.b) + ')');
-    }
-    bgCtx.fillStyle = grad;
-    bgCtx.fillRect(0, 0, config.gameWidth, config.gameHeight);
-    lastBGScore = sT;
+  let scoreBottom = (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier;
+  let grad = ctx.createLinearGradient(0, 0, 0, config.gameHeight);
+  for (let i = 0; i <= 4; i++) {
+    let ratio = i / 4;
+    let s = scoreTop - (scoreTop - scoreBottom) * ratio;
+    let c = getColorAtScore(s);
+    grad.addColorStop(ratio, "rgb(" + Math.round(c.r) + "," + Math.round(c.g) + "," + Math.round(c.b) + ")");
   }
-  ctx.drawImage(bgCache, 0, 0);
-  
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, config.gameWidth, config.gameHeight);
   let currentVisScore = (scoreTop + (game.baseScoreY - (game.cameraY + config.gameHeight)) * config.scoreMultiplier) / 2;
   let sA = 0;
   if (currentVisScore >= 45000 && currentVisScore < 60000) sA = (currentVisScore - 45000) / 15000;

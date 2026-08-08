@@ -137,7 +137,7 @@ export function drawGameEntities(ts) {
   
   // Call the AI Thought Visualization System (Development only)
   if (import.meta.env.DEV) {
-    drawAIThoughts(ctx);
+    // drawAIThoughts(ctx);
   }
 }
 

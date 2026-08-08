@@ -184,7 +184,7 @@ export function getMt(x: number, y: number, vx: number, vy: number) {
         this.x += this.vx;
         this.y += this.vy;
         this.ang += this.rot;
-        let pc = this.isLarge ? 2 : 1;
+        if (game.particles.length > 150) return; let pc = this.isLarge ? 2 : 1;
         for (let i = 0; i < pc; i++) {
           for (let j = 0; j < 2; j++) {
             if (RND() < 0.45) {
