@@ -330,9 +330,10 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
 
         let top3HTML = '';
         let othersHTML = '';
-        let top100 = s.slice(0, 100);
+        let displayLimit = mode === 'ta' ? 100 : 200;
+        let topLimited = s.slice(0, displayLimit);
         
-        top100.forEach((r, i) => {
+        topLimited.forEach((r, i) => {
             if (i < 3) {
                 top3HTML += renderRow(r, i);
             } else {
@@ -345,7 +346,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             r.rank = r.rank || '???';
             r.id = pid;
             othersHTML += `<tr><td colspan="6" style="text-align:center;color:#555;font-size:8px;padding:4px 0;">...</td></tr>`;
-            othersHTML += renderRow(r, top100.length);
+            othersHTML += renderRow(r, topLimited.length);
         }
 
         $('rankingTop3Body').innerHTML = top3HTML;

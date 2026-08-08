@@ -108,7 +108,7 @@ import { RankingAPI } from './api.js';
             }
             
             if (!scores) {
-              let fetched = await LootLockerAPI.getScores(100);
+              let fetched = await LootLockerAPI.getScores(200);
               if (Array.isArray(fetched)) {
                 scores = fetched;
                 safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));

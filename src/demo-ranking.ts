@@ -25,7 +25,7 @@ export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' 
   $('demoTop3').innerHTML = '';
   $('demoOthers').innerHTML = '';
   
-  let s = mode === 'ta' ? await RankingAPI.getTimeAttackScores() : await RankingAPI.getScores();
+  let s = mode === 'ta' ? await RankingAPI.getTimeAttackScores() : (await RankingAPI.getScores()).slice(0, 100);
   if (!isAttractMode) {
     if (!isTransition) $('demoLoading').style.display = 'none';
     return;
