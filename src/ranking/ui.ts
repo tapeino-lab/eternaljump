@@ -10,6 +10,9 @@ import { getLang, MIN, escapeHTML, getPlayerName, markHasPlayed } from '../utils
 
 import { RankingAPI } from './api.js';
 import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.js';
+
+let currentRankingSession = 0;
+
       export const show = async function(state) {
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
         if (isEnd) {
@@ -199,7 +202,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
           $('tapToStartMsg').style.display = 'block';
         }, 50);
 }
-      export const renderRankingTable = function(sList, state, mode) {
+      export const renderRankingTable = function(sList, state, mode, skipScroll = false) {
         let s = sList ? [...sList] : [];
         if (mode === 'ta') {
             if (document.getElementById('btnTabTA')) {
@@ -368,19 +371,21 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             };
         }
 
-        setTimeout(() => {
-          let myRow = document.getElementById('myRankRow');
-          let wrap = $('rankingTableWrapper');
-          if (wrap) {
-            if (myRow && wrap.contains(myRow)) {
-                let scrollPos = myRow.offsetTop - (wrap.clientHeight / 2) + (myRow.clientHeight / 2);
-                wrap.scrollTop = scrollPos;
-            } else {
-                wrap.scrollTop = 0;
+        if (!skipScroll) {
+          setTimeout(() => {
+            let myRow = document.getElementById('myRankRow');
+            let wrap = $('rankingTableWrapper');
+            if (wrap) {
+              if (myRow && wrap.contains(myRow)) {
+                  let scrollPos = myRow.offsetTop - (wrap.clientHeight / 2) + (myRow.clientHeight / 2);
+                  wrap.scrollTop = scrollPos;
+              } else {
+                  wrap.scrollTop = 0;
+              }
             }
-          }
-        }, 10);
-        
+          }, 10);
+        }
+
         setTimeout(() => {
           setIgnoreNextTap(false);
           if (isEnd) {
@@ -393,6 +398,9 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
       }
 
       export const showRanking = async function(state, mode = 'height') {
+        currentRankingSession++;
+        let session = currentRankingSession;
+
         if (RankingAPI.isShowingResult && game.isNewTARecord && !game.isNewRecord) {
             mode = 'ta';
         }
@@ -401,6 +409,7 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
         $('rankingContainer').style.display = 'none';
         $('rankingModal').style.display = 'flex'; 
         document.body.classList.add('showing-ranking');
+
         setIgnoreNextTap(true);
         setTimeout(() => setIgnoreNextTap(false), 50);
 
@@ -412,9 +421,11 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
           if (raw) cached = JSON.parse(raw);
         } catch (e) {}
 
+        let hasRenderedCache = false;
         if (cached && Array.isArray(cached) && cached.length > 0) {
           $('rankingLoading').style.display = 'none';
-          renderRankingTable(cached, state, mode);
+          renderRankingTable(cached, state, mode, false);
+          hasRenderedCache = true;
         } else {
           $('rankingLoading').style.display = 'flex';
         }
@@ -428,6 +439,8 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
             s = await RankingAPI.getScores(true);
         }
 
+        if (session !== currentRankingSession) return;
+
         if ($('rankingModal')?.style.display === 'none' || !document.body.classList.contains('showing-ranking')) {
             $('rankingLoading').style.display = 'none';
             return;
@@ -435,8 +448,8 @@ import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.j
 
         // Render latest synced data
         if (s && s.length > 0) {
-            renderRankingTable(s, state, mode);
+            renderRankingTable(s, state, mode, hasRenderedCache);
         } else if (!cached || cached.length === 0) {
-            renderRankingTable([], state, mode);
+            renderRankingTable([], state, mode, hasRenderedCache);
         }
       }
