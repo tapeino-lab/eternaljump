@@ -103,6 +103,54 @@ async function startServer() {
     const { member_id, score, metadata, session_token, leaderboard_id } = req.body;
     const targetLeaderboardId = leaderboard_id || defaultLeaderboardId;
 
+    // --- Validation Logic ---
+    try {
+      if (metadata) {
+        const metaObj = JSON.parse(metadata);
+        if (metaObj.sig) {
+          let playTime = 0;
+          if (metaObj.t !== undefined) {
+             playTime = metaObj.t * 1000;
+          }
+          let alt = metaObj.alt || 0;
+          let coins = metaObj.coins || 0;
+          let lang = metaObj.lang || "";
+          
+          const salt = "E7eRn4L_JumP_Pr0t3ct10n";
+          let str = alt + "_" + (coins || 0) + "_" + Math.floor(playTime / 1000) + "_" + lang + "_" + salt;
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+              let char = str.charCodeAt(i);
+              hash = ((hash << 5) - hash) + char;
+              hash = hash & hash;
+          }
+          let expectedSig = hash.toString(36);
+          
+          if (expectedSig !== metaObj.sig) {
+             console.log("Invalid signature detected:", metaObj);
+             return res.status(400).json({ error: "Invalid score signature" });
+          }
+          
+          // Impossible speed check
+          if (metaObj.t && metaObj.t > 0) {
+            if (metaObj.alt / metaObj.t > 6000) {
+               console.log("Impossible speed detected:", metaObj);
+               return res.status(400).json({ error: "Impossible score speed detected" });
+            }
+          }
+          
+          // Extreme score check (e.g. alt > 150000 m)
+          if (metaObj.alt > 150000) {
+             console.log("Extreme score detected:", metaObj);
+             return res.status(400).json({ error: "Score too high" });
+          }
+        }
+      }
+    } catch (e) {
+      console.log("Error parsing metadata for validation", e);
+    }
+    // --- End Validation ---
+
     try {
       const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/leaderboards/${targetLeaderboardId}/submit`, {
         method: 'POST',
