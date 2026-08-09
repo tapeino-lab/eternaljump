@@ -74,6 +74,7 @@ export const getLang = (): string => {
       pt: 'POR',
       lt: 'LTU', // Lithuanian
       lv: 'LVA', // Latvian
+      et: 'EST', // Estonian
       rsl: 'RSL', // Russian Sign Language
       hy: 'ARM', // Armenian
       he: 'ISR', // Hebrew (Israel)
