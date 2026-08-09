@@ -391,17 +391,7 @@ export function updateDemoRanking(ts: number) {
       let othersScrolled = currentScrolled - demoState.dist1;
       others.style.transform = `translateY(${-othersScrolled}px)`;
       
-      if (demoState.dist2 > 0) {
-        if (othersWrapper.style.maskImage === 'none' || !othersWrapper.style.maskImage) {
-          othersWrapper.style.maskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
-          othersWrapper.style.webkitMaskImage = 'linear-gradient(to bottom, transparent 0%, black 10%, black 100%)';
-        }
-      } else {
-        if (othersWrapper.style.maskImage !== 'none') {
-          othersWrapper.style.maskImage = 'none';
-          othersWrapper.style.webkitMaskImage = 'none';
-        }
-      }
+      othersWrapper.classList.toggle('demo-masked', demoState.dist2 > 0);
     }
     
     if (progress >= 1) {

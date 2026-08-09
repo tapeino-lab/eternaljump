@@ -1969,3 +1969,8 @@ body.showing-ranking #btnInstagram {
   color: #fff;
 }
 
+.demo-masked {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
+}
+

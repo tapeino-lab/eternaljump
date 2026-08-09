@@ -16,6 +16,7 @@ import { onEnterShop } from './shop.js';
 
 let cachedTitleVersion: HTMLElement | null = null;
 let cachedShopScreen: HTMLElement | null = null;
+let cachedRankingModal: HTMLElement | null = null;
 
 export let lastTime = performance.now();
 export let acc = 0;
@@ -61,8 +62,9 @@ export function loop(ts: number) {
     }
   }
 
-  const isRankingOpen = $('rankingModal')?.style.display === 'flex';
-  const isShopOpen = $('shopModal')?.style.display === 'flex';
+  if (!cachedRankingModal) cachedRankingModal = $('rankingModal');
+  const isRankingOpen = cachedRankingModal ? cachedRankingModal.style.display === 'flex' : false;
+  const isShopOpen = game.state === 'shop';
 
   // DOM Status check only when key state properties change or on state transitions
   const stateChanged = (
