@@ -306,6 +306,11 @@ export function setupGameEnvironment(isConsecutive) {
     let plCover = getPl(240, 'normal', true, 96, 32, 400);
     plCover.noEffect = true;
     plCover.isIntroCover = true;
+    
+    if (game.equipped && game.equipped['breakfast']) {
+      let breakfastItem = getIt(195, 'red', 102);
+      game.items.push(breakfastItem);
+    }
     addPlatform(plCover);
   }
   
