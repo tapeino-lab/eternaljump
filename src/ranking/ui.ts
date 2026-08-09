@@ -333,7 +333,7 @@ let currentRankingSession = 0;
 
         let top3HTML = '';
         let othersHTML = '';
-        let displayLimit = mode === 'ta' ? 100 : 200;
+        let displayLimit = mode === 'ta' ? 100 : 300;
         let topLimited = s.slice(0, displayLimit);
         
         topLimited.forEach((r, i) => {
