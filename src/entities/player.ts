@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
 import { game } from '../state.js';
-import { ctx, IMG, GREEN_IMG, SNOW_IMG, GREEN_SNOW_IMG } from '../display.js';
+import { ctx, IMG, GREEN_IMG, SNOW_IMG, GREEN_SNOW_IMG, BLUE_IMG, BLUE_SNOW_IMG } from '../display.js';
 
 import { dR } from '../renderer/core.js';
 
@@ -266,11 +266,20 @@ import { spawnParticles } from './particles.js';
         let drawImg: any = cImg;
         if (!this.isNPC) {
           const hasMushroom = game.equipped?.['mushroom'];
+          const hasMagnet = game.equipped?.['magnet'];
           const hasSkates = game.equipped?.['skates'];
-          if (hasMushroom && hasSkates && GREEN_SNOW_IMG[imgKey]) {
-            drawImg = GREEN_SNOW_IMG[imgKey];
-          } else if (hasMushroom && GREEN_IMG[imgKey]) {
-            drawImg = GREEN_IMG[imgKey];
+          if (hasMagnet) {
+            if (hasSkates && BLUE_SNOW_IMG[imgKey]) {
+              drawImg = BLUE_SNOW_IMG[imgKey];
+            } else if (BLUE_IMG[imgKey]) {
+              drawImg = BLUE_IMG[imgKey];
+            }
+          } else if (hasMushroom) {
+            if (hasSkates && GREEN_SNOW_IMG[imgKey]) {
+              drawImg = GREEN_SNOW_IMG[imgKey];
+            } else if (GREEN_IMG[imgKey]) {
+              drawImg = GREEN_IMG[imgKey];
+            }
           } else if (hasSkates && SNOW_IMG[imgKey]) {
             drawImg = SNOW_IMG[imgKey];
           }

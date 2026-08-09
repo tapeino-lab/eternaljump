@@ -11,8 +11,10 @@ import { MAX, FLR, RND, $ } from './utils.js';
 export const GREEN_IMG: Record<string, HTMLCanvasElement> = {};
 export const SNOW_IMG: Record<string, HTMLCanvasElement> = {};
 export const GREEN_SNOW_IMG: Record<string, HTMLCanvasElement> = {};
+export const BLUE_IMG: Record<string, HTMLCanvasElement> = {};
+export const BLUE_SNOW_IMG: Record<string, HTMLCanvasElement> = {};
 
-function generateVariant(img: HTMLImageElement, doGreen: boolean, doSnow: boolean): HTMLCanvasElement {
+function generateVariant(img: HTMLImageElement, colorMode: 'none' | 'green' | 'blue', doSnow: boolean): HTMLCanvasElement {
   const cvs = document.createElement('canvas');
   cvs.width = img.naturalWidth || img.width || 16;
   cvs.height = img.naturalHeight || img.height || 16;
@@ -31,12 +33,19 @@ function generateVariant(img: HTMLImageElement, doGreen: boolean, doSnow: boolea
       const a = data[i + 3];
       
       if (a > 0) {
-        if (doGreen) {
-          // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをエメラルドグリーン(#00d880)に置換
+        if (colorMode === 'green') {
+          // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをエメラルドグリーン(#00d880)に置換 (GREEN MUSHROOM装備時)
           if (r > 180 && g < 50 && b < 50) {
             data[i] = 0;       // Red
             data[i + 1] = 216; // Green
             data[i + 2] = 128; // Blue
+          }
+        } else if (colorMode === 'blue') {
+          // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをブルー(#0078f0)に置換 (MAGNET装備時)
+          if (r > 180 && g < 50 && b < 50) {
+            data[i] = 0;       // Red
+            data[i + 1] = 120; // Green
+            data[i + 2] = 240; // Blue
           }
         }
         if (doSnow && y >= Math.floor(cvs.height / 2)) {
@@ -60,15 +69,19 @@ export const IMG: Record<string, HTMLImageElement> = {};
 for (let k in B64) {
   IMG[k] = new Image();
   IMG[k].onload = () => {
-    GREEN_IMG[k] = generateVariant(IMG[k], true, false);
-    SNOW_IMG[k] = generateVariant(IMG[k], false, true);
-    GREEN_SNOW_IMG[k] = generateVariant(IMG[k], true, true);
+    GREEN_IMG[k] = generateVariant(IMG[k], 'green', false);
+    SNOW_IMG[k] = generateVariant(IMG[k], 'none', true);
+    GREEN_SNOW_IMG[k] = generateVariant(IMG[k], 'green', true);
+    BLUE_IMG[k] = generateVariant(IMG[k], 'blue', false);
+    BLUE_SNOW_IMG[k] = generateVariant(IMG[k], 'blue', true);
   };
   IMG[k].src = B64[k];
   if (IMG[k].complete && IMG[k].naturalWidth > 0) {
-    GREEN_IMG[k] = generateVariant(IMG[k], true, false);
-    SNOW_IMG[k] = generateVariant(IMG[k], false, true);
-    GREEN_SNOW_IMG[k] = generateVariant(IMG[k], true, true);
+    GREEN_IMG[k] = generateVariant(IMG[k], 'green', false);
+    SNOW_IMG[k] = generateVariant(IMG[k], 'none', true);
+    GREEN_SNOW_IMG[k] = generateVariant(IMG[k], 'green', true);
+    BLUE_IMG[k] = generateVariant(IMG[k], 'blue', false);
+    BLUE_SNOW_IMG[k] = generateVariant(IMG[k], 'blue', true);
   }
 }
 
@@ -188,9 +201,11 @@ export function restoreGameCanvas(): boolean {
 
     for (let k in B64) {
       if (IMG[k] && IMG[k].complete && IMG[k].naturalWidth > 0) {
-        GREEN_IMG[k] = generateVariant(IMG[k], true, false);
-        SNOW_IMG[k] = generateVariant(IMG[k], false, true);
-        GREEN_SNOW_IMG[k] = generateVariant(IMG[k], true, true);
+        GREEN_IMG[k] = generateVariant(IMG[k], 'green', false);
+        SNOW_IMG[k] = generateVariant(IMG[k], 'none', true);
+        GREEN_SNOW_IMG[k] = generateVariant(IMG[k], 'green', true);
+        BLUE_IMG[k] = generateVariant(IMG[k], 'blue', false);
+        BLUE_SNOW_IMG[k] = generateVariant(IMG[k], 'blue', true);
       }
     }
 
