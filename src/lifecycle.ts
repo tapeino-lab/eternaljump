@@ -44,8 +44,8 @@ export function updatePauseButton() {
   if (!cachedShopScreen) cachedShopScreen = $('shopScreen');
   if (!cachedRankingModal) cachedRankingModal = $('rankingModal');
 
-  const isShopOpen = cachedShopScreen?.style.display === 'flex';
-  const isRankingOpen = cachedRankingModal?.style.display === 'flex';
+  const isShopOpen = (game.state === 'shop') || (cachedShopScreen?.style.display === 'flex');
+  const isRankingOpen = document.body.classList.contains('showing-ranking') || (cachedRankingModal?.style.display === 'flex');
   
   let targetState = 'none';
   if (game.isPaused || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear' || demoState.active) {
@@ -54,12 +54,14 @@ export function updatePauseButton() {
     targetState = isAttractMode ? 'flex_gear' : 'flex_pause';
   }
 
-  if (lastPauseBtnState !== targetState) {
-    if (targetState === 'none') {
-      pBtn.style.display = 'none';
-    } else {
-      pBtn.style.display = 'flex';
-      pBtn.innerHTML = (targetState === 'flex_gear') ? GEAR_ICON_SVG : PAUSE_ICON_SVG;
+  const expectedDisplay = (targetState === 'none') ? 'none' : 'flex';
+  if (lastPauseBtnState !== targetState || pBtn.style.display !== expectedDisplay) {
+    pBtn.style.display = expectedDisplay;
+    if (expectedDisplay === 'flex') {
+      const expectedSVG = (targetState === 'flex_gear') ? GEAR_ICON_SVG : PAUSE_ICON_SVG;
+      if (pBtn.innerHTML !== expectedSVG) {
+        pBtn.innerHTML = expectedSVG;
+      }
     }
     lastPauseBtnState = targetState;
   }

@@ -104,10 +104,10 @@ export function loop(ts: number) {
         }
       }
     }
-
-    updatePauseButton();
-    updateAutoCruiseBtnVisibility();
   }
+
+  updatePauseButton();
+  updateAutoCruiseBtnVisibility();
 
   render(ts);
   if (loopRunning) requestAnimationFrame(loop);
