@@ -77,6 +77,7 @@ export class InputManager {
               startRealGame();
             } else {
               let earned = game.scoreCoin;
+              if (game.state === 'clear') earned *= 2;
               startAttractCycle();
               applyCoinCountUp(earned, 'COINS GET!', true, false);
             }
@@ -121,6 +122,7 @@ export class InputManager {
     if (game.state === 'gameover' || game.state === 'clear') {
       if (ignoreNextTap) return true;
       let earned = game.scoreCoin;
+      if (game.state === 'clear') earned *= 2;
       startAttractCycle();
       applyCoinCountUp(earned, 'COINS GET!', true, false);
       return true;
