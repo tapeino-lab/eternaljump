@@ -9,6 +9,18 @@ function isLockOnPlatform(platform: any): boolean {
   return (platform.type === 'normal' || platform.isIcy || platform.type === 'h-slide' || platform.type === 'v-slide');
 }
 
+export function getTargetTouchY(cand: any): number {
+  if (!cand) return 0;
+  let isItemOrMushroom = (cand.collected !== undefined || cand.type === 'red' || cand.type === 'green');
+  return isItemOrMushroom ? (cand.y + (cand.h || 8) / 2) : cand.y;
+}
+
+export function getTargetBottomY(cand: any): number {
+  if (!cand) return 0;
+  let isItemOrMushroom = (cand.collected !== undefined || cand.type === 'red' || cand.type === 'green');
+  return isItemOrMushroom ? (cand.y + (cand.h || 8)) : cand.y;
+}
+
 let aiCalculationsThisFrame = 0;
 let lastAiFrame = 0;
 
@@ -32,7 +44,10 @@ export function runAI(entity: Player) {
   }
   
   // Detect if the entity just initiated a jump this frame (velocity went from >= 0 to < 0)
-  let isJustJumped = (entity.vy < 0 && ((entity as any).prevVy === undefined || (entity as any).prevVy >= 0));
+  let prevVyVal = (entity as any).prevVy;
+  let isJustJumped = (entity.vy < 0 && (prevVyVal === undefined || prevVyVal >= 0));
+  // Detect if the entity reached the jump apex and transitioned to falling this frame (prevVy < 0 && vy >= 0)
+  let isApex = (prevVyVal !== undefined && prevVyVal < 0 && entity.vy >= 0);
   (entity as any).prevVy = entity.vy;
   let currentPlat = entity.lastPlatform;
   entity.prevLastPlatform = entity.lastPlatform;
@@ -263,6 +278,43 @@ export function runAI(entity: Player) {
         let maxS = config.maxSpeedX * (entity.isSuperJumping ? 1.2 : 1.0);
         if (entity.vx > maxS) entity.vx = maxS;
         else if (entity.vx < -maxS) entity.vx = -maxS;
+      }
+    }
+  } else if (isApex) {
+    // Jump Apex Trigger (prevVy < 0 && vy >= 0):
+    // When reaching the peak of the jump and transitioning into falling,
+    // re-evaluate reachable platforms below the current position.
+    // If the original target is unreachable (above player feet) or a higher/better target is reachable, switch target immediately.
+    let currentLocked = entity.aiLockedTarget;
+    let initialVy = entity.vy;
+    let potentialTarget = findBestTarget(entity, px, py, initialVy, isStuck);
+
+    if (potentialTarget) {
+      if (!currentLocked) {
+        entity.aiTarget = potentialTarget;
+        entity.aiLockedTarget = potentialTarget;
+        entity.aiLockedFromNormalJump = true;
+      } else {
+        let currentTargetBottomY = getTargetBottomY(currentLocked);
+        let isCurrentUnreachable = (currentTargetBottomY < py - 2) || isTargetInvalid(currentLocked);
+        let potentialBottomY = getTargetBottomY(potentialTarget);
+        let isPotentialHigherOrBetter = (potentialBottomY < currentTargetBottomY) || isCurrentUnreachable;
+
+        if (isPotentialHigherOrBetter) {
+          entity.aiTarget = potentialTarget;
+          entity.aiLockedTarget = potentialTarget;
+          entity.aiLockedFromNormalJump = true;
+        } else {
+          entity.aiTarget = currentLocked;
+        }
+      }
+    } else {
+      if (currentLocked && isTargetInvalid(currentLocked)) {
+        entity.aiLockedFromNormalJump = false;
+        entity.aiLockedTarget = null;
+        entity.aiTarget = null;
+      } else if (currentLocked) {
+        entity.aiTarget = currentLocked;
       }
     }
   } else if (entity.aiLockedFromNormalJump && entity.aiLockedTarget) {
@@ -496,17 +548,21 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     let playerW = 16;
     let eff_dx = Math.max(0, dx - (candW / 2) - (playerW / 2));
 
-    let dy = py - candPy; // positive when platform is ABOVE player
+    // Player touchline/landing boundary: items can be touched across their full height (candPy..candPy+candH)
+    // Platforms are landed on top (candPy), items/coins can be collected by touching anywhere
+    let targetTouchY = getTargetTouchY(cand);
+    let dy = py - targetTouchY; // positive when target contact line is ABOVE player feet
 
     // If falling in mid-air (initialVy >= 0) and not currently resting on a platform,
-    // candidates above the player (candPy < py) are physically impossible to reach.
+    // candidates whose lowest touchable line is above the player are physically impossible to reach.
     let isGroundedOnPlatform = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
-    if (initialVy >= 0 && !isGroundedOnPlatform && candPy < py - 2) {
+    let topReachLimit = getTargetBottomY(cand);
+    if (initialVy >= 0 && !isGroundedOnPlatform && topReachLimit < py - 2) {
       return;
     }
 
     let isReachable = false;
-    let dy_world = candPy - py; // exact vertical distance from player feet to candidate surface
+    let dy_world = targetTouchY - py; // vertical distance from player feet to candidate contact line
 
     let evalVy = isGroundedOnPlatform ? getPlatformJumpVy(entity.lastPlatform, entity) : initialVy;
 
