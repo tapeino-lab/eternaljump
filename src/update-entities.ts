@@ -189,15 +189,25 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
       if (game.npcs[i].balloonTimer > 0) { anyBalloon = true; break; }
     }
     if (!anyBalloon) {
-      let activeNpcs = [];
+      let activeCount = 0;
       for (let i = 0; i < game.npcs.length; i++) {
         let n = game.npcs[i];
-        if (n.active && n.y < game.cameraY + config.gameHeight + 300) activeNpcs.push(n);
+        if (n.active && n.y < game.cameraY + config.gameHeight + 300) activeCount++;
       }
-      if (activeNpcs.length > 0) {
-        let rndIdx = Math.floor(Math.random() * activeNpcs.length);
-        activeNpcs[rndIdx].balloonText = 'Load!';
-        activeNpcs[rndIdx].balloonTimer = 90;
+      if (activeCount > 0) {
+        let chosenIdx = Math.floor(Math.random() * activeCount);
+        let curr = 0;
+        for (let i = 0; i < game.npcs.length; i++) {
+          let n = game.npcs[i];
+          if (n.active && n.y < game.cameraY + config.gameHeight + 300) {
+            if (curr === chosenIdx) {
+              n.balloonText = 'Load!';
+              n.balloonTimer = 90;
+              break;
+            }
+            curr++;
+          }
+        }
       }
     }
   }

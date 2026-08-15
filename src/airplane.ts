@@ -130,9 +130,8 @@ class AirplaneBannerSystem {
     const bannerW = 120;
     const bannerH = 15;
 
-    // Periodic update of offscreen banner
-    this.updateTimer++;
-    if (!this.offCanvas || this.updateTimer % 60 === 0) {
+    // Ensure offscreen banner is created once
+    if (!this.offCanvas) {
       this.updateOffscreenBanner();
     }
 

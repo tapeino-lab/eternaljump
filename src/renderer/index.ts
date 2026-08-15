@@ -7,7 +7,7 @@ import { config } from '../config.js';
 import { RankingAPI } from '../ranking.js';
 import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
 
-import { dR } from './core.js';
+import { dR, resetFillColor } from './core.js';
 import { getColorAtScore, resetBGScore, drawBG } from './bg.js';
 import { drawHorizontalPipe, drawGameEntities } from './entities.js';
 import { drawOffscreenIndicators, updateHUD, updateDemoRanking } from './ui.js';
@@ -42,6 +42,8 @@ export function render(ts: number) {
   if (!ctx || (ctx.isContextLost && ctx.isContextLost())) {
     if (!restoreGameCanvas()) return;
   }
+
+  resetFillColor();
 
   let topColor = drawBackgroundLayer(ts);
 

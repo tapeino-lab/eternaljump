@@ -14,8 +14,6 @@ export function drawHorizontalPipe(ctx: CanvasRenderingContext2D) {
   if (game.cameraY > 300) return;
   if (!hasPlayedOnce()) return;
 
-  ctx.save();
-
   // NES Super Mario Style Horizontal Green Pipe (Mouth facing Right at x = 17)
   // Y range: 210 to 241 (Lip height 32px, 1px overlap with ground at Y=240 for seamless fit)
 
@@ -57,7 +55,6 @@ export function drawHorizontalPipe(ctx: CanvasRenderingContext2D) {
   ctx.fillRect(8, 239, 8, 2);    // Lip bottom shadow
 
   // Lip left bevel line for pixel depth
-  ctx.fillStyle = '#002800';
   ctx.fillRect(8, 210, 1, 31);
 
   // 4. Mouth Hole Opening on Right (x = 16..17)
@@ -65,8 +62,6 @@ export function drawHorizontalPipe(ctx: CanvasRenderingContext2D) {
   ctx.fillRect(16, 210, 2, 31);
   ctx.fillStyle = '#002800';
   ctx.fillRect(16, 212, 1, 27);
-
-  ctx.restore();
 }
 
 export function drawGameEntities(ts) {

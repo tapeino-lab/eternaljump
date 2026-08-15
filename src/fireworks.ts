@@ -211,8 +211,10 @@ class FireworksSystem {
     }
 
     if (this.sparks.length > 220) {
-      const overflow = this.sparks.splice(0, this.sparks.length - 220);
-      sparkPool.releaseAll(overflow);
+      for (let j = 220; j < this.sparks.length; j++) {
+        sparkPool.release(this.sparks[j]);
+      }
+      this.sparks.length = 220;
     }
   }
 
@@ -338,15 +340,17 @@ class FireworksSystem {
    * Render fireworks
    */
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.save();
+    let lastAlpha = -1;
+    let lastColor = '';
 
     // 1. Draw explosion flash
     for (let i = 0; i < this.flashes.length; i++) {
       const f = this.flashes[i];
       const screenY = f.y | 0;
       const size = (f.radius * 1.8) | 0;
-      ctx.globalAlpha = Math.max(0, f.alpha);
-      ctx.fillStyle = f.color;
+      const alpha = Math.max(0, f.alpha);
+      if (lastAlpha !== alpha) { ctx.globalAlpha = alpha; lastAlpha = alpha; }
+      if (lastColor !== f.color) { ctx.fillStyle = f.color; lastColor = f.color; }
       ctx.fillRect((f.x - size * 0.5) | 0, (screenY - size * 0.5) | 0, size, size);
     }
 
@@ -356,12 +360,12 @@ class FireworksSystem {
       const screenY = r.y | 0;
       const rx = r.x | 0;
 
-      ctx.globalAlpha = 0.7;
-      ctx.fillStyle = r.color;
+      if (lastAlpha !== 0.7) { ctx.globalAlpha = 0.7; lastAlpha = 0.7; }
+      if (lastColor !== r.color) { ctx.fillStyle = r.color; lastColor = r.color; }
       ctx.fillRect(rx - 2, screenY - 2, 4, 4);
 
-      ctx.globalAlpha = 1.0;
-      ctx.fillStyle = '#ffffff';
+      if (lastAlpha !== 1.0) { ctx.globalAlpha = 1.0; lastAlpha = 1.0; }
+      if (lastColor !== '#ffffff') { ctx.fillStyle = '#ffffff'; lastColor = '#ffffff'; }
       ctx.fillRect(rx - 1, screenY - 1, 2, 2);
     }
 
@@ -383,12 +387,13 @@ class FireworksSystem {
       const py = screenY;
       const sz = Math.max(1, (s.size * 1.2) | 0);
 
-      ctx.globalAlpha = Math.max(0, alpha);
-      ctx.fillStyle = color;
+      const finalAlpha = Math.max(0, alpha);
+      if (lastAlpha !== finalAlpha) { ctx.globalAlpha = finalAlpha; lastAlpha = finalAlpha; }
+      if (lastColor !== color) { ctx.fillStyle = color; lastColor = color; }
       ctx.fillRect(px, py, sz, sz);
     }
 
-    ctx.restore();
+    if (lastAlpha !== 1.0) ctx.globalAlpha = 1.0;
   }
 }
 

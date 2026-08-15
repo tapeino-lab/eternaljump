@@ -103,6 +103,7 @@ export function drawBG(ts) {
       let sy = (st.y - game.cameraY * st.speed) % config.gameHeight;
       if (sy < 0) sy += config.gameHeight;
       let alpha = sA * (bA ? (0.5 + 0.5 * SIN(ts * st.blink)) : 1);
+      alpha = Math.round(alpha * 20) / 20;
       if (lastAlpha !== alpha) {
         ctx.globalAlpha = alpha;
         lastAlpha = alpha;
@@ -120,6 +121,7 @@ export function drawBG(ts) {
       let sy = (c.y - game.cameraY) * c.speed, s = 10 * c.scale;
       if (sy > config.gameHeight || sy + s * 3 < 0) continue;
       let alpha = cA * (c.speed === 0.6 ? 0.15 : 0.25);
+      alpha = Math.round(alpha * 20) / 20;
       if (lastAlpha !== alpha) {
         ctx.globalAlpha = alpha;
         lastAlpha = alpha;
