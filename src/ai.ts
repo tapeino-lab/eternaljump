@@ -275,12 +275,12 @@ export function runAI(entity: Player) {
       entity.inputDir = pushDir;
 
       // Immediate horizontal propulsion to prevent vertical bouncing on unexpected landings
-      if (dist > 12) {
-        let boostAmount = 0.9 * pushDir;
+      if (dist > 4) {
+        let boostAmount = 0.8 * pushDir;
         // If current velocity opposes the target direction, give extra kick to turn around instantly
         if ((entity.vx > 0 && pushDir < 0) || (entity.vx < 0 && pushDir > 0)) {
-          entity.vx = pushDir * 1.0;
-        } else {
+          entity.vx = pushDir * 0.9;
+        } else if (Math.abs(entity.vx) < 0.6) {
           entity.vx = (entity.vx || 0) + boostAmount;
         }
         let maxS = config.maxSpeedX * (entity.isSuperJumping ? 1.2 : 1.0);
@@ -415,35 +415,28 @@ export function runAI(entity: Player) {
     let dist = Math.abs(dx);
     let targetDir = dx > 0 ? 1 : -1;
 
-    let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
-    
-    // Instead of a strict 1.0px threshold which causes wobbling, 
-    // we consider the entity "over" the platform if it is comfortably within its bounds.
-    let safeInset = Math.min(8, candW / 3);
-    let isOverPlatform = dist < (candW / 2 - safeInset);
+    let targetY = entity.aiTarget.y !== undefined ? entity.aiTarget.y : py;
+    let isTargetAbove = targetY < py - 2;
+    let isAscending = entity.vy < 0;
 
-    // If the target is significantly above us, wait until we are closer to the center
-    let targetY = entity.aiTarget.y;
-    if (targetY !== undefined) {
-      let dy_target = py - targetY; // positive when target is above player feet
-      if (dy_target > 8) {
-        isOverPlatform = dist < 2.5;
+    if (isAscending || isTargetAbove) {
+      // Actively climbing or flying towards upper target:
+      // Never zero horizontal input or pause on the platform; drive decisively toward targetDir!
+      if (dist > 1.2) {
+        entity.inputDir = targetDir;
+      } else {
+        // Aligned with the target in mid-air
+        entity.inputDir = 0;
       }
-    }
-
-    let isMushroomMode = !!(game.equipped?.['mushroom']) && (game.score <= SCORE_THRESHOLDS.MUSHROOM_MAX) && ((game.greenMushroomCount || 0) < 18);
-    // When locked from normal jump, fly directly and continuously toward the target (straight-shot)
-    let stopDist = entity.aiLockedFromNormalJump ? 1.5 : (isMushroomMode ? 2 : (isGrounded ? 2 : 5));
-    
-    // Suppress shaking/trembling:
-    // If we are already aligned over the target platform, stop issuing left/right key pushes (neutral inputDir = 0)
-    // and let physics/inertia handle the movement smoothly. This completely avoids rapid back-and-forth micro-adjustments.
-    if (isOverPlatform) {
-      entity.inputDir = 0;
-    } else if (dist > stopDist) {
-      entity.inputDir = targetDir;
     } else {
-      entity.inputDir = 0;
+      // Descending towards a lower platform landing:
+      // If we are safely inside the landing surface width, glide in neutrally; otherwise steer to land safely.
+      let safeLandingMargin = Math.max(2, candW / 2 - 4);
+      if (dist <= safeLandingMargin) {
+        entity.inputDir = 0;
+      } else {
+        entity.inputDir = targetDir;
+      }
     }
   } else {
     // If stuck or having no target, maintain lateral movement in current travel direction
