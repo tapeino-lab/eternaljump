@@ -222,37 +222,27 @@ export function runAI(entity: Player) {
       }
     }
 
-    // While ascending rapidly (e.g. super jump), if the player has flown past this target, mark it invalid so AI advances to the next target
-    if (t.y > py + 16 && entity.vy < -1) {
-      return true;
-    }
-
     return false;
   };
-
-  // Check for sudden high launch / super jump transitions (e.g. spring item, super platform, glowing bounce)
-  let isSuperJumpState = entity.isSuperJumping || (currentPlat && (currentPlat.type === 'super' || currentPlat.isGlowing)) || entity.vy < -6;
-  let isJustSuperLaunched = isSuperJumpState && (prevVyVal === undefined || prevVyVal >= -6 || isJustJumped);
 
   // When touching a new platform or landing, reset normal jump lock
   if (isJustJumped) {
     entity.aiLockedFromNormalJump = false;
     entity.aiLockedTarget = null;
-  } else if (isJustSuperLaunched) {
-    // Break previous low jump lock on the exact launch frame to acquire a new high-altitude target
-    entity.aiLockedFromNormalJump = false;
-    entity.aiLockedTarget = null;
   }
 
-  // Clear stale target if it's already invalid, collected, broken, blacklisted, or surpassed
+  // Super Jump / High Launch detection: immediately clear old targets below player or collected
+  let isSuperLaunch = entity.vy < -6 || (currentPlat && (currentPlat.type === 'super' || currentPlat.isGlowing));
+
+  // Clear stale target if it's already invalid, collected, broken, blacklisted, or below/passed by the player
   if (entity.aiTarget && isTargetInvalid(entity.aiTarget)) {
     entity.aiTarget = null;
   }
 
   let isStuck = (entity.samePlatformVertJumps || 0) >= 2;
 
-  // Platform Jump or Super Jump Launch: Determine optimal target at the EXACT moment of launch/takeoff and lock onto it
-  if (isJustJumped || (isJustSuperLaunched && !entity.aiLockedTarget)) {
+  // Platform Jump Trigger: Determine optimal target at the EXACT moment of jumping from any platform and lock onto it
+  if (isJustJumped) {
     let history = entity.visitedHistory || entity.recentPlatforms || [];
     let timesVisited = 0;
     if (currentPlat) {
@@ -328,19 +318,16 @@ export function runAI(entity: Player) {
       entity.aiTarget = currentLocked;
     }
   } else if (entity.aiLockedFromNormalJump && entity.aiLockedTarget) {
-    // During jump flight (normal jump or super jump), maintain lock onto the chosen target unless destroyed/collected/passed
+    // During jump flight (normal jump or super jump), maintain lock onto chosen target unless destroyed/collected/passed
     let t = entity.aiLockedTarget;
     let isInvalid = isTargetInvalid(t);
 
     if (isInvalid) {
-      // Unlock if target was destroyed, collected, or passed mid-air, and smoothly lock the next high target
+      // Unlock if target was destroyed, collected, or passed mid-air, or if player ascended above it
       entity.aiLockedFromNormalJump = false;
       entity.aiLockedTarget = null;
       let initialVy = entity.vy;
-      let nextTarget = findBestTarget(entity, px, py, initialVy, isStuck);
-      entity.aiTarget = nextTarget;
-      entity.aiLockedTarget = nextTarget;
-      entity.aiLockedFromNormalJump = !!nextTarget;
+      entity.aiTarget = findBestTarget(entity, px, py, initialVy, isStuck);
     } else {
       entity.aiTarget = entity.aiLockedTarget;
     }
