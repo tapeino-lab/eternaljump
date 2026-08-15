@@ -296,39 +296,30 @@ export function runAI(entity: Player) {
   } else if (isApex) {
     // Jump Apex Trigger (prevVy < 0 && vy >= 0):
     // When reaching the peak of the jump and transitioning into falling,
-    // re-evaluate reachable platforms below the current position.
-    // If the original target is unreachable (above player feet) or a higher/better target is reachable, switch target immediately.
+    // only switch targets if the current target is genuinely unreachable or invalid.
+    // Keeping the locked target produces a smooth, natural landing arc without mid-air swerving.
     let currentLocked = entity.aiLockedTarget;
     let initialVy = entity.vy;
-    let potentialTarget = findBestTarget(entity, px, py, initialVy, isStuck);
 
-    if (potentialTarget) {
-      if (!currentLocked) {
+    let isCurrentUnreachable = false;
+    if (currentLocked) {
+      let currentTargetBottomY = getTargetBottomY(currentLocked);
+      isCurrentUnreachable = (currentTargetBottomY < py - 2) || isTargetInvalid(currentLocked);
+    }
+
+    if (!currentLocked || isCurrentUnreachable) {
+      let potentialTarget = findBestTarget(entity, px, py, initialVy, isStuck);
+      if (potentialTarget) {
         entity.aiTarget = potentialTarget;
         entity.aiLockedTarget = potentialTarget;
         entity.aiLockedFromNormalJump = true;
       } else {
-        let currentTargetBottomY = getTargetBottomY(currentLocked);
-        let isCurrentUnreachable = (currentTargetBottomY < py - 2) || isTargetInvalid(currentLocked);
-        let potentialBottomY = getTargetBottomY(potentialTarget);
-        let isPotentialHigherOrBetter = (potentialBottomY < currentTargetBottomY) || isCurrentUnreachable;
-
-        if (isPotentialHigherOrBetter) {
-          entity.aiTarget = potentialTarget;
-          entity.aiLockedTarget = potentialTarget;
-          entity.aiLockedFromNormalJump = true;
-        } else {
-          entity.aiTarget = currentLocked;
-        }
-      }
-    } else {
-      if (currentLocked && isTargetInvalid(currentLocked)) {
         entity.aiLockedFromNormalJump = false;
         entity.aiLockedTarget = null;
         entity.aiTarget = null;
-      } else if (currentLocked) {
-        entity.aiTarget = currentLocked;
       }
+    } else {
+      entity.aiTarget = currentLocked;
     }
   } else if (entity.aiLockedFromNormalJump && entity.aiLockedTarget) {
     // During jump flight from a normal/ice platform, maintain lock onto the chosen target unless destroyed/collected/passed/surpassed
@@ -415,28 +406,17 @@ export function runAI(entity: Player) {
     let dist = Math.abs(dx);
     let targetDir = dx > 0 ? 1 : -1;
 
-    let targetY = entity.aiTarget.y !== undefined ? entity.aiTarget.y : py;
-    let isTargetAbove = targetY < py - 2;
-    let isAscending = entity.vy < 0;
+    let isItem = (entity.aiTarget.collected !== undefined || entity.aiTarget.type === 'red' || entity.aiTarget.type === 'green');
+    // For wide platforms, safe landing margin covers comfortable center area (avoiding rigid pixel-perfect fighting)
+    let safeLandingMargin = isItem ? 3 : Math.max(3, candW / 2 - 4);
 
-    if (isAscending || isTargetAbove) {
-      // Actively climbing or flying towards upper target:
-      // Never zero horizontal input or pause on the platform; drive decisively toward targetDir!
-      if (dist > 1.2) {
-        entity.inputDir = targetDir;
-      } else {
-        // Aligned with the target in mid-air
-        entity.inputDir = 0;
-      }
+    if (dist <= safeLandingMargin) {
+      // Comfortably inside the target platform / item horizontal footprint:
+      // Neutral input allows natural inertia and physics damping to smoothly float onto the platform
+      entity.inputDir = 0;
     } else {
-      // Descending towards a lower platform landing:
-      // If we are safely inside the landing surface width, glide in neutrally; otherwise steer to land safely.
-      let safeLandingMargin = Math.max(2, candW / 2 - 4);
-      if (dist <= safeLandingMargin) {
-        entity.inputDir = 0;
-      } else {
-        entity.inputDir = targetDir;
-      }
+      // Outside the safe landing footprint: drive smoothly toward target
+      entity.inputDir = targetDir;
     }
   } else {
     // If stuck or having no target, maintain lateral movement in current travel direction
