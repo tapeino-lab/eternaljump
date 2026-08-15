@@ -15,9 +15,31 @@ class AirplaneBannerSystem {
   private offCanvas: HTMLCanvasElement | null = null;
   private offCtx: CanvasRenderingContext2D | null = null;
   private updateTimer: number = 0;
+  private fontLoaded: boolean = false;
 
   constructor() {
     this.reset();
+    if (typeof document !== 'undefined' && document.fonts) {
+      if (document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          this.fontLoaded = true;
+          this.updateOffscreenBanner();
+        });
+      }
+      if (document.fonts.addEventListener) {
+        document.fonts.addEventListener('loadingdone', () => {
+          this.fontLoaded = true;
+          this.updateOffscreenBanner();
+        });
+      }
+      // Proactively trigger loading of Press Start 2P
+      if (document.fonts.load) {
+        document.fonts.load('8px "Press Start 2P"').then(() => {
+          this.fontLoaded = true;
+          this.updateOffscreenBanner();
+        }).catch(() => {});
+      }
+    }
   }
 
   reset() {
@@ -41,6 +63,13 @@ class AirplaneBannerSystem {
     }
     if (this.offCtx) {
       this.offCtx.imageSmoothingEnabled = false;
+
+      // Check if font is loaded
+      if (typeof document !== 'undefined' && document.fonts && document.fonts.check) {
+        if (document.fonts.check('8px "Press Start 2P"')) {
+          this.fontLoaded = true;
+        }
+      }
 
       // White background
       this.offCtx.fillStyle = '#ffffff';
@@ -130,8 +159,10 @@ class AirplaneBannerSystem {
     const bannerW = 120;
     const bannerH = 15;
 
-    // Ensure offscreen banner is created once
+    // Ensure offscreen banner is created and re-rendered if font loaded
     if (!this.offCanvas) {
+      this.updateOffscreenBanner();
+    } else if (!this.fontLoaded && typeof document !== 'undefined' && document.fonts && document.fonts.check && document.fonts.check('8px "Press Start 2P"')) {
       this.updateOffscreenBanner();
     }
 
