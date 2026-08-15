@@ -502,7 +502,7 @@ export const LootLockerAPI = {
     }
   },
 
-  getScores: async function(lm = 100) {
+  getScores: async function(lm = 400) {
     this.log(`Attempting to fetch top ${lm} scores...`, 'info');
     if (!await this.init()) {
       this.log('Score fetch aborted (Init Failed)', 'error');

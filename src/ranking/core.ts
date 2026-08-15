@@ -108,7 +108,7 @@ import { RankingAPI } from './api.js';
             }
             
             if (!scores) {
-              let fetched = await LootLockerAPI.getScores(300);
+              let fetched = await LootLockerAPI.getScores(400);
               if (Array.isArray(fetched)) {
                 scores = fetched;
                 safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
@@ -145,7 +145,7 @@ import { RankingAPI } from './api.js';
                     uniqueScores.push(s);
                   }
                 });
-                scores = uniqueScores.slice(0, 300);
+                scores = uniqueScores.slice(0, 400);
                 scores.forEach((s, i) => s.rank = i + 1);
               }
             } catch(e) {
@@ -264,7 +264,7 @@ import { RankingAPI } from './api.js';
               scores.push(myEntry);
             }
             scores.sort((A, B) => (B.alt || 0) - (A.alt || 0) || (B.coins || 0) - (A.coins || 0) || (A.time || 0) - (B.time || 0));
-            scores = scores.slice(0, 300);
+            scores = scores.slice(0, 400);
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
           } else {
@@ -377,7 +377,7 @@ import { RankingAPI } from './api.js';
             }
             s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
             game.lastRank = s.findIndex(x => x.id === pid) + 1;
-            s = s.slice(0, 300);
+            s = s.slice(0, 400);
             secureStorage.setItem(RankingAPI.key, s);
           } catch (e) {}
         }
