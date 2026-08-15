@@ -245,23 +245,24 @@ export function runAI(entity: Player) {
 
   let isStuck = (entity.samePlatformVertJumps || 0) >= 2;
 
-  // Platform Jump Trigger: Determine optimal target at the EXACT moment of jumping from a normal or ice platform and lock onto it
-  if (isJustJumped && currentPlat && isLockOnPlatform(currentPlat)) {
+  // Platform Jump Trigger: Determine optimal target at the EXACT moment of jumping from any platform and lock onto it
+  if (isJustJumped) {
     let history = entity.visitedHistory || entity.recentPlatforms || [];
     let timesVisited = 0;
-    for (let i = 0; i < history.length; i++) {
-      if (history[i] === currentPlat) timesVisited++;
+    if (currentPlat) {
+      for (let i = 0; i < history.length; i++) {
+        if (history[i] === currentPlat) timesVisited++;
+      }
     }
     if (timesVisited >= 2) isStuck = true;
 
     entity.aiThinkTimer = 0;
-    let initialVy = getPlatformJumpVy(currentPlat, entity);
+    let initialVy = currentPlat ? getPlatformJumpVy(currentPlat, entity) : entity.vy;
     let bestTarget = findBestTarget(entity, px, py, initialVy, isStuck);
     entity.aiTarget = bestTarget;
     entity.aiLockedTarget = bestTarget;
-    entity.aiLockedFromNormalJump = true;
+    entity.aiLockedFromNormalJump = !!bestTarget;
 
-    // Smart horizontal boost for far-away targets (edge take-off emulation)
     if (bestTarget) {
       let candW = bestTarget.w || 16;
       let tx = bestTarget.x + candW / 2;
@@ -270,15 +271,27 @@ export function runAI(entity: Player) {
       else if (dx < -config.gameWidth / 2) dx += config.gameWidth;
 
       let dist = Math.abs(dx);
-      if (dist > 30) {
-        let pushDir = dx > 0 ? 1 : -1;
-        // Apply immediate horizontal kick to help clear the gap smoothly
+      let pushDir = dx > 0 ? 1 : -1;
+      entity.inputDir = pushDir;
+
+      // Immediate horizontal propulsion to prevent vertical bouncing on unexpected landings
+      if (dist > 12) {
         let boostAmount = 0.9 * pushDir;
-        entity.vx = (entity.vx || 0) + boostAmount;
+        // If current velocity opposes the target direction, give extra kick to turn around instantly
+        if ((entity.vx > 0 && pushDir < 0) || (entity.vx < 0 && pushDir > 0)) {
+          entity.vx = pushDir * 1.0;
+        } else {
+          entity.vx = (entity.vx || 0) + boostAmount;
+        }
         let maxS = config.maxSpeedX * (entity.isSuperJumping ? 1.2 : 1.0);
         if (entity.vx > maxS) entity.vx = maxS;
         else if (entity.vx < -maxS) entity.vx = -maxS;
       }
+    } else {
+      // Fallback: no clear target above, maintain previous heading / direction to keep moving laterally
+      let prevDir = (entity.vx > 0.1) ? 1 : ((entity.vx < -0.1) ? -1 : (entity.facingRight ? 1 : (px < config.gameWidth / 2 ? 1 : -1)));
+      entity.inputDir = prevDir;
+      entity.vx = (entity.vx || 0) + prevDir * 0.6;
     }
   } else if (isApex) {
     // Jump Apex Trigger (prevVy < 0 && vy >= 0):
@@ -433,11 +446,12 @@ export function runAI(entity: Player) {
       entity.inputDir = 0;
     }
   } else {
-    // If stuck with no target, force lateral escape movement
+    // If stuck or having no target, maintain lateral movement in current travel direction
     if (isStuck) {
       entity.inputDir = (px < config.gameWidth / 2) ? 1 : -1;
-    } else if (entity.inputDir === undefined) {
-      entity.inputDir = entity.facingRight ? 1 : -1;
+    } else {
+      let prevDir = (entity.vx > 0.1) ? 1 : ((entity.vx < -0.1) ? -1 : (entity.facingRight ? 1 : (px < config.gameWidth / 2 ? 1 : -1)));
+      entity.inputDir = prevDir;
     }
   }
 
