@@ -18,7 +18,8 @@ export function getTargetTouchY(cand: any): number {
 export function getTargetBottomY(cand: any): number {
   if (!cand) return 0;
   let isItemOrMushroom = (cand.collected !== undefined || cand.type === 'red' || cand.type === 'green');
-  return isItemOrMushroom ? (cand.y + (cand.h || 8)) : cand.y;
+  let candH = cand.h || 8;
+  return isItemOrMushroom ? (cand.y + candH) : (cand.y + candH);
 }
 
 let aiCalculationsThisFrame = 0;
@@ -299,8 +300,8 @@ export function runAI(entity: Player) {
 
     let isCurrentUnreachable = false;
     if (currentLocked) {
-      let currentTargetBottomY = getTargetBottomY(currentLocked);
-      isCurrentUnreachable = (currentTargetBottomY < py - 2) || isTargetInvalid(currentLocked);
+      // Only treat locked target as unreachable if player has clearly fallen well below the landing surface
+      isCurrentUnreachable = (py > currentLocked.y + 24) || isTargetInvalid(currentLocked);
     }
 
     if (!currentLocked || isCurrentUnreachable) {
@@ -540,7 +541,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     // candidates whose lowest touchable line is above the player are physically impossible to reach.
     let isGroundedOnPlatform = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
     let topReachLimit = getTargetBottomY(cand);
-    if (initialVy >= 0 && !isGroundedOnPlatform && topReachLimit < py - 2) {
+    if (initialVy >= 0 && !isGroundedOnPlatform && topReachLimit < py - 6) {
       return;
     }
 
@@ -556,8 +557,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       let maxAscent = (evalVy * evalVy) / (2 * g);
       let apexY = py - maxAscent;
 
-      // Platform surface must be at or below the jump apex Y (with at least 2px clearance to guarantee landing)
-      if (candPy >= apexY + 2) {
+      // Platform surface must be at or below the jump apex Y (with 4px margin for landing contact)
+      if (candPy >= apexY - 4) {
         let discriminant = evalVy * evalVy + 2 * g * dy_world;
         if (discriminant >= 0) {
           let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
@@ -581,8 +582,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       }
     } else {
-      // Descending in mid-air: candidates above player are impossible to reach
-      if (candPy >= py - 2) {
+      // Descending in mid-air: candidates whose top is below player or within landing contact tolerance
+      if (candPy >= py - 8) {
         let discriminant = evalVy * evalVy + 2 * g * dy_world;
         if (discriminant >= 0) {
           let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
@@ -786,8 +787,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     let isDescending = (initialVy >= 0 || entity.vy > 0);
 
     if (isDescending) {
-      // While descending/falling, platforms above are physically unreachable. NEVER target them in fallback.
-      if (dy > 0) {
+      // While descending/falling, platforms significantly above are physically unreachable.
+      if (dy > 6) {
         fbScore = -Infinity;
       } else {
         // Prefer platforms that are closer below and horizontally aligned
