@@ -736,11 +736,26 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
           if (eff_dx === 0) {
             score += 20000;
           }
+        } else if (absDy <= 16) {
+          // Same-height platforms (|dy| <= 16) are fully reachable via normal jump arcs!
+          // Give them a solid positive baseline so player can comfortably jump laterally across platforms
+          score += 15000 - absDy * 50;
         } else {
-          score -= absDy * 300; // Heavily penalize lower platforms while ascending to avoid settling on low footholds
+          score -= absDy * 300; // Heavily penalize much lower platforms while ascending
         }
       }
       score -= eff_dx * 1.5; // Minimal lateral penalty so reachable far platforms are pursued
+
+      // Directional commitment bonus: If moving in a certain direction, favor platforms on that same side
+      // to eliminate mid-air target oscillation between symmetrical left/right platforms.
+      let candDirection = (candPx >= px) ? 1 : -1;
+      let isMovingSameWay = (entity.vx > 0.15 && candDirection > 0) || (entity.vx < -0.15 && candDirection < 0);
+      let isFacingSameWay = (entity.facingRight && candDirection > 0) || (!entity.facingRight && candDirection < 0);
+      if (isMovingSameWay) {
+        score += 6000;
+      } else if (isFacingSameWay && Math.abs(entity.vx || 0) <= 0.15) {
+        score += 3000;
+      }
 
       let bonus = 0;
       if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') bonus += 80000;
