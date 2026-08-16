@@ -514,7 +514,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   let processCand = (cand: any) => { 
     if (cand.broken || cand.blacklisted || cand.isGround) return;
     if (cand.collected) return;
-    if (cand === entity.lastPlatform) return; 
+    // Don't exclude lastPlatform unconditionally - only penalize it in normal scoring so it serves as a safety fallback
+    let isLastPlat = (cand === entity.lastPlatform);
 
     let candPy = cand.y;
     let isPlayer = (entity === game.player);
@@ -547,7 +548,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     }
 
     let isReachable = false;
-    let dy_world = targetTouchY - py; // vertical distance from player feet to candidate contact line
+    let dy_world = targetTouchY - py; // vertical distance from player feet to candidate contact line (negative when above)
 
     let evalVy = isGroundedOnPlatform ? getPlatformJumpVy(entity.lastPlatform, entity) : initialVy;
 
@@ -558,9 +559,13 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       let maxAscent = (evalVy * evalVy) / (2 * g);
       let apexY = py - maxAscent;
 
-      // Platform surface must be at or below the jump apex Y (with 4px margin for landing contact)
-      if (candPy >= apexY - 4) {
+      // Platform surface must be at or below the jump apex Y (with generous 6px margin for landing contact/stretching)
+      if (candPy >= apexY - 6) {
         let discriminant = evalVy * evalVy + 2 * g * dy_world;
+        // Near the apex, clamp negative discriminant to 0 to prevent floating-point precision drop-offs
+        if (discriminant < 0 && candPy >= apexY - 6) {
+          discriminant = 0;
+        }
         if (discriminant >= 0) {
           let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
           if (t_fall >= 0) {
@@ -574,8 +579,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             if (dx_future > hgw) dx_future = gw - dx_future;
             let eff_dx_future = Math.max(0, dx_future - (candW / 2) - (playerW / 2));
 
-            // Maximum horizontal distance covered in t_fall frames
-            let max_possible_dx = t_fall * maxVx + 6;
+            // Maximum horizontal distance covered in t_fall frames + air drift margin
+            let currVx = Math.abs(entity.vx || 0);
+            let max_possible_dx = t_fall * Math.max(maxVx, currVx) + 16;
             if (eff_dx_future <= max_possible_dx) {
               isReachable = true;
             }
@@ -598,7 +604,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             if (dx_future > hgw) dx_future = gw - dx_future;
             let eff_dx_future = Math.max(0, dx_future - (candW / 2) - (playerW / 2));
 
-            let max_possible_dx = t_fall * maxVx + 6;
+            let currVx = Math.abs(entity.vx || 0);
+            let max_possible_dx = t_fall * Math.max(maxVx, currVx) + 16;
             if (eff_dx_future <= max_possible_dx) {
               isReachable = true;
             }
@@ -782,6 +789,10 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       }
 
+      if (isLastPlat) {
+        score -= 40000; // Prefer newly reachable platforms, but keep lastPlatform available if it's the only option
+      }
+
       // Target commitment/stickiness bonus: avoid rapid back-and-forth target switching,
       // but allow significantly higher reachable platforms to naturally override lower locked targets.
       if (entity.aiTarget && cand === entity.aiTarget) {
@@ -793,6 +804,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     let fbScore = microBias;
     if (cand.isIcy) {
       fbScore -= 4000; // Apply general ice platform preference penalty here too
+    }
+    if (isLastPlat) {
+      fbScore -= 20000;
     }
 
     // Heavily penalize ice platforms with no next step (dead ends)
