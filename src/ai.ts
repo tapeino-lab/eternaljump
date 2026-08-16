@@ -716,14 +716,14 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       score += eff_dx * 10; 
     } else {
       if (dy > 0) {
-        score += dy * 180; // Strongly prioritize climbing upward (increased from 100 to 180)
+        score += dy * 350; // Strongly prioritize climbing upward directly to highest reachable platforms
         if (initialVy < 0) {
           let distFromApex = candPy - apexY; // Distance of platform surface below the jump apex
           let apexBonus = 0;
-          if (distFromApex >= 2) {
+          if (distFromApex >= -4) {
             // Highly reachable! The closer to the apex (higher up), the better!
-            // Give a massive base bonus, with a small penalty for being further below the apex.
-            apexBonus = 40000 - distFromApex * 100; // Boosted base bonus to 40000, reduced penalty to 100
+            // Give a massive base bonus with linear scale based on closeness to jump apex.
+            apexBonus = 60000 - Math.max(0, distFromApex) * 120;
           }
           score += Math.max(0, apexBonus);
         }
@@ -737,7 +737,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             score += 20000;
           }
         } else {
-          score -= absDy * 150; // Penalize platforms below more heavily to keep drive upward
+          score -= absDy * 300; // Heavily penalize lower platforms while ascending to avoid settling on low footholds
         }
       }
       score -= eff_dx * 1.5; // Minimal lateral penalty so reachable far platforms are pursued
@@ -767,9 +767,10 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       }
 
-      // Target commitment/stickiness bonus: avoid rapid back-and-forth target switching
+      // Target commitment/stickiness bonus: avoid rapid back-and-forth target switching,
+      // but allow significantly higher reachable platforms to naturally override lower locked targets.
       if (entity.aiTarget && cand === entity.aiTarget) {
-        score += 15000;
+        score += 8000;
       }
     }
 
