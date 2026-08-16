@@ -272,7 +272,7 @@ export function runAI(entity: Player) {
       entity.inputDir = pushDir;
 
       // Immediate horizontal propulsion to prevent vertical bouncing on unexpected landings
-      if (dist > 4) {
+      if (dist > 4 || Math.abs(entity.vx) < 0.4) {
         let boostAmount = 0.8 * pushDir;
         // If current velocity opposes the target direction, give extra kick to turn around instantly
         if ((entity.vx > 0 && pushDir < 0) || (entity.vx < 0 && pushDir > 0)) {
@@ -406,8 +406,9 @@ export function runAI(entity: Player) {
     let isItem = (entity.aiTarget.collected !== undefined || entity.aiTarget.type === 'red' || entity.aiTarget.type === 'green');
     // For wide platforms, safe landing margin covers comfortable center area (avoiding rigid pixel-perfect fighting)
     let safeLandingMargin = isItem ? 3 : Math.max(3, candW / 2 - 4);
+    let isApproachingLanding = (py <= entity.aiTarget.y + 12 && entity.vy >= -2);
 
-    if (dist <= safeLandingMargin) {
+    if (dist <= safeLandingMargin && (isApproachingLanding || Math.abs(entity.vx) > 0.35)) {
       // Comfortably inside the target platform / item horizontal footprint:
       // Neutral input allows natural inertia and physics damping to smoothly float onto the platform
       entity.inputDir = 0;
@@ -797,17 +798,23 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         if (eff_dx === 0) fbScore += 20000;
       }
     } else {
-      // While ascending, prioritize climbing upward
-      if (dy > 0) {
-        fbScore += dy * 100; // Prefer platforms above
+      // While ascending, evaluate physical jump apex height
+      let maxAscent = (evalVy * evalVy) / (2 * g);
+      if (dy > maxAscent + 20) {
+        // Platform is far above the maximum jump apex: physically unreachable in this jump!
+        fbScore = -Infinity;
+      } else if (dy > 0) {
+        fbScore += dy * 100; // Prefer platforms above within reachable apex
+        fbScore -= eff_dx * 8; // Prefer horizontally closer platforms
       } else {
-        fbScore -= Math.abs(dy) * 100; // Penalize lower platforms
+        // Equal height or slightly below: viable lateral escape route
+        fbScore -= Math.abs(dy) * 15;
+        fbScore -= eff_dx * 12;
       }
-      fbScore -= eff_dx * 8; // Prefer horizontally closer platforms
     }
 
     if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') fbScore += 3000;
-    if (cand.type === 'green' && dy > 0) fbScore += 500000; // Only boost green mushrooms if above player
+    if (cand.type === 'green' && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) fbScore += 500000; // Only boost green mushrooms if within reach
 
     let historyIdx = history.lastIndexOf(cand);
     if (historyIdx !== -1) {
@@ -815,8 +822,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       fbScore -= (30000 / recency);
     }
 
-    // Target commitment/stickiness bonus for fallback candidates as well
-    if (entity.aiTarget && cand === entity.aiTarget) {
+    // Target commitment/stickiness bonus for fallback candidates as well (only for reachable targets)
+    if (entity.aiTarget && cand === entity.aiTarget && fbScore > -100000) {
       fbScore += 15000;
     }
 
