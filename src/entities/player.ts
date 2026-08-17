@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
 import { game } from '../state.js';
 import { ctx, IMG, GREEN_IMG, SNOW_IMG, GREEN_SNOW_IMG, BLUE_IMG, BLUE_SNOW_IMG } from '../display.js';
+import { openShopFromPipe } from '../lifecycle.js';
 
 import { dR } from '../renderer/core.js';
 
@@ -190,12 +191,13 @@ import { spawnParticles } from './particles.js';
         
         if (game.state === 'intro' || this.isIntro) {
           if (game.state === 'intro' && this.y >= 200 && (this.x + this.w / 2) <= 17) {
-            if (hasPlayedOnce() && !game.demoMode) {
-              game.state = 'shop';
+            if (hasPlayedOnce()) {
+              openShopFromPipe();
               this.x = 17 - this.w / 2;
               this.vx = 0;
-            } else if (this.x < 0) {
-              this.x = 0;
+            } else {
+              this.x = 17 - this.w / 2;
+              this.vx = 0;
             }
           } else if (this.x < 0) {
             this.x = 0;

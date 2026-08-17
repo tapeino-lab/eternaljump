@@ -192,6 +192,35 @@ export function runAttractUICycle() {
 }
 
 
+export function openShopFromPipe() {
+  clearTimeout(attractTimer);
+  isAttractMode = false;
+  demoState.active = false;
+  game.demoMode = false;
+  game.aiActive = false;
+  document.body.classList.remove('attract-mode');
+  
+  let btnInsta = $('btnInstagram');
+  if (btnInsta) btnInsta.style.display = 'none';
+
+  $('rankingModal').style.display = 'none';
+  document.body.classList.remove('showing-ranking');
+  $('demoRankingContainer').style.display = 'none';
+  $('tapToStartMsg').style.display = 'none';
+  const tn = document.getElementById('gamePlayerName');
+  if (tn) tn.style.display = 'none';
+
+  let fo = $('fadeOverlay');
+  if (fo) {
+    fo.style.display = 'none';
+    fo.style.opacity = '0';
+  }
+
+  game.state = 'shop';
+  updatePauseButton();
+  updateAutoCruiseBtnVisibility();
+}
+
 export function startRealGame() {
   if (ignoreNextTap) return;
   if (!isAttractMode) return;
