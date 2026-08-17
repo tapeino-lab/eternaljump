@@ -1,9 +1,10 @@
 import { B64 } from './assets.js';
 import { config } from './config.js';
 import { game, demoState } from './state.js';
-import { togglePause } from './lifecycle.js';
+import { togglePause, onAppResume, onAppSuspend } from './lifecycle.js';
 import { resetBGScore, drawCloudCaches } from './renderer/bg.js';
 import { render } from './renderer/index.js';
+import { wakeLoop } from './loop.js';
 
 import { checkUpdateAndReload } from './pwa.js';
 import { MAX, FLR, RND, $ } from './utils.js';
@@ -232,12 +233,12 @@ function handleAppResume() {
       drawGroundCache();
       drawCloudCaches();
       resetBGScore();
-      render(performance.now());
     }
+    onAppResume();
+    wakeLoop();
+    render(performance.now());
   } else {
-    if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
-      togglePause();
-    }
+    onAppSuspend();
   }
 }
 

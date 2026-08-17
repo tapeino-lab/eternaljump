@@ -22,10 +22,34 @@ export let lastTime = performance.now();
 export let acc = 0;
 export let loopRunning = false;
 export const frameDuration = 1000 / config.targetFPS;
+let currentRafId: number | null = null;
 
-export function setLoopRunning(val: boolean) { loopRunning = val; }
-export function resetLoopStats() { lastTime = performance.now(); acc = 0; }
-export function startLoop() { resetLoopStats(); loopRunning = true; requestAnimationFrame(loop); }
+export function setLoopRunning(val: boolean) { 
+  loopRunning = val;
+  if (!val && currentRafId !== null) {
+    cancelAnimationFrame(currentRafId);
+    currentRafId = null;
+  }
+}
+
+export function resetLoopStats() { 
+  lastTime = performance.now(); 
+  acc = 0; 
+}
+
+export function wakeLoop() {
+  resetLoopStats();
+  loopRunning = true;
+  if (currentRafId !== null) {
+    cancelAnimationFrame(currentRafId);
+    currentRafId = null;
+  }
+  currentRafId = requestAnimationFrame(loop);
+}
+
+export function startLoop() { 
+  wakeLoop();
+}
 
 let lastLoopCheckState = {
   isAttractMode: null as boolean | null,
@@ -38,9 +62,16 @@ let lastLoopCheckState = {
 };
 
 export function loop(ts: number) {
+  currentRafId = null;
   let dT = ts - lastTime;
   lastTime = ts;
-  if (dT > 250) dT = 250;
+
+  // If the browser tab was backgrounded or suspended, dT can be huge.
+  // Clamp dT to 1 frame and reset accumulator to avoid freeze / physics explosions.
+  if (dT > 100 || dT < 0) {
+    dT = frameDuration;
+    acc = 0;
+  }
 
   if (!game.isPaused) {
     if (game.state === 'playing' || game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || game.state === 'intro') {
@@ -110,5 +141,7 @@ export function loop(ts: number) {
   updateAutoCruiseBtnVisibility();
 
   render(ts);
-  if (loopRunning) requestAnimationFrame(loop);
+  if (loopRunning) {
+    currentRafId = requestAnimationFrame(loop);
+  }
 }

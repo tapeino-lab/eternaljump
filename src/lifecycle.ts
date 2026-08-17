@@ -83,6 +83,52 @@ export function clearAttractTimer() {
   clearTimeout(attractTimer);
 }
 
+export function onAppResume() {
+  // Clear stuck inputs
+  inputHandler.active.clear();
+  if (game.player) {
+    game.player.inputDir = 0;
+  }
+
+  // Ensure fadeOverlay is not stuck
+  const fo = $('fadeOverlay');
+  if (fo) {
+    fo.style.display = 'none';
+    fo.style.opacity = '0';
+  }
+
+  if (isAttractMode) {
+    // If we're on title screen and demo ranking was in progress/waiting, restore cleanly
+    if (demoState.active && (demoState.phase === 'wait' || !demoState.calculated)) {
+      runAttractUICycle();
+    } else if (!demoState.active) {
+      resetAttractTimer();
+      const tapMsg = $('tapToStartMsg');
+      if (tapMsg && !game.isPaused) {
+        tapMsg.innerText = 'TAP TO START';
+        tapMsg.style.display = 'block';
+      }
+    }
+  } else {
+    // If returning to an active game that wasn't paused, pause it safely
+    if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
+      togglePause();
+    }
+  }
+
+  updatePauseButton();
+  updateAutoCruiseBtnVisibility();
+}
+
+export function onAppSuspend() {
+  inputHandler.active.clear();
+  if (game.player) {
+    game.player.inputDir = 0;
+  }
+  if (game.state === 'playing' && !game.isPaused && !game.demoMode) {
+    togglePause();
+  }
+}
 
 export function resetAttractTimer() {
   clearTimeout(attractTimer);
