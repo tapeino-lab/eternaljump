@@ -64,6 +64,7 @@ import { spawnParticles } from './particles.js';
       recentExternalCollisionTimer: number = 0;
       inGreenMushroomChain: boolean = false;
       nearOtherEntityFrames?: number;
+      aiLevel?: 'smart' | 'basic';
       breakoutTimer?: number;
       breakoutDir?: number;
 

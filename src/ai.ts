@@ -2,7 +2,17 @@ import { config, SCORE_THRESHOLDS } from './config.js';
 import { game } from './state.js';
 import { isAttractMode } from './lifecycle.js';
 import { getSafetyLineY } from './spawner.js';
-import type { Player, Platform, Item } from './types.js';
+import type { Player, Platform, Item, AILevel } from './types.js';
+
+export function getEntityAILevel(entity: Player): AILevel {
+  if (entity === game.player) {
+    if (game.equipped?.['autocruise2']) return 'smart';
+    if (game.equipped?.['autocruise']) return 'basic';
+    if (game.demoMode) return 'smart';
+  }
+  if (entity && entity.aiLevel) return entity.aiLevel;
+  return 'smart';
+}
 
 function isLockOnPlatform(platform: any): boolean {
   if (!platform) return false;
@@ -50,11 +60,14 @@ export function runAI(entity: Player) {
   // Detect if the entity reached the jump apex and transitioned to falling this frame (prevVy < 0 && vy >= 0)
   let isApex = (prevVyVal !== undefined && prevVyVal < 0 && entity.vy >= 0);
   (entity as any).prevVy = entity.vy;
+  
+  let prevPlat = entity.prevLastPlatform;
   let currentPlat = entity.lastPlatform;
-  entity.prevLastPlatform = entity.lastPlatform;
+  let isPlatChanged = (currentPlat && currentPlat !== prevPlat);
+  entity.prevLastPlatform = currentPlat;
 
   // Track consecutive vertical jumps on the same platform to detect stuck state
-  if (isJustJumped && currentPlat) {
+  if ((isJustJumped || isPlatChanged) && currentPlat) {
     if (currentPlat === entity.platformTheyJumpedFrom) {
       entity.samePlatformVertJumps = (entity.samePlatformVertJumps || 0) + 1;
     } else {
@@ -226,11 +239,12 @@ export function runAI(entity: Player) {
     return false;
   };
 
-  // When touching a new platform or landing, reset normal jump lock
-  if (isJustJumped) {
+  // When touching a new platform or landing, reset normal jump lock and stale target
+  if (isJustJumped || isPlatChanged) {
     entity.aiLockedFromNormalJump = false;
     entity.aiLockedTarget = null;
     entity.aiLookAheadTarget = null;
+    entity.aiTarget = null;
     (entity as any).aiBoostAppliedThisJump = false;
   }
 
@@ -246,7 +260,7 @@ export function runAI(entity: Player) {
   let isStuck = (entity.samePlatformVertJumps || 0) >= 2;
 
   // Platform Jump Trigger: Determine optimal target at the EXACT moment of jumping from any platform and lock onto it
-  if (isJustJumped) {
+  if (isJustJumped || isPlatChanged) {
     let history = entity.visitedHistory || entity.recentPlatforms || [];
     let timesVisited = 0;
     if (currentPlat) {
@@ -257,7 +271,7 @@ export function runAI(entity: Player) {
     if (timesVisited >= 2) isStuck = true;
 
     entity.aiThinkTimer = 0;
-    let initialVy = currentPlat ? getPlatformJumpVy(currentPlat, entity) : entity.vy;
+    let initialVy = currentPlat ? getPlatformJumpVy(currentPlat, entity) : (entity.vy < 0 ? entity.vy : -4.2);
     aiCalculationsThisFrame++;
     let bestTarget = findBestTarget(entity, px, py, initialVy, isStuck);
     entity.aiTarget = bestTarget;
@@ -574,6 +588,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   let bestFallbackTarget = null;
   let bestFallbackScore = -Infinity;
 
+  let aiLevel = getEntityAILevel(entity);
+  let isBasic = (aiLevel === 'basic');
+
   let g = config.jumpGravity || 0.15;
   let maxVx = config.maxSpeedX || 1.6;
   if (entity && (entity.isSuperJumping || initialVy < -8)) {
@@ -798,7 +815,76 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     } else if (isStuck) {
       if (dy > 0) score += dy * 50; 
       score += eff_dx * 10; 
+    } else if (isBasic) {
+      // === BASIC AI (少し劣ったバージョン: 近くの台を優先、コインに目が行きがち、適度な欲張り) ===
+      if (dy > 0) {
+        score += dy * 160; // Moderate ascent priority (less aggressive climb-first)
+        if (initialVy < 0) {
+          let distFromApex = candPy - apexY;
+          let apexBonus = 0;
+          if (distFromApex >= -4) {
+            apexBonus = 22000 - Math.max(0, distFromApex) * 70;
+          }
+          score += Math.max(0, apexBonus);
+        }
+      } else {
+        let absDy = dy < 0 ? -dy : dy;
+        if (initialVy >= 0 || entity.vy > 0) {
+          score -= absDy * 10;
+          score -= eff_dx * 400;
+          if (eff_dx === 0) {
+            score += 20000;
+          }
+        } else if (absDy <= 20) {
+          // Readily hops across nearby lateral platforms at similar height!
+          score += 28000 - absDy * 30;
+        } else {
+          score -= absDy * 90; // Less punitive against lower platforms
+        }
+      }
+      // Prefer platforms that are horizontally closer to current position
+      score -= eff_dx * 12;
+
+      let candDirection = (candPx >= px) ? 1 : -1;
+      let isMovingSameWay = (entity.vx > 0.15 && candDirection > 0) || (entity.vx < -0.15 && candDirection < 0);
+      let isFacingSameWay = (entity.facingRight && candDirection > 0) || (!entity.facingRight && candDirection < 0);
+      if (isMovingSameWay) {
+        score += 5000;
+      } else if (isFacingSameWay && Math.abs(entity.vx || 0) <= 0.15) {
+        score += 2500;
+      }
+
+      let bonus = 0;
+      if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') bonus += 50000;
+      if (cand.type === 'green' && dy > 0) bonus += 500000;
+      else if (cand.collected !== undefined) {
+        // High coin attraction for Basic AI ("コインに目が行きがち")
+        bonus += 45000;
+      }
+      
+      if (dy < -10) {
+        bonus = Math.floor(bonus / 4);
+      }
+      score += bonus;
+
+      let historyIdx = history.lastIndexOf(cand);
+      if (historyIdx !== -1) {
+        let recency = history.length - historyIdx;
+        score -= (20000 / recency);
+      }
+
+      if ((entity.samePlatformVertJumps || 0) >= 1) {
+        let isDirectlyAbove = (eff_dx < 16 && dy > 0);
+        if (isDirectlyAbove) {
+          score -= 60000;
+        }
+      }
+
+      if (isLastPlat) {
+        score -= 35000;
+      }
     } else {
+      // === SMART AI (賢いバージョン: 物理頂点最適化・最速登攀・的確な足場選定) ===
       if (dy > 0) {
         score += dy * 350; // Strongly prioritize climbing upward directly to highest reachable platforms
         if (initialVy < 0) {
@@ -869,27 +955,22 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       if (isLastPlat) {
         score -= 40000; // Prefer newly reachable platforms, but keep lastPlatform available if it's the only option
       }
-
-      // Target commitment/stickiness bonus: avoid rapid back-and-forth target switching,
-      // but allow significantly higher reachable platforms to naturally override lower locked targets.
-      if (entity.aiTarget && cand === entity.aiTarget) {
-        score += 8000;
-      }
     }
 
     // Improved fallback evaluation: context-aware for ascent vs descent
     let fbScore = microBias;
     if (cand.isIcy) {
-      fbScore -= 4000; // Apply general ice platform preference penalty here too
+      fbScore -= isBasic ? 1500 : 4000;
     }
     if (isLastPlat) {
-      fbScore -= 20000;
+      fbScore -= isBasic ? 15000 : 20000;
     }
 
-    // Heavily penalize ice platforms with no next step (dead ends)
+    // Penalize ice platforms with no next step (dead ends)
     if (!hasNextFromIce) {
-      score -= 200000;
-      fbScore -= 200000;
+      let icePenalty = isBasic ? 40000 : 200000;
+      score -= icePenalty;
+      fbScore -= icePenalty;
     }
 
     let isDescending = (initialVy >= 0 || entity.vy > 0);
@@ -911,8 +992,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         // Platform is far above the maximum jump apex: physically unreachable in this jump!
         fbScore = -Infinity;
       } else if (dy > 0) {
-        fbScore += dy * 100; // Prefer platforms above within reachable apex
-        fbScore -= eff_dx * 8; // Prefer horizontally closer platforms
+        fbScore += dy * (isBasic ? 60 : 100); // Prefer platforms above within reachable apex
+        fbScore -= eff_dx * (isBasic ? 12 : 8); // Prefer horizontally closer platforms
       } else {
         // Equal height or slightly below: viable lateral escape route
         fbScore -= Math.abs(dy) * 15;
@@ -922,16 +1003,12 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
     if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') fbScore += 3000;
     if (cand.type === 'green' && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) fbScore += 500000; // Only boost green mushrooms if within reach
+    if (cand.collected !== undefined) fbScore += isBasic ? 25000 : 500;
 
     let historyIdx = history.lastIndexOf(cand);
     if (historyIdx !== -1) {
       let recency = history.length - historyIdx;
       fbScore -= (30000 / recency);
-    }
-
-    // Target commitment/stickiness bonus for fallback candidates as well (only for reachable targets)
-    if (entity.aiTarget && cand === entity.aiTarget && fbScore > -100000) {
-      fbScore += 15000;
     }
 
     // BREAKOUT target diversification: If stuck, force target switching to break stagnation loops
@@ -969,6 +1046,17 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   }
   for (let i = 0; i < items.length; i++) {
     processCand(items[i]);
+  }
+  // For Basic AI, evaluate nearby coins so it can be attracted to them
+  if (isBasic) {
+    if (game.coins) {
+      for (let i = 0; i < game.coins.length; i++) {
+        let c = game.coins[i];
+        if (!c.collected && Math.abs(c.y - py) < 180) {
+          processCand(c);
+        }
+      }
+    }
   }
 
   return bestTarget || bestFallbackTarget;

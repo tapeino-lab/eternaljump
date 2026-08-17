@@ -151,7 +151,50 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     name: 'BREAKFAST',
     desc: 'A bite to wake up.',
     price: 30000,
-    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">\n  <rect x="5" y="8" width="6" height="6" fill="#fcc"/>\n  <rect x="2" y="2" width="12" height="6" fill="#f33"/>\n  <rect x="4" y="4" width="3" height="3" fill="#fff"/>\n  <rect x="9" y="4" width="3" height="3" fill="#fff"/>\n</svg>`
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="5" y="8" width="6" height="6" fill="#fcc"/>
+  <rect x="2" y="2" width="12" height="6" fill="#f33"/>
+  <rect x="4" y="4" width="3" height="3" fill="#fff"/>
+  <rect x="9" y="4" width="3" height="3" fill="#fff"/>
+</svg>`
+  },
+  {
+    id: 'autocruise2',
+    name: 'AUTO CRUISE 2',
+    desc: '"Right away, Michael."',
+    price: 50000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+      <!-- Main Monitor Outline -->
+      <rect x="2" y="2" width="12" height="12" fill="#000"/>
+      
+      <!-- Glossy Black Casing Base -->
+      <rect x="3" y="3" width="10" height="10" fill="#24262b"/>
+      <!-- Metallic Highlights -->
+      <rect x="3" y="3" width="10" height="1" fill="#5c6270"/>
+      <rect x="3" y="4" width="1" height="9" fill="#434752"/>
+      <rect x="3" y="3" width="2" height="1" fill="#9ea5b3"/>
+      <rect x="3" y="4" width="1" height="2" fill="#9ea5b3"/>
+      <!-- Shadows -->
+      <rect x="4" y="12" width="9" height="1" fill="#0f1012"/>
+      <rect x="12" y="4" width="1" height="8" fill="#0f1012"/>
+
+      <!-- Screen Bezel -->
+      <rect x="4" y="4" width="8" height="7" fill="#050505"/>
+      
+      <!-- Screen -->
+      <rect x="5" y="5" width="6" height="5" fill="#2b0808"/>
+      <rect x="5" y="5" width="6" height="1" fill="#471010"/>
+      
+      <!-- Face (Red Phosphor) -->
+      <rect x="6" y="6" width="1" height="1" fill="#ff2a2a"/>
+      <rect x="9" y="6" width="1" height="1" fill="#ff2a2a"/>
+      <rect x="7" y="8" width="2" height="1" fill="#ff2a2a"/>
+
+      <!-- Drive & LEDs -->
+      <rect x="4" y="11" width="3" height="1" fill="#1b1c20"/>
+      <rect x="9" y="11" width="1" height="1" fill="#ffdd22"/>
+      <rect x="11" y="11" width="1" height="1" fill="#ff8800"/>
+    </svg>`
   }
 ];
 
@@ -268,18 +311,25 @@ export function updateShopUI() {
   }
 }
 
-export const AUTOCRUISE_QUOTES = [
+export const AUTOCRUISE_QUOTES_BASIC = [
+  '"Already on it."',
+  '"I\'ll take care of it."'
+];
+
+export const AUTOCRUISE_QUOTES_SMART = [
   '"Right away, Michael."',
   '"I\'m on it, Michael."',
-  '"Already on it."',
-  '"Leave it to me, Michael."',
-  '"I\'ll take care of it."'
+  '"Leave it to me, Michael."'
 ];
 
 export function onEnterShop() {
   const autoCruiseItem = SHOP_ITEMS.find(i => i.id === 'autocruise');
   if (autoCruiseItem) {
-    autoCruiseItem.desc = AUTOCRUISE_QUOTES[Math.floor(Math.random() * AUTOCRUISE_QUOTES.length)];
+    autoCruiseItem.desc = AUTOCRUISE_QUOTES_BASIC[Math.floor(Math.random() * AUTOCRUISE_QUOTES_BASIC.length)];
+  }
+  const autoCruise2Item = SHOP_ITEMS.find(i => i.id === 'autocruise2');
+  if (autoCruise2Item) {
+    autoCruise2Item.desc = AUTOCRUISE_QUOTES_SMART[Math.floor(Math.random() * AUTOCRUISE_QUOTES_SMART.length)];
   }
 
   shopState.initialEquipped = { ...(game.equipped || {}) };
@@ -328,15 +378,28 @@ export function initShop() {
 
       if (game.inventory[id]) {
         if (!game.equipped) game.equipped = {};
-        if (!game.equipped[id]) {
+        let isCurrentlyEquipped = !!game.equipped[id];
+
+        if (!isCurrentlyEquipped) {
+          // Mutually exclusive: swap AI equipment if the other is equipped
+          if (id === 'autocruise' && game.equipped['autocruise2']) {
+            game.equipped['autocruise2'] = false;
+          } else if (id === 'autocruise2' && game.equipped['autocruise']) {
+            game.equipped['autocruise'] = false;
+          }
+
           let numEquipped = Object.values(game.equipped).filter(Boolean).length;
           if (numEquipped >= 3) {
             itemCard.classList.add('shake-effect');
             setTimeout(() => itemCard.classList.remove('shake-effect'), 300);
             return;
           }
+          game.equipped[id] = true;
+        } else {
+          game.equipped[id] = false;
         }
-        game.equipped[id] = !game.equipped[id];
+
+        secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
         updateShopUI();
       } else {
         let item = shopState.itemData[id];
@@ -346,6 +409,13 @@ export function initShop() {
         game.inventory[id] = true;
         if (!game.equipped) game.equipped = {};
         
+        // Mutually exclusive on unlock auto-equip
+        if (id === 'autocruise' && game.equipped['autocruise2']) {
+          game.equipped['autocruise2'] = false;
+        } else if (id === 'autocruise2' && game.equipped['autocruise']) {
+          game.equipped['autocruise'] = false;
+        }
+
         let numEquipped = Object.values(game.equipped).filter(Boolean).length;
         if (numEquipped < 3) {
           game.equipped[id] = true; // Auto equip if slot available

@@ -5,6 +5,8 @@ import type { Item, Coin, FlyingCoin } from './entities/items.js';
 import type { Meteor, Bird } from './entities/obstacles.js';
 import type { BackgroundCloud } from './entities/background.js';
 
+export type AILevel = 'smart' | 'basic';
+
 export interface Star {
   x: number;
   y: number;

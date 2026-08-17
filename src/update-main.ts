@@ -29,7 +29,7 @@ import { RankingAPI } from './ranking.js';
       if (game.state === 'powerup_anim' || game.state === 'powerdown_anim' || game.state === 'clear' || (game.state as any) === 'intro_anim') {
         updateStateAnimations(game, config, FLR);
       } else if (game.state !== 'gameover') {
-        if ((game.demoMode || (game.equipped && game.equipped['autocruise'])) && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player);
+        if ((game.demoMode || (game.equipped && (game.equipped['autocruise'] || game.equipped['autocruise2']))) && game.aiActive && (game.state === 'playing' || game.state === 'intro')) runAI(game.player);
         game.player.update();
         
         updateBirds(game);

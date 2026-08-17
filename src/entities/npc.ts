@@ -23,6 +23,7 @@ import { spawnParticles } from './particles.js';
         this.frameCount = FLR(RND() * 3);
         this.waitTimer = 0;
         this.npcIndex = idx;
+        this.aiLevel = Math.random() < 0.5 ? 'basic' : 'smart';
         this.balloonTimer = 0;
         this.balloonText = '';
       }

@@ -181,7 +181,7 @@ export function startRealGame() {
 }
 
 export function setAuto(isActive) {
-  if (!game.demoMode && !(game.equipped && game.equipped['autocruise'])) return;
+  if (!game.demoMode && !(game.equipped && (game.equipped['autocruise'] || game.equipped['autocruise2']))) return;
   game.aiActive = isActive;
   if (isActive) {
     game.player.aiPath = [];
@@ -219,7 +219,7 @@ export function updateAutoCruiseBtnVisibility() {
     !game.demoMode &&
     !isAttractMode &&
     (game.state === 'playing' || game.state === 'intro' || game.state === 'intro_anim' || game.state === 'powerup_anim' || game.state === 'powerdown_anim') &&
-    !!(game.equipped && game.equipped['autocruise']);
+    !!(game.equipped && (game.equipped['autocruise'] || game.equipped['autocruise2']));
 
   const nextDisplay = canShow ? 'block' : 'none';
   if (autoCruiseBtn.style.display !== nextDisplay) {
@@ -227,11 +227,14 @@ export function updateAutoCruiseBtnVisibility() {
   }
 
   if (canShow) {
-    const curState = game.aiActive ? 'active' : 'inactive';
+    const isCruise2 = !!(game.equipped && game.equipped['autocruise2']);
+    const activeColor = isCruise2 ? '#ff3b3b' : '#a0f020';
+    const activeBorder = isCruise2 ? '#ff3b3b' : '#a0f020';
+    const curState = (game.aiActive ? 'active_' : 'inactive_') + (isCruise2 ? 'c2' : 'c1');
     if (lastAutoCruiseState !== curState) {
       autoCruiseBtn.innerHTML = 'AUTO';
-      autoCruiseBtn.style.color = game.aiActive ? '#a0f020' : '#fff';
-      autoCruiseBtn.style.borderColor = game.aiActive ? '#a0f020' : 'rgba(255, 255, 255, 0.7)';
+      autoCruiseBtn.style.color = game.aiActive ? activeColor : '#fff';
+      autoCruiseBtn.style.borderColor = game.aiActive ? activeBorder : 'rgba(255, 255, 255, 0.7)';
       lastAutoCruiseState = curState;
     }
   } else {
