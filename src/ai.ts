@@ -230,6 +230,8 @@ export function runAI(entity: Player) {
   if (isJustJumped) {
     entity.aiLockedFromNormalJump = false;
     entity.aiLockedTarget = null;
+    entity.aiLookAheadTarget = null;
+    (entity as any).aiBoostAppliedThisJump = false;
   }
 
   // Super Jump / High Launch detection: immediately clear old targets below player or collected
@@ -238,6 +240,7 @@ export function runAI(entity: Player) {
   // Clear stale target if it's already invalid, collected, broken, blacklisted, or below/passed by the player
   if (entity.aiTarget && isTargetInvalid(entity.aiTarget)) {
     entity.aiTarget = null;
+    entity.aiLookAheadTarget = null;
   }
 
   let isStuck = (entity.samePlatformVertJumps || 0) >= 2;
@@ -255,6 +258,7 @@ export function runAI(entity: Player) {
 
     entity.aiThinkTimer = 0;
     let initialVy = currentPlat ? getPlatformJumpVy(currentPlat, entity) : entity.vy;
+    aiCalculationsThisFrame++;
     let bestTarget = findBestTarget(entity, px, py, initialVy, isStuck);
     entity.aiTarget = bestTarget;
     entity.aiLockedTarget = bestTarget;
@@ -269,14 +273,14 @@ export function runAI(entity: Player) {
 
       let dist = Math.abs(dx);
       let pushDir = dx > 0 ? 1 : -1;
-      entity.inputDir = pushDir;
+      entity.inputDir = (dist > 2.5) ? pushDir : 0;
 
-      // Immediate horizontal propulsion to prevent vertical bouncing on unexpected landings
-      if (dist > 4 || Math.abs(entity.vx) < 0.4) {
-        let boostAmount = 0.8 * pushDir;
+      // Immediate horizontal propulsion to prevent vertical bouncing on landings
+      if (dist > 2.5 || Math.abs(entity.vx) < 0.4) {
+        let boostAmount = 0.85 * pushDir;
         // If current velocity opposes the target direction, give extra kick to turn around instantly
         if ((entity.vx > 0 && pushDir < 0) || (entity.vx < 0 && pushDir > 0)) {
-          entity.vx = pushDir * 0.9;
+          entity.vx = pushDir * 1.0;
         } else if (Math.abs(entity.vx) < 0.6) {
           entity.vx = (entity.vx || 0) + boostAmount;
         }
@@ -294,26 +298,27 @@ export function runAI(entity: Player) {
     // Jump Apex Trigger (prevVy < 0 && vy >= 0):
     // When reaching the peak of the jump and transitioning into falling,
     // only switch targets if the current target is genuinely unreachable or invalid.
-    // Keeping the locked target produces a smooth, natural landing arc without mid-air swerving.
     let currentLocked = entity.aiLockedTarget;
     let initialVy = entity.vy;
 
     let isCurrentUnreachable = false;
     if (currentLocked) {
-      // Only treat locked target as unreachable if player has clearly fallen well below the landing surface
       isCurrentUnreachable = (py > currentLocked.y + 24) || isTargetInvalid(currentLocked);
     }
 
     if (!currentLocked || isCurrentUnreachable) {
-      let potentialTarget = findBestTarget(entity, px, py, initialVy, isStuck);
-      if (potentialTarget) {
-        entity.aiTarget = potentialTarget;
-        entity.aiLockedTarget = potentialTarget;
-        entity.aiLockedFromNormalJump = true;
-      } else {
-        entity.aiLockedFromNormalJump = false;
-        entity.aiLockedTarget = null;
-        entity.aiTarget = null;
+      if (aiCalculationsThisFrame < 1) {
+        aiCalculationsThisFrame++;
+        let potentialTarget = findBestTarget(entity, px, py, initialVy, isStuck);
+        if (potentialTarget) {
+          entity.aiTarget = potentialTarget;
+          entity.aiLockedTarget = potentialTarget;
+          entity.aiLockedFromNormalJump = true;
+        } else {
+          entity.aiLockedFromNormalJump = false;
+          entity.aiLockedTarget = null;
+          entity.aiTarget = null;
+        }
       }
     } else {
       entity.aiTarget = currentLocked;
@@ -324,11 +329,13 @@ export function runAI(entity: Player) {
     let isInvalid = isTargetInvalid(t);
 
     if (isInvalid) {
-      // Unlock if target was destroyed, collected, or passed mid-air, or if player ascended above it
       entity.aiLockedFromNormalJump = false;
       entity.aiLockedTarget = null;
-      let initialVy = entity.vy;
-      entity.aiTarget = findBestTarget(entity, px, py, initialVy, isStuck);
+      if (aiCalculationsThisFrame < 1) {
+        aiCalculationsThisFrame++;
+        let initialVy = entity.vy;
+        entity.aiTarget = findBestTarget(entity, px, py, initialVy, isStuck);
+      }
     } else {
       entity.aiTarget = entity.aiLockedTarget;
     }
@@ -347,13 +354,13 @@ export function runAI(entity: Player) {
         let entityId = entity.isNPC ? (entity.npcIndex || 1) : 0;
         let fCount = entity.frameCount || 0;
         if (entity.vy < 0) {
-          // While rising in mid-air, lower rethink frequency and apply time-slicing (staggering across frames)
-          if ((entity.aiThinkTimer || 0) > 12 && (fCount + entityId) % 12 === 0) {
+          // While rising in mid-air, lower rethink frequency and stagger across entities
+          if ((entity.aiThinkTimer || 0) > 18 && (fCount + entityId * 5) % 18 === 0) {
             needsRethink = true;
           }
         } else {
-          // Lower rethink frequency during fall/wait and apply time-slicing
-          if ((entity.aiThinkTimer || 0) > 30 && (fCount + entityId) % 30 === 0) {
+          // Lower rethink frequency during fall/wait and stagger across entities
+          if ((entity.aiThinkTimer || 0) > 36 && (fCount + entityId * 7) % 36 === 0) {
             needsRethink = true;
           }
         }
@@ -361,23 +368,23 @@ export function runAI(entity: Player) {
     }
 
     if (needsRethink) {
-      // Throttle heavy AI pathfinding calculations to 2 per frame globally
-      if (aiCalculationsThisFrame >= 2) {
-        needsRethink = false; // Defer pathfinding, but continue to steering logic
+      // Throttle heavy AI pathfinding calculations to 1 per frame globally across all NPCs and player
+      if (aiCalculationsThisFrame >= 1 && entity.aiTarget && !isTargetInvalid(entity.aiTarget)) {
+        needsRethink = false; // Defer non-critical pathfinding to next frame
       } else {
         aiCalculationsThisFrame++;
 
-      let history = entity.visitedHistory || entity.recentPlatforms || [];
-      let timesVisited = 0;
-      for (let i = 0; i < history.length; i++) {
-        if (history[i] === entity.lastPlatform) timesVisited++;
-      }
-      if (timesVisited >= 2) isStuck = true;
+        let history = entity.visitedHistory || entity.recentPlatforms || [];
+        let timesVisited = 0;
+        for (let i = 0; i < history.length; i++) {
+          if (history[i] === entity.lastPlatform) timesVisited++;
+        }
+        if (timesVisited >= 2) isStuck = true;
 
-      entity.aiThinkTimer = 0;
-      let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
-      let initialVy = (isJustJumped || isGrounded) ? getPlatformJumpVy(entity.lastPlatform, entity) : entity.vy;
-      entity.aiTarget = findBestTarget(entity, px, py, initialVy, isStuck);
+        entity.aiThinkTimer = 0;
+        let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
+        let initialVy = (isJustJumped || isGrounded) ? getPlatformJumpVy(entity.lastPlatform, entity) : entity.vy;
+        entity.aiTarget = findBestTarget(entity, px, py, initialVy, isStuck);
       }
     } 
     if (!needsRethink) {
@@ -399,22 +406,89 @@ export function runAI(entity: Player) {
     else if (dx_center < -config.gameWidth / 2) dx_center += config.gameWidth;
 
     let dx = dx_center;
-
     let dist = Math.abs(dx);
-    let targetDir = dx > 0 ? 1 : -1;
 
     let isItem = (entity.aiTarget.collected !== undefined || entity.aiTarget.type === 'red' || entity.aiTarget.type === 'green');
-    // For wide platforms, safe landing margin covers comfortable center area (avoiding rigid pixel-perfect fighting)
-    let safeLandingMargin = isItem ? 3 : Math.max(3, candW / 2 - 4);
-    let isApproachingLanding = (py <= entity.aiTarget.y + 12 && entity.vy >= -2);
+    let isTargetIcy = !!entity.aiTarget.isIcy;
+    let isTargetFragile = (entity.aiTarget.type === 'crumble' || entity.aiTarget.type === 'brown');
 
-    if (dist <= safeLandingMargin && (isApproachingLanding || Math.abs(entity.vx) > 0.35)) {
-      // Comfortably inside the target platform / item horizontal footprint:
-      // Neutral input allows natural inertia and physics damping to smoothly float onto the platform
-      entity.inputDir = 0;
+    // Phase-specific steering:
+    // 1. Ascent Phase (vy < 0): Actively drive towards target center to maintain clean parabolic trajectory
+    //    and prevent unintended vertical jumps due to premature deadband braking.
+    // 2. Descent Phase (vy >= 0): Use platform span deadband & Schmitt hysteresis for stable, jitter-free touchdown.
+    let isAscending = (entity.vy < 0);
+    let halfPlatSpan = isItem ? 3 : Math.max(3, candW / 2 - 3);
+
+    let desiredDir = 0;
+    let prevInput = entity.inputDir || 0;
+    let rawDir = dx > 0 ? 1 : -1;
+
+    if (isAscending) {
+      // During ascent: drive towards target center unless already precisely aligned within 2.5px
+      if (dist <= 2.5) {
+        desiredDir = 0;
+      } else {
+        desiredDir = rawDir;
+      }
     } else {
-      // Outside the safe landing footprint: drive smoothly toward target
-      entity.inputDir = targetDir;
+      // During descent: smoothly ride inertia onto the platform surface if within landing span
+      if (dist <= halfPlatSpan) {
+        desiredDir = 0;
+      } else {
+        if (prevInput !== 0 && rawDir !== prevInput && dist < 4.5) {
+          desiredDir = 0;
+        } else {
+          desiredDir = rawDir;
+        }
+      }
+    }
+
+    // Anti-Vertical Boost during rising phase (applied once per jump when clearly heading sideways)
+    if (entity.vy < -0.8 && dist > 6 && Math.abs(entity.vx || 0) < 0.45 && !(entity as any).aiBoostAppliedThisJump) {
+      (entity as any).aiBoostAppliedThisJump = true;
+      let boostAmount = 0.5 * rawDir;
+      entity.vx = (entity.vx || 0) + boostAmount;
+      let maxS = config.maxSpeedX * (entity.isSuperJumping ? 1.2 : 1.0);
+      if (entity.vx > maxS) entity.vx = maxS;
+      else if (entity.vx < -maxS) entity.vx = -maxS;
+    }
+
+    // Look-Ahead Landing & Pre-Input Steering:
+    // When falling toward a confirmed landing, check next hop target (cached once per descent)
+    let isDescendingToPlat = (entity.vy > 0 && !isItem && py <= entity.aiTarget.y + 4 && py >= entity.aiTarget.y - 32);
+    let isHorizontallyAligned = dist <= halfPlatSpan + 2;
+
+    if (isDescendingToPlat && isHorizontallyAligned) {
+      if (!entity.aiLookAheadTarget || isTargetInvalid(entity.aiLookAheadTarget)) {
+        if (aiCalculationsThisFrame < 1) {
+          aiCalculationsThisFrame++;
+          let nextHopVy = getPlatformJumpVy(entity.aiTarget, entity);
+          entity.aiLookAheadTarget = findBestTarget(entity, tx, entity.aiTarget.y, nextHopVy, false);
+        }
+      }
+      let nextTarget = entity.aiLookAheadTarget;
+      if (nextTarget && nextTarget !== entity.aiTarget) {
+        let nextW = nextTarget.w || 16;
+        let nextTx = nextTarget.x + nextW / 2;
+        let nextDx = nextTx - px;
+        if (nextDx > config.gameWidth / 2) nextDx -= config.gameWidth;
+        else if (nextDx < -config.gameWidth / 2) nextDx += config.gameWidth;
+        
+        let nextDir = nextDx > 0 ? 1 : -1;
+        entity.inputDir = nextDir;
+        if (isTargetIcy && Math.abs(entity.vx || 0) < 0.6) {
+          entity.vx = (entity.vx || 0) + nextDir * 0.4;
+        }
+      } else {
+        if (isTargetIcy || isTargetFragile) {
+          let keepDir = (entity.vx > 0.1) ? 1 : ((entity.vx < -0.1) ? -1 : (entity.facingRight ? 1 : rawDir));
+          entity.inputDir = keepDir;
+        } else {
+          entity.inputDir = desiredDir;
+        }
+      }
+    } else {
+      entity.inputDir = desiredDir;
     }
   } else {
     // If stuck or having no target, maintain lateral movement in current travel direction
@@ -523,6 +597,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
     // 1. Completely ignore objects below the death limit (bottom boundary)
     if (candPy >= maxReachY) return;
+
+    // Fast bounding box rejection to avoid heavy math on platforms too far away
+    if (candPy > py + 220 || candPy < py - 380) return;
 
     let candW = cand.w || 16;
     let candPx = cand.x + candW / 2;

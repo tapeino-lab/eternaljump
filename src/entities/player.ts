@@ -58,6 +58,8 @@ import { spawnParticles } from './particles.js';
       platformTheyJumpedFrom?: any;
       aiLockedTarget?: any;
       aiLockedFromNormalJump?: boolean;
+      aiLookAheadTarget?: any;
+      aiBoostAppliedThisJump?: boolean;
       isCleared: boolean = false;
       recentExternalCollisionTimer: number = 0;
       inGreenMushroomChain: boolean = false;
