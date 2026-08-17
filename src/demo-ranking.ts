@@ -1,9 +1,15 @@
 import { $, escapeHTML } from './utils.js';
-import { demoState } from './state.js';
+import { game, demoState } from './state.js';
+import { isAttractMode } from './lifecycle.js';
 import { RankingAPI } from './ranking.js';
 import { LootLockerAPI } from './lootlocker.js';
 
-export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' | 'height' = 'height', isTransition: boolean = false) {
+let currentDemoRankingSession = 0;
+
+export async function startDemoRankingScroll(mode: 'ta' | 'height' = 'height', isTransition: boolean = false) {
+  currentDemoRankingSession++;
+  const session = currentDemoRankingSession;
+
   if (!isTransition) {
       const oldHeader = document.getElementById('demoHeaderOld');
       if (oldHeader) oldHeader.remove();
@@ -12,7 +18,10 @@ export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' 
       const oldOthers = document.getElementById('demoOthersWrapperOld');
       if (oldOthers) oldOthers.remove();
   }
-  if (!isAttractMode) return;
+  if (!isAttractMode || !game.demoMode) {
+    demoState.active = false;
+    return;
+  }
   demoState.active = true;
   if (!isTransition) {
     $('demoRankingContainer').style.display = 'block';
@@ -26,7 +35,9 @@ export async function startDemoRankingScroll(isAttractMode: boolean, mode: 'ta' 
   $('demoOthers').innerHTML = '';
   
   let s = mode === 'ta' ? await RankingAPI.getTimeAttackScores() : (await RankingAPI.getScores()).slice(0, 100);
-  if (!isAttractMode) {
+  if (session !== currentDemoRankingSession || !isAttractMode || !game.demoMode) {
+    demoState.active = false;
+    $('demoRankingContainer').style.display = 'none';
     if (!isTransition) $('demoLoading').style.display = 'none';
     return;
   }

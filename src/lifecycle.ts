@@ -44,11 +44,16 @@ export function updatePauseButton() {
   if (!cachedShopScreen) cachedShopScreen = $('shopScreen');
   if (!cachedRankingModal) cachedRankingModal = $('rankingModal');
 
+  // If real game is active, ensure demoState.active cannot mistakenly remain true
+  if (!isAttractMode && !game.demoMode && demoState.active) {
+    demoState.active = false;
+  }
+
   const isShopOpen = (game.state === 'shop') || (cachedShopScreen?.style.display === 'flex');
   const isRankingOpen = document.body.classList.contains('showing-ranking') || (cachedRankingModal?.style.display === 'flex');
   
   let targetState = 'none';
-  if (game.isPaused || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear' || demoState.active) {
+  if (game.isPaused || isShopOpen || isRankingOpen || game.state === 'gameover' || game.state === 'clear' || (demoState.active && isAttractMode)) {
     targetState = 'none';
   } else if (game.state === 'playing' || game.state === 'intro' || game.state === 'intro_anim' || game.state === 'powerup_anim' || game.state === 'powerdown_anim') {
     targetState = isAttractMode ? 'flex_gear' : 'flex_pause';
@@ -82,12 +87,12 @@ export function clearAttractTimer() {
 export function resetAttractTimer() {
   clearTimeout(attractTimer);
   attractTimer = setTimeout(() => {
-    if (!isAttractMode || game.isPaused) return;
+    if (!isAttractMode || game.isPaused || !game.demoMode) return;
     
     let tn = document.getElementById('gamePlayerName');
     if (tn) tn.style.display = 'none';
     setAuto(true);
-    startDemoRankingScroll(isAttractMode, demoState.rankingMode);
+    startDemoRankingScroll(demoState.rankingMode);
   }, 3000);
 }
 

@@ -446,7 +446,7 @@ export function updateDemoRanking(ts: number) {
             container.appendChild(oldTop3);
             container.appendChild(oldOthersWrapper);
             
-            import('../demo-ranking.js').then(m => m.startDemoRankingScroll(isAttractMode, 'height', true));
+            import('../demo-ranking.js').then(m => m.startDemoRankingScroll('height', true));
         } else {
             overlay.style.display = 'block';
             overlay.offsetHeight;
