@@ -816,14 +816,19 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       if (dy > 0) score += dy * 50; 
       score += eff_dx * 10; 
     } else if (isBasic) {
-      // === BASIC AI (少し劣ったバージョン: 近くの台を優先、コインに目が行きがち、適度な欲張り) ===
+      // === BASIC AI (旧AI: 安全登攀、落下リスクや氷台では上方最優先、コインへの無謀な落下ダイブを防止) ===
+      let isNearIce = !!(entity.lastPlatform?.isIcy) || candidates.some(p => p.isIcy && Math.abs(p.y - py) < 220);
+
       if (dy > 0) {
-        score += dy * 160; // Moderate ascent priority (less aggressive climb-first)
+        let upMultiplier = isNearIce ? 320 : 220;
+        score += dy * upMultiplier;
         if (initialVy < 0) {
           let distFromApex = candPy - apexY;
           let apexBonus = 0;
           if (distFromApex >= -4) {
-            apexBonus = 22000 - Math.max(0, distFromApex) * 70;
+            let baseBonus = isNearIce ? 45000 : 32000;
+            let decay = isNearIce ? 90 : 80;
+            apexBonus = baseBonus - Math.max(0, distFromApex) * decay;
           }
           score += Math.max(0, apexBonus);
         }
@@ -831,19 +836,25 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         let absDy = dy < 0 ? -dy : dy;
         if (initialVy >= 0 || entity.vy > 0) {
           score -= absDy * 10;
-          score -= eff_dx * 400;
+          score -= eff_dx * 450;
           if (eff_dx === 0) {
             score += 20000;
           }
-        } else if (absDy <= 20) {
-          // Readily hops across nearby lateral platforms at similar height!
-          score += 28000 - absDy * 30;
+        } else if (absDy <= 16) {
+          // Can hop across nearby lateral platforms at similar height if not in icy danger zone
+          if (isNearIce) {
+            score -= absDy * 100; // In icy zones, firmly prioritize moving UP
+          } else {
+            score += 16000 - absDy * 40;
+          }
         } else {
-          score -= absDy * 90; // Less punitive against lower platforms
+          // Penalize lower platforms strongly to prevent dropping down recklessly
+          let downPenalty = isNearIce ? 280 : 180;
+          score -= absDy * downPenalty;
         }
       }
       // Prefer platforms that are horizontally closer to current position
-      score -= eff_dx * 12;
+      score -= eff_dx * 8;
 
       let candDirection = (candPx >= px) ? 1 : -1;
       let isMovingSameWay = (entity.vx > 0.15 && candDirection > 0) || (entity.vx < -0.15 && candDirection < 0);
@@ -858,13 +869,14 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') bonus += 50000;
       if (cand.type === 'green' && dy > 0) bonus += 500000;
       else if (cand.collected !== undefined) {
-        // High coin attraction for Basic AI ("コインに目が行きがち")
-        bonus += 45000;
+        // Coins: Never dive down, ignore completely in icy zones or when falling
+        if (isNearIce || dy < -4 || (entity.vy > 0 && !isGroundedOnPlatform)) {
+          bonus = -100000;
+        } else {
+          bonus += 3000;
+        }
       }
       
-      if (dy < -10) {
-        bonus = Math.floor(bonus / 4);
-      }
       score += bonus;
 
       let historyIdx = history.lastIndexOf(cand);
@@ -1003,7 +1015,10 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
     if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') fbScore += 3000;
     if (cand.type === 'green' && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) fbScore += 500000; // Only boost green mushrooms if within reach
-    if (cand.collected !== undefined) fbScore += isBasic ? 25000 : 500;
+    if (cand.collected !== undefined) {
+      // Coins must NEVER be chosen as fallback landing targets because you cannot land on a coin!
+      fbScore = -Infinity;
+    }
 
     let historyIdx = history.lastIndexOf(cand);
     if (historyIdx !== -1) {
@@ -1047,12 +1062,13 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   for (let i = 0; i < items.length; i++) {
     processCand(items[i]);
   }
-  // For Basic AI, evaluate nearby coins so it can be attracted to them
+  // For Basic AI, only evaluate nearby safe coins if not near ice platforms and coin is not below the player
   if (isBasic) {
-    if (game.coins) {
+    let isNearIce = !!(entity.lastPlatform?.isIcy) || candidates.some(p => p.isIcy && Math.abs(p.y - py) < 220);
+    if (!isNearIce && game.coins) {
       for (let i = 0; i < game.coins.length; i++) {
         let c = game.coins[i];
-        if (!c.collected && Math.abs(c.y - py) < 180) {
+        if (!c.collected && (py - c.y >= -4) && Math.abs(c.y - py) < 120) {
           processCand(c);
         }
       }

@@ -435,7 +435,6 @@ export function initShop() {
       }
     });
   });
-}
 
   const resetBtn = $('shopResetBtn');
   if (resetBtn) {
@@ -445,3 +444,4 @@ export function initShop() {
       updateShopUI();
     });
   }
+}
