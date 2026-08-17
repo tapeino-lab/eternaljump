@@ -209,31 +209,9 @@ export function runAI(entity: Player) {
     // Below the bottom death line for this entity
     if (t.y >= maxReachY) return true;
 
-    // Check if target is above player but impossible to reach with current upward velocity
-    let isGrounded = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
-    if (!isGrounded && t.y < py - 2) {
-      // If we are locked onto this target, we already verified reachability at the start of the jump.
-      // We should only invalidate it if we are fully descending and have clearly fallen below its level.
-      if (entity.aiLockedFromNormalJump && entity.aiLockedTarget === t) {
-        if (entity.vy >= 0 && py > t.y + 32) {
-          return true;
-        }
-      } else {
-        // For non-locked targets, use a slightly more generous apex check to prevent rapid flickering
-        let g = config.jumpGravity || 0.15;
-        let maxAscent = entity.vy < 0 ? (entity.vy * entity.vy) / (2 * g) : 0;
-        let apexY = py - maxAscent;
-        
-        // If we are very close to the platform height anyway, don't invalidate
-        if (py - t.y > 16) {
-          if (t.y < apexY - 6) return true;
-        } else {
-          // If descending and feet are below platform height + margin, it's unreachable
-          if (entity.vy >= 0 && py > t.y + 24) {
-            return true;
-          }
-        }
-      }
+    // Target is only invalid if descending and player's feet have passed below the platform landing line
+    if (entity.vy > 0 && py > t.y + 16) {
+      return true;
     }
 
     return false;
@@ -311,19 +289,14 @@ export function runAI(entity: Player) {
   } else if (isApex) {
     // Jump Apex Trigger (prevVy < 0 && vy >= 0):
     // When reaching the peak of the jump and transitioning into falling,
-    // only switch targets if the current target is genuinely unreachable or invalid.
+    // preserve the currently locked target unless it has become genuinely invalid/destroyed/passed.
     let currentLocked = entity.aiLockedTarget;
-    let initialVy = entity.vy;
-
-    let isCurrentUnreachable = false;
-    if (currentLocked) {
-      isCurrentUnreachable = (py > currentLocked.y + 24) || isTargetInvalid(currentLocked);
-    }
-
-    if (!currentLocked || isCurrentUnreachable) {
+    if (currentLocked && !isTargetInvalid(currentLocked)) {
+      entity.aiTarget = currentLocked;
+    } else {
       if (aiCalculationsThisFrame < 1) {
         aiCalculationsThisFrame++;
-        let potentialTarget = findBestTarget(entity, px, py, initialVy, isStuck);
+        let potentialTarget = findBestTarget(entity, px, py, entity.vy, isStuck);
         if (potentialTarget) {
           entity.aiTarget = potentialTarget;
           entity.aiLockedTarget = potentialTarget;
@@ -334,8 +307,6 @@ export function runAI(entity: Player) {
           entity.aiTarget = null;
         }
       }
-    } else {
-      entity.aiTarget = currentLocked;
     }
   } else if (entity.aiLockedFromNormalJump && entity.aiLockedTarget) {
     // During jump flight (normal jump or super jump), maintain lock onto chosen target unless destroyed/collected/passed
@@ -469,8 +440,9 @@ export function runAI(entity: Player) {
 
     // Look-Ahead Landing & Pre-Input Steering:
     // When falling toward a confirmed landing, check next hop target (cached once per descent)
-    let isDescendingToPlat = (entity.vy > 0 && !isItem && py <= entity.aiTarget.y + 4 && py >= entity.aiTarget.y - 32);
-    let isHorizontallyAligned = dist <= halfPlatSpan + 2;
+    // Only pre-steer when in the immediate final frames of touchdown directly above the target platform
+    let isDescendingToPlat = (entity.vy > 0 && !isItem && py <= entity.aiTarget.y + 4 && py >= entity.aiTarget.y - 8);
+    let isHorizontallyAligned = dist <= Math.max(2, halfPlatSpan - 2);
 
     if (isDescendingToPlat && isHorizontallyAligned) {
       if (!entity.aiLookAheadTarget || isTargetInvalid(entity.aiLookAheadTarget)) {
@@ -624,8 +596,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     let dx = Math.abs(px - candPx);
     if (dx > hgw) dx = gw - dx;
 
-    // Effective horizontal distance taking player width (16px) and candidate width into account
-    let playerW = 16;
+    // Effective horizontal distance taking player width (16px normal, 32px powered up) and candidate width into account
+    let playerW = entity.w || (entity.isPoweredUp ? 32 : 16);
     let eff_dx = Math.max(0, dx - (candW / 2) - (playerW / 2));
 
     // Player touchline/landing boundary: items can be touched across their full height (candPy..candPy+candH)
@@ -653,11 +625,11 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       let maxAscent = (evalVy * evalVy) / (2 * g);
       let apexY = py - maxAscent;
 
-      // Platform surface must be at or below the jump apex Y (with generous 6px margin for landing contact/stretching)
-      if (candPy >= apexY - 6) {
+      // Target touch surface must be at or below the jump apex Y (with generous 8px margin for landing contact/stretching)
+      if (targetTouchY >= apexY - 8) {
         let discriminant = evalVy * evalVy + 2 * g * dy_world;
         // Near the apex, clamp negative discriminant to 0 to prevent floating-point precision drop-offs
-        if (discriminant < 0 && candPy >= apexY - 6) {
+        if (discriminant < 0 && targetTouchY >= apexY - 8) {
           discriminant = 0;
         }
         if (discriminant >= 0) {
