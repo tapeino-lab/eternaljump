@@ -311,6 +311,7 @@ import { spawnParticles } from './particles.js';
               ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
               this.drawHelmet(dH, vS, vOy, cImg);
               this.drawRod(dH, vS, vOy, imgKey);
+              this.drawGlove(dH, vS, vOy, imgKey);
               ctx.restore();
             } else {
               dR(pos.x, pos.y, this.w, dH, c);
@@ -331,6 +332,7 @@ import { spawnParticles } from './particles.js';
           ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
           this.drawHelmet(dH, vS, vOy, cImg);
           this.drawRod(dH, vS, vOy, imgKey);
+          this.drawGlove(dH, vS, vOy, imgKey);
           ctx.restore();
         } else {
           dR(this.x, dY, this.w, dH, c);
@@ -383,6 +385,21 @@ import { spawnParticles } from './particles.js';
           ctx.fillRect(-2 * vS, -0.5 * vS, 4 * vS, 1 * vS);
           ctx.restore();
         }
+      }
+
+      drawGlove(dH: number, vS: number, vOy: number, imgKey: string) {
+        if (this.isNPC || !game.equipped?.["golden_glove"]) return;
+        if (imgKey !== "jmp" && imgKey !== "pwr") return;
+
+        // Player's raised fist tip in jump sprite: exact 2x2 px fist area at (6*vS, -dH*vS + vOy + 1*vS)
+        let startX = FLR(6 * vS);
+        let startY = FLR(-dH * vS + vOy + 1 * vS);
+
+        // Turn the fist tip directly into gold
+        ctx.fillStyle = "#ffd700";
+        ctx.fillRect(startX, startY, 2 * vS, 2 * vS);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(startX, startY, 1 * vS, 1 * vS); // subtle top highlight
       }
 
       drawHelmet(dH: number, vS: number, vOy: number, cImg?: HTMLImageElement) {

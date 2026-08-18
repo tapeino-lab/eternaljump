@@ -4,6 +4,7 @@ import { ctx, IMG, groundCache, groundCached } from '../display.js';
 
 import { game } from '../state.js';
 import { getPt } from './particles.js';
+import { getFc } from './items.js';
 import { dR } from '../renderer/core.js';
 
 import { ObjectPool } from './pool.js';
@@ -180,6 +181,16 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
                 let cX = this.x + i * config.platformW + 8, cY = this.y + 15, iC = ['#fff', '#e0ffff', '#b0e0e6', '#f0ffff'];
                 for (let p = 0; p < 8; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 8, cY + (RND() - 0.5) * 8, (RND() - 0.5) * 6, (RND() - 0.5) * 4 - 1, '#fff', 2 + RND() * 2, 15 + RND() * 10, 0.2 + RND() * 0.1));
                 for (let p = 0; p < 20; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 12, cY + (RND() - 0.5) * 12, (RND() - 0.5) * 1.5, (RND() - 0.8) * 1, iC[FLR(RND() * 4)], RND() * 1.5, 30 + RND() * 45, 0.005 + RND() * 0.015));
+
+                let coinChance = game.equipped?.['skates'] ? 0.75 : 0.5;
+                if (game.equipped?.['golden_glove'] && RND() < coinChance) {
+                  let fc = getFc(cX, cY, () => {
+                    if (game.scoreCoin < 999) game.scoreCoin++;
+                    game.totalCoins++;
+                  });
+                  fc.maxProgress = 25;
+                  game.flyingCoins.push(fc);
+                }
               } else {
                 this.breakOnSquish[i] = false; // Reset for next jump
                 let cX = this.x + i * config.platformW + 8, cY = this.y + 15;
