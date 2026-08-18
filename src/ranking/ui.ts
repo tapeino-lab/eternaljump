@@ -305,7 +305,8 @@ let currentRankingSession = 0;
                 name = nVal.substring(3) || '??';
             }
             if (lang === '???' || lang === '---') {
-                if (r.lang && r.lang !== '---') lang = r.lang;
+                if (r.lang && r.lang !== '---' && r.lang !== '???') lang = r.lang;
+                else lang = 'INT';
             }
             if (lang.length > 3) lang = lang.substring(0, 3);
             if (name.length > 2) name = name.substring(0, 2);

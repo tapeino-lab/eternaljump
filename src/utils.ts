@@ -72,25 +72,74 @@ export const getLang = (): string => {
       ru: 'RUS',
       it: 'ITA',
       pt: 'POR',
-      lt: 'LTU', // Lithuanian
-      lv: 'LVA', // Latvian
-      et: 'EST', // Estonian
-      fi: 'FIN', // Finnish
-      rsl: 'RSL', // Russian Sign Language
-      hy: 'ARM', // Armenian
-      he: 'ISR', // Hebrew (Israel)
-      iw: 'ISR', // Legacy Hebrew code
-      da: 'DNK', // Danish (Scandinavia)
-      no: 'NOR', // Norwegian (Scandinavia)
+      // Southeast Asia
+      vi: 'VIE',
+      id: 'IDN',
+      th: 'THA',
+      tl: 'PHL',
+      fil: 'PHL',
+      ms: 'MYS',
+      my: 'MYA',
+      km: 'KHM',
+      lo: 'LAO',
+      // Eastern & Central Europe
+      pl: 'POL',
+      uk: 'UKR',
+      cs: 'CZE',
+      sk: 'SVK',
+      hu: 'HUN',
+      ro: 'ROU',
+      bg: 'BGR',
+      hr: 'CRO',
+      sr: 'SRB',
+      sl: 'SLO',
+      be: 'BLR',
+      // Baltic & Nordic
+      lt: 'LTU',
+      lv: 'LVA',
+      et: 'EST',
+      fi: 'FIN',
+      da: 'DNK',
+      no: 'NOR',
       nb: 'NOR',
       nn: 'NOR',
-      sv: 'SWE', // Swedish (Scandinavia)
+      sv: 'SWE',
+      is: 'ISL',
+      // Western & Southern Europe
+      nl: 'NLD',
+      el: 'GRE',
+      tr: 'TUR',
+      ca: 'CAT',
+      eu: 'EUS',
+      gl: 'GLG',
+      ga: 'IRL',
+      // Middle East & Central/South Asia
+      ar: 'ARA',
+      fa: 'IRN',
+      he: 'ISR',
+      iw: 'ISR',
+      hy: 'ARM',
+      ka: 'GEO',
+      az: 'AZE',
+      kk: 'KAZ',
+      uz: 'UZB',
+      mn: 'MNG',
+      hi: 'IND',
+      bn: 'BGD',
+      ur: 'PAK',
+      ta: 'IND',
+      te: 'IND',
+      mr: 'IND',
+      pa: 'IND',
+      sw: 'SWA',
+      af: 'AFR',
+      rsl: 'RSL',
     };
     if (langMap[lang]) return langMap[lang];
 
-    return lang.length >= 3 ? lang.substring(0, 3).toUpperCase() : '---';
+    return lang.length >= 3 ? lang.substring(0, 3).toUpperCase() : 'INT';
   } catch (e) {
-    return '---';
+    return 'INT';
   }
 };
 
