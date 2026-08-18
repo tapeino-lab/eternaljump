@@ -210,7 +210,7 @@ export function runAI(entity: Player) {
     if (t.y >= maxReachY) return true;
 
     // Target is only invalid if descending and player's feet have passed below the platform landing line
-    if (entity.vy > 0 && py > t.y + 16) {
+    if (entity.vy > 0 && py > t.y + 24) {
       return true;
     }
 
@@ -622,20 +622,28 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       isReachable = true;
     } else if (evalVy < 0) {
       // When rising in mid-air or launched into a jump, determine exact theoretical jump apex height
-      let maxAscent = (evalVy * evalVy) / (2 * g);
+      // Also consider full jump capability if already ascending in mid-jump
+      let baseJumpPower = getPlatformJumpVy(entity.lastPlatform || null, entity);
+      let effectiveVy = Math.min(evalVy, baseJumpPower);
+      let maxAscent = (effectiveVy * effectiveVy) / (2 * g);
       let apexY = py - maxAscent;
 
-      // Target touch surface must be at or below the jump apex Y (with generous 8px margin for landing contact/stretching)
-      if (targetTouchY >= apexY - 8) {
-        let discriminant = evalVy * evalVy + 2 * g * dy_world;
-        // Near the apex, clamp negative discriminant to 0 to prevent floating-point precision drop-offs
-        if (discriminant < 0 && targetTouchY >= apexY - 8) {
+      // Target touch surface must be at or below the jump apex Y (with generous 12px margin for landing contact/platform thickness)
+      if (targetTouchY >= apexY - 12) {
+        // Platforms have 8px vertical thickness and can be landed on while descending through the top surface
+        let landingDyWorld = dy_world + 8;
+        let discriminant = evalVy * evalVy + 2 * g * landingDyWorld;
+        if (discriminant < 0 && targetTouchY >= apexY - 12) {
           discriminant = 0;
         }
         if (discriminant >= 0) {
+          // Landing time (t_fall): time until descending onto the platform surface
           let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
           if (t_fall >= 0) {
-            // Estimate future candidate position at landing frame t_fall if it's a moving platform
+            // Near the jump apex, the player has additional hangtime and descent window to adjust horizontally
+            let effectiveFlightTime = t_fall + 12; // Extra landing window frames across apex & platform thickness
+
+            // Estimate future candidate position at landing frame if it's a moving platform
             let candPx_future = candPx;
             if (cand.type === 'h-slide' && cand.direction) {
               let moveSpeed = cand.hSlideSpeed || config.hSlideSpeed || 0.8;
@@ -645,9 +653,12 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             if (dx_future > hgw) dx_future = gw - dx_future;
             let eff_dx_future = Math.max(0, dx_future - (candW / 2) - (playerW / 2));
 
-            // Maximum horizontal distance covered in t_fall frames + air drift margin
+            // Maximum horizontal distance covered in flight time + lateral acceleration/air drift margin
             let currVx = Math.abs(entity.vx || 0);
-            let max_possible_dx = t_fall * Math.max(maxVx, currVx) + 16;
+            let candDirection = (candPx >= px) ? 1 : -1;
+            let isMovingTowardCand = (entity.vx > 0.1 && candDirection > 0) || (entity.vx < -0.1 && candDirection < 0);
+            let speedFactor = Math.max(maxVx, currVx);
+            let max_possible_dx = effectiveFlightTime * speedFactor + 24 + (isMovingTowardCand ? 12 : 0);
             if (eff_dx_future <= max_possible_dx) {
               isReachable = true;
             }
@@ -656,8 +667,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
     } else {
       // Descending in mid-air: candidates whose top is below player or within landing contact tolerance
-      if (candPy >= py - 8) {
-        let discriminant = evalVy * evalVy + 2 * g * dy_world;
+      if (candPy >= py - 12) {
+        let landingDyWorld = dy_world + 8;
+        let discriminant = evalVy * evalVy + 2 * g * landingDyWorld;
         if (discriminant >= 0) {
           let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
           if (t_fall >= 0) {
@@ -671,7 +683,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             let eff_dx_future = Math.max(0, dx_future - (candW / 2) - (playerW / 2));
 
             let currVx = Math.abs(entity.vx || 0);
-            let max_possible_dx = t_fall * Math.max(maxVx, currVx) + 16;
+            let max_possible_dx = (t_fall + 6) * Math.max(maxVx, currVx) + 20;
             if (eff_dx_future <= max_possible_dx) {
               isReachable = true;
             }
@@ -797,7 +809,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         if (initialVy < 0) {
           let distFromApex = candPy - apexY;
           let apexBonus = 0;
-          if (distFromApex >= -4) {
+          if (distFromApex >= -10) {
             let baseBonus = isNearIce ? 45000 : 32000;
             let decay = isNearIce ? 90 : 80;
             apexBonus = baseBonus - Math.max(0, distFromApex) * decay;
@@ -874,7 +886,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         if (initialVy < 0) {
           let distFromApex = candPy - apexY; // Distance of platform surface below the jump apex
           let apexBonus = 0;
-          if (distFromApex >= -4) {
+          if (distFromApex >= -12) {
             // Highly reachable! The closer to the apex (higher up), the better!
             // Give a massive base bonus with linear scale based on closeness to jump apex.
             apexBonus = 60000 - Math.max(0, distFromApex) * 120;
