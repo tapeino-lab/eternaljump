@@ -202,41 +202,22 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     desc: 'Harvest gold from ice.',
     price: 75000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
-  <!-- Black Outlines -->
-  <rect x="5" y="2" width="5" height="1" fill="#000"/>
-  <rect x="3" y="3" width="2" height="1" fill="#000"/>
-  <rect x="10" y="3" width="2" height="1" fill="#000"/>
-  <rect x="2" y="4" width="1" height="8" fill="#000"/>
-  <rect x="12" y="4" width="1" height="3" fill="#000"/>
-  <!-- Thumb Outline -->
-  <rect x="13" y="6" width="2" height="1" fill="#000"/>
-  <rect x="15" y="7" width="1" height="3" fill="#000"/>
-  <rect x="13" y="10" width="2" height="1" fill="#000"/>
-  <rect x="12" y="10" width="1" height="2" fill="#000"/>
-  <!-- Bottom Cuff Outline -->
-  <rect x="3" y="12" width="9" height="1" fill="#000"/>
-  <rect x="2" y="13" width="1" height="1" fill="#000"/>
-  <rect x="12" y="13" width="1" height="1" fill="#000"/>
-  <rect x="3" y="14" width="9" height="1" fill="#000"/>
-
-  <!-- Golden Body Fill (#fd0 base, #f80 shading, #fff highlight) -->
-  <rect x="5" y="3" width="5" height="1" fill="#fd0"/>
-  <rect x="3" y="4" width="9" height="8" fill="#fd0"/>
+  <!-- Golden Body Fill (#fd0) -->
+  <rect x="5" y="2" width="5" height="1" fill="#fd0"/>
+  <rect x="4" y="3" width="7" height="8" fill="#fd0"/>
   <!-- Thumb Fill -->
-  <rect x="12" y="7" width="3" height="3" fill="#fd0"/>
+  <rect x="11" y="6" width="2" height="3" fill="#fd0"/>
 
-  <!-- Left Highlight / Shine (2-tone like boots #fff / #ffc) -->
-  <rect x="4" y="3" width="2" height="1" fill="#fff"/>
-  <rect x="3" y="4" width="2" height="6" fill="#fff"/>
-  <rect x="5" y="4" width="1" height="5" fill="#fff" opacity="0.6"/>
+  <!-- Left Highlight / Shine (#fff) -->
+  <rect x="5" y="2" width="2" height="1" fill="#fff"/>
+  <rect x="4" y="3" width="2" height="6" fill="#fff"/>
 
-  <!-- Right Shading (Dark Amber Gold #c80 / #850) -->
-  <rect x="10" y="4" width="2" height="8" fill="#c80"/>
-  <rect x="13" y="8" width="2" height="2" fill="#c80"/>
-  <rect x="7" y="11" width="3" height="1" fill="#c80"/>
+  <!-- Right Shading (Amber Gold #c80) -->
+  <rect x="9" y="3" width="2" height="8" fill="#c80"/>
+  <rect x="11" y="7" width="2" height="2" fill="#c80"/>
 
-  <!-- White Fluffy Cuff / Trim (#fff & #ddd) -->
-  <rect x="3" y="12" width="9" height="2" fill="#fff"/>
+  <!-- White Fluffy Cuff / Trim directly connected to gold (y=11..13) -->
+  <rect x="3" y="11" width="9" height="2" fill="#fff"/>
   <rect x="3" y="13" width="9" height="1" fill="#ddd"/>
 </svg>`
   }
