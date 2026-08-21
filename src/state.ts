@@ -58,7 +58,8 @@ export function createInitialGameState(): GameState {
   isNewTARecord: false,
     personalBest: null,
     showAIThoughts: false,
-    meteorOverheat: 0
+    meteorOverheat: 0,
+    npcExclamationBonus: false
   } as unknown as GameState;
 
   Object.defineProperties(obj, {
@@ -151,6 +152,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.lastUI = initial.lastUI;
   game.showAIThoughts = oldShowAIThoughts;
   game.meteorOverheat = 0;
+  game.npcExclamationBonus = false;
 }
 
 export function isEquipped(game: GameState, id: string): boolean {

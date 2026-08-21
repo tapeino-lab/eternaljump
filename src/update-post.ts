@@ -230,6 +230,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
             } else if (Math.random() < 0.2) {
               game.npcs[0].balloonText = '!';
               game.npcs[0].balloonTimer = 60;
+              game.npcExclamationBonus = true;
             }
           }
           game.shakeAmount = 0;

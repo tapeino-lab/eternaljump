@@ -68,6 +68,7 @@ export interface GameState {
   personalBest: any;
   showAIThoughts?: boolean;
   meteorOverheat: number;
+  npcExclamationBonus?: boolean;
 }
 
 export type { Player, NPC, Platform, Particle, Item, Coin, FlyingCoin, Meteor, Bird, BackgroundCloud as Cloud };

@@ -20,7 +20,16 @@ export function spawnGuideCoins(sX, sY) {
   let clampedX = MAX(35, MIN(config.gameWidth - 35, sX));
   let shift = clampedX - sX;
   sX = clampedX;
-  let tp = FLR(RND() * 3), top = sY;
+  let tp: number;
+  if (game.npcExclamationBonus) {
+    let r = RND();
+    if (r < 0.25) tp = 0;        // 25% (パターン0: 垂直直線 10枚)
+    else if (r < 0.50) tp = 1;   // 25% (パターン1: サイン波カーブ 10枚)
+    else tp = 2;                 // 50% (パターン2: ダブルライン左右2列 20枚)
+  } else {
+    tp = FLR(RND() * 3);         // 各33.3%
+  }
+  let top = sY;
   if (tp === 0) {
     for (let i = 0; i < 10; i++) game.coins.push(getCn(sX, sY - i * 72));
     top = sY - 9 * 72;
