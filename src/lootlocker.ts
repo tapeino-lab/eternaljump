@@ -191,26 +191,45 @@ export const LootLockerAPI = {
   },
 
 
-  getTimeAttackScores: async function(lm = 100) {
+  getTimeAttackScores: async function(lm = 2000) {
     if (!this.taLeaderboardId) return null;
-    this.log(`Attempting to fetch top ${lm} TA scores...`, 'info');
+    this.log(`Attempting to fetch all TA scores...`, 'info');
     if (!await this.init()) return null;
     try {
-      let r;
-      let headers = { 'Content-Type': 'application/json' };
+      let allItems: any[] = [];
+      let headers: any = { 'Content-Type': 'application/json' };
       if (this.isDirectMode) {
-        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.taLeaderboardId}/list?count=${lm}`;
         headers['x-session-token'] = this.sessionToken;
-        r = await fetch(url, { headers });
-      } else {
-        r = await fetch(`/api/lootlocker/leaderboards/list?count=${lm}&session_token=${encodeURIComponent(this.sessionToken)}&leaderboard_id=${this.taLeaderboardId}`, { headers });
       }
-      
+
+      let fetchPage = async (cursor?: any) => {
+        let afterQuery = cursor ? `&after=${encodeURIComponent(cursor)}` : '';
+        if (this.isDirectMode) {
+          let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.taLeaderboardId}/list?count=${lm}${afterQuery}`;
+          return await fetch(url, { headers });
+        } else {
+          return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken)}&leaderboard_id=${this.taLeaderboardId}`, { headers });
+        }
+      };
+
+      let r = await fetchPage();
       let d = await r.json();
       if (!r.ok) return null;
+      if (d.items) allItems.push(...d.items);
+
+      while (d.pagination && d.pagination.next_cursor && d.items && d.items.length > 0 && allItems.length < (d.pagination.total || 10000)) {
+        let nextR = await fetchPage(d.pagination.next_cursor);
+        if (!nextR.ok) break;
+        d = await nextR.json();
+        if (d.items && d.items.length > 0) {
+          allItems.push(...d.items);
+        } else {
+          break;
+        }
+      }
       
       let validItems = [];
-      d.items.forEach(i => {
+      allItems.forEach(i => {
         let m = null;
         try { m = JSON.parse(i.metadata); } catch(e) {}
         if (m && m.t) {
@@ -515,37 +534,38 @@ export const LootLockerAPI = {
     }
   },
 
-  getScores: async function(lm = 400) {
-    this.log(`Attempting to fetch top ${lm} scores...`, 'info');
+  getScores: async function(lm = 2000) {
+    this.log(`Attempting to fetch all scores (count: ${lm})...`, 'info');
     if (!await this.init()) {
       this.log('Score fetch aborted (Init Failed)', 'error');
       return null;
     }
     try {
-      let r;
-      let headers = {
+      let allItems: any[] = [];
+      let headers: any = {
         'Content-Type': 'application/json'
       };
       if (this.cachedLeaderboardEtag) {
         headers['If-None-Match'] = this.cachedLeaderboardEtag;
       }
-      
-      if (this.isDirectMode) {
-        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/list?count=${lm}`;
-        this.log(`Fetching scores directly from: ${url}`, 'info');
-        headers['x-session-token'] = this.sessionToken;
-        r = await fetch(url, { headers });
-      } else {
-        this.log('Fetching scores via server proxy...', 'info');
-        r = await fetch(`/api/lootlocker/leaderboards/list?count=${lm}&session_token=${encodeURIComponent(this.sessionToken)}`, { headers });
-      }
-      
+
+      let fetchPage = async (cursor?: any) => {
+        let afterQuery = cursor ? `&after=${encodeURIComponent(cursor)}` : '';
+        if (this.isDirectMode) {
+          let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/list?count=${lm}${afterQuery}`;
+          headers['x-session-token'] = this.sessionToken;
+          return await fetch(url, { headers });
+        } else {
+          return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken)}`, { headers });
+        }
+      };
+
+      let r = await fetchPage();
       if (r.status === 304 && this.cachedLeaderboardData) {
         this.log('304 Not Modified: Using cached scores', 'success');
         return this.cachedLeaderboardData;
       }
       
-      this.log(`Score fetch response status: ${r.status}`, 'info');
       let d = await r.json();
       if (!r.ok) {
         this.log(`Score fetch error: ${JSON.stringify(d)}`, 'error');
@@ -560,10 +580,24 @@ export const LootLockerAPI = {
         this.log('No items returned in score list.', 'warning');
         return null;
       }
-      this.log(`Successfully fetched ${d.items.length} records!`, 'success');
+      
+      allItems.push(...d.items);
+
+      while (d.pagination && d.pagination.next_cursor && d.items && d.items.length > 0 && allItems.length < (d.pagination.total || 10000)) {
+        let nextR = await fetchPage(d.pagination.next_cursor);
+        if (!nextR.ok) break;
+        d = await nextR.json();
+        if (d.items && d.items.length > 0) {
+          allItems.push(...d.items);
+        } else {
+          break;
+        }
+      }
+
+      this.log(`Successfully fetched ${allItems.length} records!`, 'success');
       
       let validItems = [];
-      d.items.forEach(i => {
+      allItems.forEach(i => {
         let m = { alt: FLR(i.score / 1000), coins: i.score % 1000, lang: '---', t: 0, sig: '' };
         try {
           if (i.metadata) m = JSON.parse(i.metadata);
@@ -580,6 +614,11 @@ export const LootLockerAPI = {
         // Impossible speed check (max theoretical speed is ~3600m/s)
         if (m.t && m.t > 0) {
             if (m.alt / m.t > 6000) isValid = false;
+        }
+
+        // Exclude 0m scores
+        if (!m.alt || m.alt <= 0) {
+            isValid = false;
         }
         
         if (isValid) {

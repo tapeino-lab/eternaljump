@@ -137,9 +137,9 @@ export const getLang = (): string => {
     };
     if (langMap[lang]) return langMap[lang];
 
-    return lang.length >= 3 ? lang.substring(0, 3).toUpperCase() : 'INT';
+    return lang.length >= 3 ? lang.substring(0, 3).toUpperCase() : '---';
   } catch (e) {
-    return 'INT';
+    return '---';
   }
 };
 

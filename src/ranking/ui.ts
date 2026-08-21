@@ -15,6 +15,7 @@ let currentRankingSession = 0;
 export let currentLangFilter = '';
 
       export const show = async function(state) {
+        RankingAPI.openedFromLangStats = false;
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
         if (isEnd) {
           await RankingAPI.showResult(state);
@@ -308,7 +309,7 @@ export let currentLangFilter = '';
             if (r.lang && r.lang !== '---' && r.lang !== '???') {
                 lang = r.lang;
             } else if (lang === '???' || lang === '---') {
-                lang = 'INT';
+                lang = '---';
             }
             if (lang.length > 3) lang = lang.substring(0, 3);
             if (name.length > 2) name = name.substring(0, 2);
@@ -336,8 +337,7 @@ export let currentLangFilter = '';
 
         let top3HTML = '';
         let othersHTML = '';
-        let displayLimit = mode === 'ta' ? 100 : 400;
-        let topLimited = s.slice(0, displayLimit);
+        let topLimited = s;
         
         topLimited.forEach((r, i) => {
             if (i < 3) {
@@ -352,8 +352,9 @@ export let currentLangFilter = '';
             shouldShowMyRecord = false;
         }
 
-        if (shouldShowMyRecord && !isPlayerInList && mode === 'height' && (pRank || game.personalBest)) {
-            let r = pRank || game.personalBest;
+        let myRecord = pRank || (game.personalBest && game.personalBest.alt > 0 ? game.personalBest : null);
+        if (shouldShowMyRecord && !isPlayerInList && mode === 'height' && myRecord && myRecord.alt > 0) {
+            let r = myRecord;
             r.rank = r.rank || '???';
             r.id = pid;
             othersHTML += `<tr><td colspan="6" style="text-align:center;color:#555;font-size:8px;padding:4px 0;">...</td></tr>`;
@@ -368,14 +369,20 @@ export let currentLangFilter = '';
         $('rankingContainer').style.display = 'flex';
         
         // Tab setup
-        if (document.getElementById('btnTabHeight') && !document.getElementById('btnTabHeight').onclick) {
-            document.getElementById('btnTabHeight').onclick = (e) => {
+        const btnH = document.getElementById('btnTabHeight');
+        const btnTA = document.getElementById('btnTabTA');
+        if (btnH && btnTA) {
+            btnH.onclick = (e) => {
                 e.stopPropagation();
-                showRanking(state, 'height');
+                if (btnTA.classList.contains('active')) {
+                    showRanking(state, 'height', undefined, 'left');
+                }
             };
-            document.getElementById('btnTabTA').onclick = (e) => {
+            btnTA.onclick = (e) => {
                 e.stopPropagation();
-                showRanking(state, 'ta');
+                if (btnH.classList.contains('active')) {
+                    showRanking(state, 'ta', undefined, 'right');
+                }
             };
         }
 
@@ -431,6 +438,7 @@ export let currentLangFilter = '';
       };
 
       export const showLangStats = async function() {
+        RankingAPI.openedFromLangStats = false;
         $('langStatsModal').style.display = 'flex';
         $('langStatsLoading').style.display = 'flex';
         $('langStatsContent').style.display = 'none';
@@ -446,20 +454,32 @@ export let currentLangFilter = '';
               
               let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
               
-              let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(10, auto); grid-auto-flow: column; gap: 6px 4px; position: relative; width: 100%;">';
-              html += '<div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.2); transform: translateX(-50%);"></div>';
+              let html = '<div class="lang-stats-grid">';
+              html += '<div class="lang-stats-divider"></div>';
               sorted.forEach(([lang, count]) => {
-                html += `<div style="display: flex; align-items: center; justify-content: flex-start;">
-                  <button class="modal-btn lang-filter-btn" style="width: 56px; flex: none; padding: 4px; font-size: 10px; font-family: 'Press Start 2P'; color: #fff; text-align: center; box-sizing: border-box; margin: 0 0 0 10px;" data-lang="${lang}">${lang}</button>
-                  <span style="font-size: 10px; font-family: 'Press Start 2P'; margin-left: 6px; color: #fff; text-align: left; flex: 1; overflow: hidden; text-overflow: ellipsis;">${count}</span>
+                html += `<div class="lang-stats-item">
+                  <button class="modal-btn lang-filter-btn" style="width: 44px; flex: none; padding: 3px 0; font-size: 8px; font-family: 'Press Start 2P'; color: #fff; text-align: center; box-sizing: border-box;" data-lang="${lang}">${lang}</button>
+                  <span style="font-size: 8px; font-family: 'Press Start 2P'; margin-left: 6px; color: #fff; text-align: left; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${count}</span>
                 </div>`;
               });
               html += '</div>';
               
               $('langStatsList').innerHTML = html;
               $('langStatsContent').style.display = 'block';
+
+              // Attach click listeners to language buttons so clicking opens ranking for that language
+              $('langStatsList')?.querySelectorAll('.lang-filter-btn').forEach(btn => {
+                (btn as HTMLElement).onclick = (e) => {
+                  e.stopPropagation();
+                  let l = (btn as HTMLElement).getAttribute('data-lang') || '';
+                  $('langStatsModal')!.style.display = 'none';
+                  let mode = document.getElementById('btnTabTA')?.classList.contains('active') ? 'ta' : 'height';
+                  RankingAPI.openedFromLangStats = true;
+                  showRanking(game.state, mode, l, 'right');
+                };
+              });
             } else {
-              $('langStatsList').innerHTML = '<div style="text-align:center;font-size:10px;color:#aaa;">NO DATA</div>';
+              $('langStatsList').innerHTML = '<div style="text-align:center;font-size:10px;color:#aaa;padding-top:20px;">NO DATA</div>';
               $('langStatsContent').style.display = 'block';
             }
         };
@@ -487,6 +507,31 @@ export let currentLangFilter = '';
         }
       }
 
+      export const triggerRankingSlideAnimation = function(dir: 'right' | 'left') {
+        const inner = document.querySelector('.ranking-list-inner') as HTMLElement;
+        const title = document.getElementById('rankingTitleLabel');
+        const targetElements = [inner, title].filter(Boolean) as HTMLElement[];
+
+        targetElements.forEach(el => {
+          el.classList.remove('ranking-slide-from-right', 'ranking-slide-from-left');
+          void el.offsetWidth; // Force reflow
+          if (dir === 'right') {
+            el.classList.add('ranking-slide-from-right');
+          } else if (dir === 'left') {
+            el.classList.add('ranking-slide-from-left');
+          }
+        });
+
+        // Flash corresponding arrow
+        const arrowBtn = dir === 'right' ? $('rankingNextLangBtn') : $('rankingPrevLangBtn');
+        if (arrowBtn) {
+          arrowBtn.classList.add('arrow-pressed');
+          setTimeout(() => {
+            arrowBtn.classList.remove('arrow-pressed');
+          }, 180);
+        }
+      };
+
       export const cycleLanguage = function(state: any, mode: string, direction: 'next' | 'prev') {
         let langList = getSortedLangList(mode);
         // List including global (empty string) as the first entry
@@ -501,7 +546,8 @@ export let currentLangFilter = '';
           nextIdx = (currIdx - 1 + list.length) % list.length;
         }
 
-        showRanking(state, mode, list[nextIdx]);
+        // direction === 'next' -> content enters from right ('right'); 'prev' -> content enters from left ('left')
+        showRanking(state, mode, list[nextIdx], direction === 'next' ? 'right' : 'left');
       };
 
       let swipeListenersAttached = false;
@@ -535,10 +581,10 @@ export let currentLangFilter = '';
             if (dt < 500 && Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.3) {
               let mode = document.getElementById('btnTabTA')?.classList.contains('active') ? 'ta' : 'height';
               if (dx < 0) {
-                // Swipe left -> Next language
+                // Swipe left -> Next language (slides in from right)
                 cycleLanguage(game.state, mode, 'next');
               } else {
-                // Swipe right -> Previous language
+                // Swipe right -> Previous language (slides in from left)
                 cycleLanguage(game.state, mode, 'prev');
               }
             }
@@ -564,7 +610,7 @@ export let currentLangFilter = '';
         }
       }
 
-      export const showRanking = async function(state, mode = 'height', langFilter?: string) {
+      export const showRanking = async function(state, mode = 'height', langFilter?: string, slideDirection?: 'right' | 'left') {
         if (langFilter !== undefined) currentLangFilter = langFilter;
         currentRankingSession++;
         let session = currentRankingSession;
@@ -613,6 +659,9 @@ export let currentLangFilter = '';
         if (cached && Array.isArray(cached) && cached.length > 0) {
           $('rankingLoading').style.display = 'none';
           renderRankingTable(cached, state, mode, false);
+          if (slideDirection) {
+            triggerRankingSlideAnimation(slideDirection);
+          }
           hasRenderedCache = true;
         } else {
           $('rankingLoading').style.display = 'flex';
@@ -643,7 +692,13 @@ export let currentLangFilter = '';
         // Render latest synced data
         if (s && s.length > 0) {
             renderRankingTable(s, state, mode, hasRenderedCache);
+            if (slideDirection && !hasRenderedCache) {
+              triggerRankingSlideAnimation(slideDirection);
+            }
         } else if (!cached || cached.length === 0) {
             renderRankingTable([], state, mode, hasRenderedCache);
+            if (slideDirection && !hasRenderedCache) {
+              triggerRankingSlideAnimation(slideDirection);
+            }
         }
       }

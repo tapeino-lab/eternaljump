@@ -79,12 +79,21 @@ export class InputManager {
       if (RankingAPI.isShowingResult) {
         e.preventDefault();
         e.stopPropagation();
+        RankingAPI.openedFromLangStats = false;
         RankingAPI.showRanking(game.state, 'height', '');
         return true;
       } else {
         if (e.target.closest('#controlArea')) {
           e.preventDefault();
           e.stopPropagation();
+
+          if (RankingAPI.openedFromLangStats) {
+            RankingAPI.openedFromLangStats = false;
+            $('rankingModal')!.style.display = 'none';
+            document.body.classList.remove('showing-ranking');
+            RankingAPI.showLangStats();
+            return true;
+          }
 
           $('rankingModal')!.style.display = 'none';
           document.body.classList.remove('showing-ranking');
@@ -409,10 +418,12 @@ export class InputManager {
           if (e.target.closest('#btnRankingPause')) {
             e.preventDefault();
             e.stopPropagation();
+            RankingAPI.openedFromLangStats = false;
             RankingAPI.showRanking('pause', 'height', '');
           } else if (e.target.closest('#btnLangStatsPause')) {
             e.preventDefault();
             e.stopPropagation();
+            RankingAPI.openedFromLangStats = false;
             RankingAPI.showLangStats();
           } else if (e.target.closest('#btnResumePause')) {
             e.preventDefault();
@@ -477,6 +488,7 @@ export class InputManager {
         if (t.classList.contains('lang-filter-btn')) {
           const lang = t.getAttribute('data-lang');
           if (lang) {
+            RankingAPI.openedFromLangStats = true;
             RankingAPI.showRanking('pause', 'height', lang);
           }
         }

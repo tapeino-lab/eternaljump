@@ -176,12 +176,13 @@ async function startServer() {
   app.get("/api/lootlocker/leaderboards/list", async (req, res) => {
     const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
     const defaultLeaderboardId = process.env.LOOTLOCKER_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2';
-    const count = req.query.count || 100;
+    const count = req.query.count || 2000;
+    const after = req.query.after ? `&after=${encodeURIComponent(req.query.after as string)}` : '';
     const sessionToken = req.query.session_token as string;
     const leaderboardId = req.query.leaderboard_id as string || defaultLeaderboardId;
 
     try {
-      const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/leaderboards/${leaderboardId}/list?count=${count}`, {
+      const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/leaderboards/${leaderboardId}/list?count=${count}${after}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

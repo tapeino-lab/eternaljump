@@ -136,11 +136,11 @@
       </div>
       
       <div id="langStatsModal" class="ranking-modal" style="display: none; z-index: 10000; background: rgba(0,0,0,0.85);">
-        <div class="result-container" style="position: absolute; top: 10px; bottom: 0; left: 0; right: 0; width: auto; max-height: unset; display: flex; flex-direction: column; padding: 12px 0 0 0; box-sizing: border-box;">
-          <h1 class="ranking-title" style="margin: 0 0 10px 0;">LANG STATS</h1>
+        <div class="result-container" style="position: absolute; top: 10px; bottom: 10px; left: 10px; right: 10px; width: auto; max-height: unset; display: flex; flex-direction: column; padding: 12px 6px 8px 6px; box-sizing: border-box;">
+          <h1 class="ranking-title" style="margin: 0 0 10px 0; flex: none;">LANG STATS</h1>
           <h1 id="langStatsLoading" class="ranking-loading"><span class="loading-coin-icon"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></span><span>LOADING...</span></h1>
-          <div id="langStatsContent" style="display: none; flex: 1; overflow-y: auto; overflow-x: hidden; width: 100%;">
-            <div id="langStatsList" style="display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 0;"></div>
+          <div id="langStatsContent" style="display: none; flex: 1; min-height: 0; height: 100%; width: 100%; overflow: hidden; box-sizing: border-box;">
+            <div id="langStatsList" style="width: 100%; height: 100%; box-sizing: border-box;"></div>
           </div>
         </div>
       </div>
