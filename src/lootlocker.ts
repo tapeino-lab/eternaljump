@@ -250,14 +250,16 @@ export const LootLockerAPI = {
           let alt = Math.floor(score / 1000);
           let coins = score % 1000;
           let time = 0;
+          let lang = null;
           let rank = d.rank || null;
           try {
             if (d.metadata) {
               let m = JSON.parse(d.metadata);
               time = m.t ? m.t * 1000 : 0;
+              if (m.lang) lang = m.lang;
             }
           } catch(e) {}
-          return { alt, coins, time, rank };
+          return { alt, coins, time, lang, rank };
         } else {
           return { notFound: true };
         }
@@ -290,8 +292,19 @@ export const LootLockerAPI = {
         let d = await r.json();
         if (d && typeof d.score === 'number' && d.score > 0 && d.rank !== 0) {
           let time = 1000000000 - d.score;
+          let alt = 144000;
+          let coins = 0;
+          let lang = null;
+          try {
+            if (d.metadata) {
+              let m = JSON.parse(d.metadata);
+              if (typeof m.alt === 'number') alt = m.alt;
+              if (typeof m.coins === 'number') coins = m.coins;
+              if (m.lang) lang = m.lang;
+            }
+          } catch(e) {}
           if (time > 0 && time < 86400000) {
-            return { time, rank: d.rank || null };
+            return { time, alt, coins, lang, rank: d.rank || null };
           } else {
             return { notFound: true };
           }

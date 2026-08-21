@@ -55,23 +55,41 @@ export class InputManager {
     if (e.target.closest('#autoCruiseBtn')) return false;
     if ($('nameEditModal')?.style.display === 'flex') return false;
 
-    if ($('rankingModal')?.style.display === 'flex') {
+    if ($('rankingModal')?.style.display === 'flex' || $('langStatsModal')?.style.display === 'flex') {
       if (ignoreNextTap) {
         e.preventDefault();
         e.stopPropagation();
         return true;
       }
+      
+      if ($('langStatsModal')?.style.display === 'flex') {
+        if (e.target.closest('#controlArea')) {
+          e.preventDefault();
+          e.stopPropagation();
+          $('langStatsModal')!.style.display = 'none';
+          $('tapToStartMsg')!.style.display = 'none';
+          if (game.isPaused) {
+            $('tapToStartMsg')!.innerText = isAttractMode ? 'TAP TO CLOSE' : 'TAP TO RESUME';
+            $('tapToStartMsg')!.style.display = 'block';
+          }
+        }
+        return true;
+      }
+      
       if (RankingAPI.isShowingResult) {
         e.preventDefault();
         e.stopPropagation();
-        RankingAPI.showRanking(game.state);
+        RankingAPI.showRanking(game.state, 'height', '');
         return true;
       } else {
         if (e.target.closest('#controlArea')) {
           e.preventDefault();
           e.stopPropagation();
-          $('rankingModal')!.style.display = 'none'; document.body.classList.remove('showing-ranking');
+
+          $('rankingModal')!.style.display = 'none';
+          document.body.classList.remove('showing-ranking');
           $('tapToStartMsg')!.style.display = 'none';
+
           if (game.state === 'clear' || game.state === 'gameover' || game.state === 'demo') {
             if (isAttractMode) {
               startRealGame();
@@ -82,7 +100,7 @@ export class InputManager {
               applyCoinCountUp(earned, 'COINS GET!', true, false);
             }
           } else if (game.isPaused) {
-            $('tapToStartMsg')!.innerText = 'TAP TO RESUME';
+            $('tapToStartMsg')!.innerText = isAttractMode ? 'TAP TO CLOSE' : 'TAP TO RESUME';
             $('tapToStartMsg')!.style.display = 'block';
           }
         }
@@ -248,6 +266,7 @@ export class InputManager {
             e.target.closest('#shopControlArea') || 
             e.target.closest('#nameEditModal') || 
             e.target.closest('#rankingModal') || 
+            e.target.closest('#langStatsModal') || 
             e.target.closest('#pauseScreen')) return;
         
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
@@ -390,7 +409,11 @@ export class InputManager {
           if (e.target.closest('#btnRankingPause')) {
             e.preventDefault();
             e.stopPropagation();
-            RankingAPI.showRanking('pause');
+            RankingAPI.showRanking('pause', 'height', '');
+          } else if (e.target.closest('#btnLangStatsPause')) {
+            e.preventDefault();
+            e.stopPropagation();
+            RankingAPI.showLangStats();
           } else if (e.target.closest('#btnResumePause')) {
             e.preventDefault();
             e.stopPropagation();
@@ -451,7 +474,12 @@ export class InputManager {
       const t = (e.target as HTMLElement).closest('button');
       if (t) {
         if (t.id === 'closeRankBtn') { $('rankingModal')!.style.display = 'none'; document.body.classList.remove('showing-ranking'); }
-
+        if (t.classList.contains('lang-filter-btn')) {
+          const lang = t.getAttribute('data-lang');
+          if (lang) {
+            RankingAPI.showRanking('pause', 'height', lang);
+          }
+        }
       }
     });
   }

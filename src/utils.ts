@@ -156,17 +156,24 @@ export const escapeHTML = (str: string | number): string => {
 
 export const getPlayerName = (): string => {
   let n = safeStorage.getItem('JUMP_PLAYER_NAME');
+  let currentLang = getLang();
   
   // Validate if player name matches "LANG XX" format (3-letter country code + space + 2 chars)
   // Migrate/reset legacy name formats automatically if invalid
   const isValidFormat = n && /^[A-Z]{3}\s[A-Z0-9.\-_!?]{2}$/.test(n);
   
   if (!n || !isValidFormat) {
-    let lang = getLang();
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randName = chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
-    n = `${lang} ${randName}`;
+    n = `${currentLang} ${randName}`;
     safeStorage.setItem('JUMP_PLAYER_NAME', n);
+  } else {
+    // If device locale language changed, sync country prefix while preserving 2-character tag
+    let parts = n.split(' ');
+    if (parts[0] !== currentLang) {
+      n = `${currentLang} ${parts[1]}`;
+      safeStorage.setItem('JUMP_PLAYER_NAME', n);
+    }
   }
   return n;
 };

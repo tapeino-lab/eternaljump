@@ -36,6 +36,8 @@ import { RankingAPI } from './api.js';
             safeStorage.removeItem('LL_PENDING_SCORES');
           }
 
+          let currentLang = getLang();
+
           if (onlinePB && typeof onlinePB.alt === 'number') {
             let localPB = secureStorage.getItem<any>(pbKey, null);
             
@@ -53,6 +55,16 @@ import { RankingAPI } from './api.js';
                 game.personalBest.time = onlinePB.time;
                 game.personalBest.coins = onlinePB.coins;
               }
+            }
+
+            // Sync language online only if online registered language differs from current local language
+            if (onlinePB.lang && onlinePB.lang !== currentLang) {
+              LootLockerAPI.submitScore(onlinePB.alt, onlinePB.coins, onlinePB.time, currentLang).then(res => {
+                if (res) {
+                  safeStorage.setItem('LL_LAST_FETCH', '0');
+                  updateOptimisticCache(onlinePB.alt, onlinePB.coins, onlinePB.time, false);
+                }
+              });
             }
           } else if (onlinePB && onlinePB.notFound) {
             if (pending.length === 0) {
@@ -77,6 +89,16 @@ import { RankingAPI } from './api.js';
               if (!localTAPB || typeof localTAPB.time !== 'number' || onlineTAPB.time <= localTAPB.time) {
                 secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
               }
+            }
+
+            // Sync language online for TA only if online registered language differs from current local language
+            if (onlineTAPB.lang && onlineTAPB.lang !== currentLang) {
+              LootLockerAPI.submitTimeAttackScore(onlineTAPB.time, onlineTAPB.alt || 144000, onlineTAPB.coins || 0, currentLang).then(res => {
+                if (res) {
+                  safeStorage.setItem('LL_LAST_TA_FETCH', '0');
+                  updateOptimisticCache(onlineTAPB.alt || 144000, onlineTAPB.coins || 0, onlineTAPB.time, true);
+                }
+              });
             }
           } else if (onlineTAPB && onlineTAPB.notFound) {
             if (pending.length === 0) {

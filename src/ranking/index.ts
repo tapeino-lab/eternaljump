@@ -1,7 +1,7 @@
 import { safeStorage } from "../safeStorage.js";
 import { RankingAPI } from './api.js';
 import { hasLootLocker, syncPersonalBest, prefetchScores, getScores, getTimeAttackScores, prefetchTAScores, saveScore, reset } from './core.js';
-import { show, showResult, showRanking } from './ui.js';
+import { show, showResult, showRanking, showLangStats, currentLangFilter } from './ui.js';
 
 RankingAPI.hasLootLocker = hasLootLocker;
 RankingAPI.syncPersonalBest = syncPersonalBest;
@@ -14,6 +14,8 @@ RankingAPI.reset = reset;
 RankingAPI.show = show;
 RankingAPI.showResult = showResult;
 RankingAPI.showRanking = showRanking;
+RankingAPI.showLangStats = showLangStats;
+RankingAPI.getCurrentLangFilter = () => currentLangFilter;
 
     try {
       const oldKey = '8bitJump_Rankings';

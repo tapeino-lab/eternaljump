@@ -12,13 +12,14 @@ import { RankingAPI } from './api.js';
 import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.js';
 
 let currentRankingSession = 0;
+export let currentLangFilter = '';
 
       export const show = async function(state) {
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
         if (isEnd) {
           await RankingAPI.showResult(state);
         } else {
-          await RankingAPI.showRanking(state);
+          await RankingAPI.showRanking(state, 'height', '');
         }
 }
       export const showResult = async function(state) {
@@ -304,9 +305,10 @@ let currentRankingSession = 0;
                 lang = nVal.substring(0, 3);
                 name = nVal.substring(3) || '??';
             }
-            if (lang === '???' || lang === '---') {
-                if (r.lang && r.lang !== '---' && r.lang !== '???') lang = r.lang;
-                else lang = 'INT';
+            if (r.lang && r.lang !== '---' && r.lang !== '???') {
+                lang = r.lang;
+            } else if (lang === '???' || lang === '---') {
+                lang = 'INT';
             }
             if (lang.length > 3) lang = lang.substring(0, 3);
             if (name.length > 2) name = name.substring(0, 2);
@@ -329,7 +331,7 @@ let currentRankingSession = 0;
             }
 
             let rankStyle = (typeof rNum === 'number' && rNum >= 100) ? 'font-size:7px;letter-spacing:-0.5px;padding-left:2px;' : '';
-            return `<tr${idAttr} style="border-bottom:1px dashed #333;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;${rankStyle}">${m}${rNum}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:36px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:${scoreAlign};white-space:nowrap;overflow:hidden;">${displayScore}</td>${coinTdHtml}</tr>`;
+            return `<tr${idAttr} style="border-bottom:1px dashed #333;height:20px;box-sizing:border-box;${bg}"><td style="padding:4px 0 4px 4px;text-align:left;width:24px;white-space:nowrap;overflow:hidden;${rankStyle}">${m}${rNum}</td><td style="padding:4px 0;text-align:center;width:32px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(lang)}</td><td style="width:4px;padding:0;"></td><td style="padding:4px 0;text-align:center;width:36px;white-space:nowrap;overflow:hidden;font-size:8px;">${escapeHTML(name)}</td><td style="padding:4px 0;text-align:${scoreAlign};white-space:nowrap;overflow:hidden;">${displayScore}</td>${coinTdHtml}</tr>`;
         };
 
         let top3HTML = '';
@@ -345,7 +347,12 @@ let currentRankingSession = 0;
             }
         });
         
-        if (!isPlayerInList && mode === 'height' && (pRank || game.personalBest)) {
+        let shouldShowMyRecord = true;
+        if (currentLangFilter && currentLangFilter !== getLang().substring(0, 3).toUpperCase()) {
+            shouldShowMyRecord = false;
+        }
+
+        if (shouldShowMyRecord && !isPlayerInList && mode === 'height' && (pRank || game.personalBest)) {
             let r = pRank || game.personalBest;
             r.rank = r.rank || '???';
             r.id = pid;
@@ -398,7 +405,167 @@ let currentRankingSession = 0;
         }, 50);
       }
 
-      export const showRanking = async function(state, mode = 'height') {
+      export const getSortedLangList = function(mode?: string): string[] {
+        try {
+          let cacheKey = (mode === 'ta') ? 'LL_CACHED_TA_LEADERBOARD' : 'LL_CACHED_LEADERBOARD';
+          let raw = safeStorage.getItem(cacheKey);
+          if (!raw) raw = safeStorage.getItem('LL_CACHED_LEADERBOARD');
+          if (!raw) raw = safeStorage.getItem('LL_CACHED_TA_LEADERBOARD');
+          if (raw) {
+            let scores = JSON.parse(raw);
+            if (Array.isArray(scores) && scores.length > 0) {
+              const counts: Record<string, number> = {};
+              scores.forEach((r: any) => {
+                const lang = (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3);
+                if (lang && lang !== 'UNK' && lang !== '---' && lang !== '???') {
+                  counts[lang] = (counts[lang] || 0) + 1;
+                }
+              });
+              return Object.entries(counts)
+                .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+                .map(([lang]) => lang);
+            }
+          }
+        } catch (e) {}
+        return [];
+      };
+
+      export const showLangStats = async function() {
+        $('langStatsModal').style.display = 'flex';
+        $('langStatsLoading').style.display = 'flex';
+        $('langStatsContent').style.display = 'none';
+        $('langStatsList').innerHTML = '';
+
+        let renderData = (sList: any[]) => {
+            if (sList && sList.length > 0) {
+              const counts: Record<string, number> = {};
+              sList.forEach((r: any) => {
+                const lang = (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3);
+                counts[lang] = (counts[lang] || 0) + 1;
+              });
+              
+              let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+              
+              let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(10, auto); grid-auto-flow: column; gap: 6px 4px; position: relative; width: 100%;">';
+              html += '<div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.2); transform: translateX(-50%);"></div>';
+              sorted.forEach(([lang, count]) => {
+                html += `<div style="display: flex; align-items: center; justify-content: flex-start;">
+                  <button class="modal-btn lang-filter-btn" style="width: 56px; flex: none; padding: 4px; font-size: 10px; font-family: 'Press Start 2P'; color: #fff; text-align: center; box-sizing: border-box; margin: 0 0 0 10px;" data-lang="${lang}">${lang}</button>
+                  <span style="font-size: 10px; font-family: 'Press Start 2P'; margin-left: 6px; color: #fff; text-align: left; flex: 1; overflow: hidden; text-overflow: ellipsis;">${count}</span>
+                </div>`;
+              });
+              html += '</div>';
+              
+              $('langStatsList').innerHTML = html;
+              $('langStatsContent').style.display = 'block';
+            } else {
+              $('langStatsList').innerHTML = '<div style="text-align:center;font-size:10px;color:#aaa;">NO DATA</div>';
+              $('langStatsContent').style.display = 'block';
+            }
+        };
+
+        // Check local cache for immediate non-blocking rendering
+        let cached = null;
+        try {
+          let raw = safeStorage.getItem('LL_CACHED_LEADERBOARD');
+          if (raw) cached = JSON.parse(raw);
+        } catch (e) {}
+
+        let hasRenderedCache = false;
+        if (cached && Array.isArray(cached) && cached.length > 0) {
+          $('langStatsLoading').style.display = 'none';
+          renderData(cached);
+          hasRenderedCache = true;
+        }
+
+        // Fetch latest leaderboard scores
+        let s = await RankingAPI.getScores(false);
+        
+        if (!hasRenderedCache || (s && s.length > 0)) {
+            $('langStatsLoading').style.display = 'none';
+            renderData(s);
+        }
+      }
+
+      export const cycleLanguage = function(state: any, mode: string, direction: 'next' | 'prev') {
+        let langList = getSortedLangList(mode);
+        // List including global (empty string) as the first entry
+        let list = ['', ...langList];
+        let currIdx = list.indexOf(currentLangFilter);
+        if (currIdx === -1) currIdx = 0;
+
+        let nextIdx = 0;
+        if (direction === 'next') {
+          nextIdx = (currIdx + 1) % list.length;
+        } else {
+          nextIdx = (currIdx - 1 + list.length) % list.length;
+        }
+
+        showRanking(state, mode, list[nextIdx]);
+      };
+
+      let swipeListenersAttached = false;
+      function attachSwipeListeners() {
+        if (swipeListenersAttached) return;
+        const rankingContainer = $('rankingContainer');
+        if (!rankingContainer) return;
+        swipeListenersAttached = true;
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+
+        rankingContainer.addEventListener('touchstart', (e: TouchEvent) => {
+          if (e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+          }
+        }, { passive: true });
+
+        rankingContainer.addEventListener('touchend', (e: TouchEvent) => {
+          if (e.changedTouches.length === 1) {
+            let touchEndX = e.changedTouches[0].clientX;
+            let touchEndY = e.changedTouches[0].clientY;
+            let dx = touchEndX - touchStartX;
+            let dy = touchEndY - touchStartY;
+            let dt = Date.now() - touchStartTime;
+
+            // Check if horizontal swipe: minimum 35px, horizontal > vertical * 1.3, duration < 500ms
+            if (dt < 500 && Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+              let mode = document.getElementById('btnTabTA')?.classList.contains('active') ? 'ta' : 'height';
+              if (dx < 0) {
+                // Swipe left -> Next language
+                cycleLanguage(game.state, mode, 'next');
+              } else {
+                // Swipe right -> Previous language
+                cycleLanguage(game.state, mode, 'prev');
+              }
+            }
+          }
+        }, { passive: true });
+
+        // Also wire arrow button clicks
+        const prevBtn = $('rankingPrevLangBtn');
+        const nextBtn = $('rankingNextLangBtn');
+        if (prevBtn) {
+          prevBtn.onclick = (e) => {
+            e.stopPropagation();
+            let mode = document.getElementById('btnTabTA')?.classList.contains('active') ? 'ta' : 'height';
+            cycleLanguage(game.state, mode, 'prev');
+          };
+        }
+        if (nextBtn) {
+          nextBtn.onclick = (e) => {
+            e.stopPropagation();
+            let mode = document.getElementById('btnTabTA')?.classList.contains('active') ? 'ta' : 'height';
+            cycleLanguage(game.state, mode, 'next');
+          };
+        }
+      }
+
+      export const showRanking = async function(state, mode = 'height', langFilter?: string) {
+        if (langFilter !== undefined) currentLangFilter = langFilter;
         currentRankingSession++;
         let session = currentRankingSession;
 
@@ -408,8 +575,22 @@ let currentRankingSession = 0;
         RankingAPI.isShowingResult = false;
         $('resultContainer').style.display = 'none';
         $('rankingContainer').style.display = 'none';
+        if ($('langStatsModal')) $('langStatsModal').style.display = 'none';
         $('rankingModal').style.display = 'flex'; 
         document.body.classList.add('showing-ranking');
+
+        attachSwipeListeners();
+
+        let titleLabel = $('rankingTitleLabel');
+        let prevBtn = $('rankingPrevLangBtn');
+        let nextBtn = $('rankingNextLangBtn');
+        if (titleLabel) {
+            titleLabel.innerHTML = currentLangFilter ? `<span style="color:#fff;">[${currentLangFilter}]</span> RANKING` : 'RANKING';
+        }
+        if (prevBtn && nextBtn) {
+            prevBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'inline-block';
+        }
 
         setIgnoreNextTap(true);
         setTimeout(() => setIgnoreNextTap(false), 50);
@@ -422,6 +603,12 @@ let currentRankingSession = 0;
           if (raw) cached = JSON.parse(raw);
         } catch (e) {}
 
+        if (currentLangFilter && cached && Array.isArray(cached)) {
+           cached = cached.filter((r: any) => (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3) === currentLangFilter)
+                          .map((r: any) => ({...r}));
+           cached.forEach((v, idx) => v.rank = idx + 1);
+        }
+
         let hasRenderedCache = false;
         if (cached && Array.isArray(cached) && cached.length > 0) {
           $('rankingLoading').style.display = 'none';
@@ -432,12 +619,12 @@ let currentRankingSession = 0;
         }
 
         // Background fetch latest personal best & leaderboard scores
-        RankingAPI.syncPersonalBest(true);
+        RankingAPI.syncPersonalBest(false);
         let s = [];
         if (mode === 'ta') {
-            s = await RankingAPI.getTimeAttackScores(true);
+            s = await RankingAPI.getTimeAttackScores(false);
         } else {
-            s = await RankingAPI.getScores(true);
+            s = await RankingAPI.getScores(false);
         }
 
         if (session !== currentRankingSession) return;
@@ -445,6 +632,12 @@ let currentRankingSession = 0;
         if ($('rankingModal')?.style.display === 'none' || !document.body.classList.contains('showing-ranking')) {
             $('rankingLoading').style.display = 'none';
             return;
+        }
+
+        if (currentLangFilter && s && Array.isArray(s)) {
+           s = s.filter((r: any) => (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3) === currentLangFilter)
+                .map((r: any) => ({...r}));
+           s.forEach((v, idx) => v.rank = idx + 1);
         }
 
         // Render latest synced data

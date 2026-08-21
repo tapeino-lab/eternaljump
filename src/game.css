@@ -1004,6 +1004,8 @@ body.no-fullscreen #hud-time {
   border-radius: 4px;
   background: rgba(255,255,255,0.15);
   margin-bottom: 10px;
+  min-height: 62px;
+  box-sizing: border-box;
 }
 
 .ranking-tab-btn {
@@ -1045,7 +1047,10 @@ body.no-fullscreen #hud-time {
   border-radius: 4px;
   background: rgba(0,0,0,0.75);
   margin-bottom: 10px;
-  max-height: 145px;
+  height: 142px;
+  min-height: 142px;
+  max-height: 142px;
+  box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
@@ -1061,6 +1066,11 @@ body.no-fullscreen #hud-time {
   table-layout: fixed;
   font-size: 9px;
   border-collapse: collapse;
+}
+
+.ranking-table tr {
+  height: 20px;
+  box-sizing: border-box;
 }
 
 .player-rank-container {
@@ -1383,9 +1393,40 @@ body.no-fullscreen #hud-time {
   color: #dd8;
   justify-content: center;
 }
+.ranking-title-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0 0 6px 0;
+}
+
+.ranking-arrow-indicator {
+  display: inline-block;
+  font-size: 10px;
+  color: #fff;
+  opacity: 0.8;
+  animation: pulseArrow 1.8s ease-in-out infinite;
+  user-select: none;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+@keyframes pulseArrow {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
 .ranking-title {
   color: #0f0;
-  margin: 0 0 10px 0;
+  margin: 0;
   font-size: 12px;
   text-align: center;
 }

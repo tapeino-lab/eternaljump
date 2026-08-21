@@ -69,7 +69,10 @@
           </svg>
         </a>
         <button id="btnTitlePause" class="modal-btn pause-btn-top-left">QUIT</button>
-        <button id="btnRankingPause" class="modal-btn pause-btn-bottom-left">RANKING</button>
+        <div style="position: absolute; bottom: 10px; left: 10px; display: flex; gap: 6px; z-index: 100;">
+          <button id="btnRankingPause" class="modal-btn pause-btn-bottom-left" style="position: relative; left: 0; bottom: 0; padding: 8px 12px; width: auto; font-size: 10px;">RANK</button>
+          <button id="btnLangStatsPause" class="modal-btn pause-btn-bottom-left" style="position: relative; left: 0; bottom: 0; padding: 8px 12px; width: auto; font-size: 10px;">LANG</button>
+        </div>
         <button id="btnResumePause" class="modal-btn pause-btn-bottom-right" title="RESUME">
           <svg viewBox="0 0 9 9" width="18" height="18" style="fill:#fff;">
             <rect x="2" y="1" width="1" height="7" />
@@ -132,7 +135,15 @@
         </div>
       </div>
       
-      
+      <div id="langStatsModal" class="ranking-modal" style="display: none; z-index: 10000; background: rgba(0,0,0,0.85);">
+        <div class="result-container" style="position: absolute; top: 10px; bottom: 0; left: 0; right: 0; width: auto; max-height: unset; display: flex; flex-direction: column; padding: 12px 0 0 0; box-sizing: border-box;">
+          <h1 class="ranking-title" style="margin: 0 0 10px 0;">LANG STATS</h1>
+          <h1 id="langStatsLoading" class="ranking-loading"><span class="loading-coin-icon"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></span><span>LOADING...</span></h1>
+          <div id="langStatsContent" style="display: none; flex: 1; overflow-y: auto; overflow-x: hidden; width: 100%;">
+            <div id="langStatsList" style="display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 0;"></div>
+          </div>
+        </div>
+      </div>
       
       <div id="rankingModal" class="ranking-modal">
         <h1 id="rankingLoading" class="ranking-loading"><span class="loading-coin-icon"><div class="coin-icon"><div class="c-p1"></div><div class="c-p2"></div><div class="c-p3"></div></div></span><span>LOADING...</span></h1>
@@ -178,7 +189,11 @@
 
         <div id="rankingContainer" class="result-container">
           <div class="ranking-title-spacer" style="height: 22px; margin-bottom: 10px;"></div>
-          <h1 class="ranking-title" style="margin: 0 0 6px 0;">RANKING</h1>
+          <div class="ranking-title-header">
+            <span id="rankingPrevLangBtn" class="ranking-arrow-indicator" style="display: none;">◀</span>
+            <h1 id="rankingTitleLabel" class="ranking-title">RANKING</h1>
+            <span id="rankingNextLangBtn" class="ranking-arrow-indicator" style="display: none;">▶</span>
+          </div>
           <div class="ranking-list-inner">
             <table class="ranking-table-header-table">
               <thead class="ranking-thead-transparent">
