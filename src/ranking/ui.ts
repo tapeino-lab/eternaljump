@@ -348,7 +348,7 @@ export let currentLangFilter = '';
         });
         
         let shouldShowMyRecord = true;
-        if (currentLangFilter && currentLangFilter !== getLang().substring(0, 3).toUpperCase()) {
+        if (currentLangFilter && currentLangFilter !== normalizeLangCode(getLang())) {
             shouldShowMyRecord = false;
         }
 
@@ -412,6 +412,12 @@ export let currentLangFilter = '';
         }, 50);
       }
 
+      const normalizeLangCode = (raw: any): string => {
+        let lang = (raw || '---').toString().toUpperCase().substring(0, 3);
+        if (!lang || lang === 'UNK' || lang === '???' || lang === '---') return '---';
+        return lang;
+      };
+
       export const getSortedLangList = function(mode?: string): string[] {
         try {
           let cacheKey = (mode === 'ta') ? 'LL_CACHED_TA_LEADERBOARD' : 'LL_CACHED_LEADERBOARD';
@@ -423,13 +429,17 @@ export let currentLangFilter = '';
             if (Array.isArray(scores) && scores.length > 0) {
               const counts: Record<string, number> = {};
               scores.forEach((r: any) => {
-                const lang = (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3);
-                if (lang && lang !== 'UNK' && lang !== '---' && lang !== '???') {
-                  counts[lang] = (counts[lang] || 0) + 1;
-                }
+                const lang = normalizeLangCode(r.lang || r.l);
+                counts[lang] = (counts[lang] || 0) + 1;
               });
               return Object.entries(counts)
-                .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+                .sort((a, b) => {
+                  let aIsUnknown = (a[0] === '---');
+                  let bIsUnknown = (b[0] === '---');
+                  if (aIsUnknown && !bIsUnknown) return 1;
+                  if (!aIsUnknown && bIsUnknown) return -1;
+                  return b[1] - a[1] || a[0].localeCompare(b[0]);
+                })
                 .map(([lang]) => lang);
             }
           }
@@ -448,11 +458,17 @@ export let currentLangFilter = '';
             if (sList && sList.length > 0) {
               const counts: Record<string, number> = {};
               sList.forEach((r: any) => {
-                const lang = (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3);
+                const lang = normalizeLangCode(r.lang || r.l);
                 counts[lang] = (counts[lang] || 0) + 1;
               });
               
-              let sorted = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+              let sorted = Object.entries(counts).sort((a, b) => {
+                let aIsUnknown = (a[0] === '---');
+                let bIsUnknown = (b[0] === '---');
+                if (aIsUnknown && !bIsUnknown) return 1;
+                if (!aIsUnknown && bIsUnknown) return -1;
+                return b[1] - a[1] || a[0].localeCompare(b[0]);
+              });
               
               let html = '<div class="lang-stats-grid">';
               html += '<div class="lang-stats-divider"></div>';
@@ -650,7 +666,7 @@ export let currentLangFilter = '';
         } catch (e) {}
 
         if (currentLangFilter && cached && Array.isArray(cached)) {
-           cached = cached.filter((r: any) => (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3) === currentLangFilter)
+           cached = cached.filter((r: any) => normalizeLangCode(r.lang || r.l) === currentLangFilter)
                           .map((r: any) => ({...r}));
            cached.forEach((v, idx) => v.rank = idx + 1);
         }
@@ -684,7 +700,7 @@ export let currentLangFilter = '';
         }
 
         if (currentLangFilter && s && Array.isArray(s)) {
-           s = s.filter((r: any) => (r.lang || r.l || 'unk').toString().toUpperCase().substring(0, 3) === currentLangFilter)
+           s = s.filter((r: any) => normalizeLangCode(r.lang || r.l) === currentLangFilter)
                 .map((r: any) => ({...r}));
            s.forEach((v, idx) => v.rank = idx + 1);
         }
