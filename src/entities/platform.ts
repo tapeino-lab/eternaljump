@@ -1,6 +1,6 @@
 import { config, SCORE_THRESHOLDS } from '../config.js';
 import { RND, FLR, ABS, PI, MAX, MIN } from '../utils.js';
-import { ctx, IMG, groundCache, groundCached } from '../display.js';
+import { ctx, IMG, ICY_DMG_IMG, groundCache, groundCached } from '../display.js';
 
 import { game } from '../state.js';
 import { getPt } from './particles.js';
@@ -260,21 +260,32 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
           let dY = this.y, dH = this.h, px = this.x + i * config.platformW;
           
           let isSpecial = (this.type === 'h-slide' || this.type === 'v-slide' || this.isGlowing);
-          let cImg = this.isIcy ? IMG.i30 : (isSpecial && !this.isGround ? IMG.pm30 : IMG.p30);
+          let isDamagedIce = (this.isIcy && this.hits[i] > 0);
+          let cImg: any;
+          if (this.isIcy) {
+            cImg = (isDamagedIce && ICY_DMG_IMG.i30) ? ICY_DMG_IMG.i30 : IMG.i30;
+          } else {
+            cImg = (isSpecial && !this.isGround ? IMG.pm30 : IMG.p30);
+          }
           
           if (this.squishTimers[i] > 0) {
             let t = this.squishTimers[i];
-            if (t >= 10) { dH = 22; cImg = this.isIcy ? IMG.i22 : (isSpecial && !this.isGround ? IMG.pm22 : IMG.p22); }
-            else if (t >= 7) { dH = 14; cImg = this.isIcy ? IMG.i14 : (isSpecial && !this.isGround ? IMG.pm14 : IMG.p14); }
-            else if (t >= 4) { dH = 22; cImg = this.isIcy ? IMG.i22 : (isSpecial && !this.isGround ? IMG.pm22 : IMG.p22); }
+            if (t >= 10) {
+              dH = 22;
+              cImg = this.isIcy ? ((isDamagedIce && ICY_DMG_IMG.i22) ? ICY_DMG_IMG.i22 : IMG.i22) : (isSpecial && !this.isGround ? IMG.pm22 : IMG.p22);
+            } else if (t >= 7) {
+              dH = 14;
+              cImg = this.isIcy ? ((isDamagedIce && ICY_DMG_IMG.i14) ? ICY_DMG_IMG.i14 : IMG.i14) : (isSpecial && !this.isGround ? IMG.pm14 : IMG.p14);
+            } else if (t >= 4) {
+              dH = 22;
+              cImg = this.isIcy ? ((isDamagedIce && ICY_DMG_IMG.i22) ? ICY_DMG_IMG.i22 : IMG.i22) : (isSpecial && !this.isGround ? IMG.pm22 : IMG.p22);
+            }
             dY += (this.h - dH);
           }
-          if (cImg.complete && cImg.naturalWidth > 0) ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
-          else dR(px, dY, config.platformW, dH, '#A0522D');
-
-          if (this.isIcy && this.hits[i] > 0) {
-            ctx.fillStyle = 'rgba(0, 16, 40, 0.35)';
-            ctx.fillRect(FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
+          if (cImg && (cImg.complete === undefined || cImg.complete) && (cImg.naturalWidth === undefined || cImg.naturalWidth > 0 || cImg.width > 0)) {
+            ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
+          } else {
+            dR(px, dY, config.platformW, dH, '#A0522D');
           }
         }
       }

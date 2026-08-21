@@ -14,8 +14,9 @@ export const SNOW_IMG: Record<string, HTMLCanvasElement> = {};
 export const GREEN_SNOW_IMG: Record<string, HTMLCanvasElement> = {};
 export const BLUE_IMG: Record<string, HTMLCanvasElement> = {};
 export const BLUE_SNOW_IMG: Record<string, HTMLCanvasElement> = {};
+export const ICY_DMG_IMG: Record<string, HTMLCanvasElement> = {};
 
-function generateVariant(img: HTMLImageElement, colorMode: 'none' | 'green' | 'blue', doSnow: boolean): HTMLCanvasElement {
+function generateVariant(img: HTMLImageElement, colorMode: 'none' | 'green' | 'blue' | 'icy_dmg', doSnow: boolean): HTMLCanvasElement {
   const cvs = document.createElement('canvas');
   cvs.width = img.naturalWidth || img.width || 16;
   cvs.height = img.naturalHeight || img.height || 16;
@@ -34,7 +35,14 @@ function generateVariant(img: HTMLImageElement, colorMode: 'none' | 'green' | 'b
       const a = data[i + 3];
       
       if (a > 0) {
-        if (colorMode === 'green') {
+        if (colorMode === 'icy_dmg') {
+          // 氷の台の白っぽい部分 (#ffffff 近傍) の色をよりしっかりと暗い水色・影色寄りに置換
+          if (r > 200 && g > 200 && b > 200) {
+            data[i] = 70;      // Red
+            data[i + 1] = 110; // Green
+            data[i + 2] = 145; // Blue
+          }
+        } else if (colorMode === 'green') {
           // 赤色(#d80000 -> R=216, G=0, B=0) 近傍ピクセルをエメラルドグリーン(#00d880)に置換 (GREEN MUSHROOM装備時)
           if (r > 180 && g < 50 && b < 50) {
             data[i] = 0;       // Red
@@ -75,6 +83,9 @@ for (let k in B64) {
     GREEN_SNOW_IMG[k] = generateVariant(IMG[k], 'green', true);
     BLUE_IMG[k] = generateVariant(IMG[k], 'blue', false);
     BLUE_SNOW_IMG[k] = generateVariant(IMG[k], 'blue', true);
+    if (k.startsWith('i')) {
+      ICY_DMG_IMG[k] = generateVariant(IMG[k], 'icy_dmg', false);
+    }
   };
   IMG[k].src = B64[k];
   if (IMG[k].complete && IMG[k].naturalWidth > 0) {
@@ -83,6 +94,9 @@ for (let k in B64) {
     GREEN_SNOW_IMG[k] = generateVariant(IMG[k], 'green', true);
     BLUE_IMG[k] = generateVariant(IMG[k], 'blue', false);
     BLUE_SNOW_IMG[k] = generateVariant(IMG[k], 'blue', true);
+    if (k.startsWith('i')) {
+      ICY_DMG_IMG[k] = generateVariant(IMG[k], 'icy_dmg', false);
+    }
   }
 }
 
@@ -207,6 +221,9 @@ export function restoreGameCanvas(): boolean {
         GREEN_SNOW_IMG[k] = generateVariant(IMG[k], 'green', true);
         BLUE_IMG[k] = generateVariant(IMG[k], 'blue', false);
         BLUE_SNOW_IMG[k] = generateVariant(IMG[k], 'blue', true);
+        if (k.startsWith('i')) {
+          ICY_DMG_IMG[k] = generateVariant(IMG[k], 'icy_dmg', false);
+        }
       }
     }
 
