@@ -111,15 +111,20 @@ export function updateMeteors(game: GameState) {
         P_MT.push(m);
         swapRemove(game.meteors, i);
         i--;
-        game.player.vy *= 0.5;
-        if (game.player.isPoweredUp && !game.equipped?.['helmet']) {
-          game.player.history = [];
-          game.player.savedVy = game.player.vy;
-          game.player.savedVx = game.player.vx;
-          game.player.isPoweredUp = false;
-          game.state = 'powerdown_anim';
-          game.player.animTimer = 48;
-          game.player.baseY = game.player.y;
+        if (game.player.isPoweredUp) {
+          // 巨大化時は減速なし（チビにはなる）
+          if (!game.equipped?.['helmet']) {
+            game.player.history = [];
+            game.player.savedVy = game.player.vy;
+            game.player.savedVx = game.player.vx;
+            game.player.isPoweredUp = false;
+            game.state = 'powerdown_anim';
+            game.player.animTimer = 48;
+            game.player.baseY = game.player.y;
+          }
+        } else {
+          // チビ時は20%のみ減速（速度80%維持）
+          game.player.vy *= 0.8;
         }
       } else {
         if (m.hitTimer > 0) continue;
