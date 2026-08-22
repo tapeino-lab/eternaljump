@@ -1,6 +1,4 @@
-import { $ } from './utils.js';
 import { game } from './state.js';
-import { FlyingCoin } from './entities/index.js';
 import { secureStorage } from './secureStorage.js';
 
 export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', alreadyAddedToTotal: boolean = false, showWindow: boolean = true) {

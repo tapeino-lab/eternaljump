@@ -1,12 +1,9 @@
 import { applyCoinCountUp } from './ui-effects.js';
-import { game, demoState } from './state.js';
+import { game } from './state.js';
 import { ctrlCenterX } from './display.js';
-import { isAttractMode, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, initGame, togglePause, setAuto, clearAttractTimer } from './lifecycle.js';
-
-import { config } from './config.js';
+import { isAttractMode, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, togglePause, setAuto } from './lifecycle.js';
 import { RankingAPI } from './ranking.js';
-import { FLR, MAX, MIN, $ } from './utils.js';
-import { getPl } from './entities/index.js';
+import { $ } from './utils.js';
 
 export class InputManager {
   public active = new Map<string, number>();

@@ -1,6 +1,6 @@
 import { Player } from './entities/index.js';
 import { initSpawner } from './spawner.js';
-import { game, demoState } from './state.js';
+import { game } from './state.js';
 import { setupInputListeners } from './input.js';
 import { setupKeyboardUI } from './keyboard.js';
 import { initShop } from './shop.js';

@@ -1,15 +1,10 @@
 import { game } from '../state.js';
 import { setIgnoreNextTap } from '../lifecycle.js';
-
 import { secureStorage } from '../secureStorage.js';
 import { safeStorage } from '../safeStorage.js';
-
-import { $ } from '../utils.js';
+import { $, getLang, escapeHTML, getPlayerName } from '../utils.js';
 import { LootLockerAPI } from '../lootlocker.js';
-import { getLang, MIN, escapeHTML, getPlayerName, markHasPlayed } from '../utils.js';
-
 import { RankingAPI } from './api.js';
-import { prefetchScores, getScores, syncPersonalBest, saveScore } from './core.js';
 
 let currentRankingSession = 0;
 export let currentLangFilter = '';

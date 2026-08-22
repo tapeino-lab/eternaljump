@@ -1,7 +1,7 @@
 import { B64 } from './assets.js';
 import { config } from './config.js';
 import { game, demoState } from './state.js';
-import { togglePause, onAppResume, onAppSuspend } from './lifecycle.js';
+import { onAppResume, onAppSuspend } from './lifecycle.js';
 import { resetBGScore, drawCloudCaches } from './renderer/bg.js';
 import { render } from './renderer/index.js';
 import { wakeLoop } from './loop.js';
@@ -100,8 +100,6 @@ for (let k in B64) {
   }
 }
 
-let isFirstPlay = true;
-
 const cvsElement = $('gameCanvas') as HTMLCanvasElement;
 export let cvs = cvsElement;
 export let ctx = cvs ? cvs.getContext('2d', { alpha: false }) : null;
@@ -126,12 +124,10 @@ if (cvs) {
   setupCanvasListeners(cvs);
 }
 
-const ui = $('ui');
 const btnL = $('btnLeft');
 const btnR = $('btnRight');
 const wrap = $('canvasWrapper');
 export const pBtn = $('pauseBtn');
-    const pScreen = $('pauseScreen');
 
 document.addEventListener('pwa-update-available', () => {
   if (game.state === 'intro' || demoState.active) {
