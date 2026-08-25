@@ -175,6 +175,7 @@ export class InputManager {
         e.preventDefault();
         
         if (isAttractMode) {
+          if (ignoreNextTap) return;
           startRealGame();
           let dir = (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') ? -1 : 1;
           this.start('k_' + dir, dir);
@@ -435,10 +436,11 @@ export class InputManager {
             e.stopPropagation();
             let earned = (!game.demoMode && game.scoreCoin) ? game.scoreCoin : 0;
             $('pauseConfirmModal')!.style.display = 'none';
-            game.isPaused = false;
             $('pauseScreen')!.style.display = 'none';
+            game.isPaused = false;
+            document.body.classList.remove('game-paused');
             setIgnoreNextTap(true);
-            setTimeout(() => setIgnoreNextTap(false), 500);
+            setTimeout(() => setIgnoreNextTap(false), 50);
             startAttractCycle();
             if (earned > 0) {
               applyCoinCountUp(earned, 'COINS GET!', false, false);

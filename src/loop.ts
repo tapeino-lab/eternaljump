@@ -66,6 +66,11 @@ export function loop(ts: number) {
   let dT = ts - lastTime;
   lastTime = ts;
 
+  // Smooth out rAF variances for 60Hz displays to reduce micro-stutters
+  if (Math.abs(dT - frameDuration) < 2) {
+    dT = frameDuration;
+  }
+  
   // If the browser tab was backgrounded or suspended, dT can be huge.
   // Clamp dT to 1 frame and reset accumulator to avoid freeze / physics explosions.
   if (dT > 100 || dT < 0) {
@@ -137,8 +142,10 @@ export function loop(ts: number) {
     }
   }
 
-  updatePauseButton();
-  updateAutoCruiseBtnVisibility();
+  if (stateChanged) {
+    updatePauseButton();
+    updateAutoCruiseBtnVisibility();
+  }
 
   render(ts);
   if (loopRunning) {
