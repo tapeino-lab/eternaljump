@@ -946,7 +946,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       } else if (cand.isGlowing) {
         bonus = 4000000; // 4. 赤のスーパージャンプ台
       } else if (cand.type === 'h-slide' || cand.type === 'v-slide') {
-        bonus = 2000000; // 5. 緑のジャンプ台 (動くジャンプ台)
+        bonus = 5000; // 5. 緑のジャンプ台 (動くジャンプ台)
       } else if (cand.collected !== undefined) {
         bonus = 1000;
       }
@@ -1012,7 +1012,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             }
             else if (nextCand.type === 'super') nextScore += 6000000;
             else if (nextCand.isGlowing) nextScore += 4000000;
-            else if (nextCand.type === 'h-slide' || nextCand.type === 'v-slide') nextScore += 2000000;
+            else if (nextCand.type === 'h-slide' || nextCand.type === 'v-slide') nextScore += 5000;
             
             if (nextScore > bestNextScore) {
               bestNextScore = nextScore;
@@ -1085,7 +1085,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     } else if (cand.isGlowing) {
       fbScore += 4000000;
     } else if (cand.type === 'h-slide' || cand.type === 'v-slide') {
-      fbScore += 2000000;
+      fbScore += 5000;
     }
     
     if (cand.collected !== undefined) {
