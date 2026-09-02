@@ -270,13 +270,15 @@ export function runAI(entity: Player) {
       // Immediate horizontal propulsion to prevent vertical bouncing on landings
       if (dist > 2.5 || Math.abs(entity.vx) < 0.4) {
         let boostAmount = 0.85 * pushDir;
+        let aiLvl = getEntityAILevel(entity);
         // If current velocity opposes the target direction, give extra kick to turn around instantly
         if ((entity.vx > 0 && pushDir < 0) || (entity.vx < 0 && pushDir > 0)) {
-          entity.vx = pushDir * 1.0;
+          entity.vx = pushDir * (aiLvl === 'smart' ? 1.5 : 1.0);
         } else if (Math.abs(entity.vx) < 0.6) {
-          entity.vx = (entity.vx || 0) + boostAmount;
+          entity.vx = (entity.vx || 0) + boostAmount * (aiLvl === 'smart' ? 1.5 : 1.0);
         }
-        let maxS = config.maxSpeedX * (entity.isSuperJumping ? 1.2 : 1.0);
+        let speedMult = (entity.isSuperJumping ? 1.2 : 1.0) * (aiLvl === 'smart' ? 1.15 : 1.0);
+        let maxS = config.maxSpeedX * speedMult;
         if (entity.vx > maxS) entity.vx = maxS;
         else if (entity.vx < -maxS) entity.vx = -maxS;
       }
@@ -882,7 +884,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     } else {
       // === SMART AI (賢いバージョン: 物理頂点最適化・最速登攀・的確な足場選定) ===
       if (dy > 0) {
-        score += dy * 350; // Strongly prioritize climbing upward directly to highest reachable platforms
+        score += dy * 600; // Idea 3: Strongly prioritize climbing upward directly to highest reachable platforms
         if (initialVy < 0) {
           let distFromApex = candPy - apexY; // Distance of platform surface below the jump apex
           let apexBonus = 0;
@@ -924,7 +926,16 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
 
       let bonus = 0;
-      if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') bonus += 80000;
+      if (cand.type === 'super' || cand.isGlowing) bonus += 80000;
+      
+      if (cand.type === 'red') {
+        if (entity.isPoweredUp && dy > 0) {
+          // Idea 1: Actively seek red mushrooms ABOVE the player to trigger massive rocket jump
+          bonus += 600000;
+        } else {
+          bonus += 80000;
+        }
+      }
       if (cand.type === 'green' && dy > 0) bonus += 500000;
       else if (cand.collected !== undefined) bonus += 1000; 
       

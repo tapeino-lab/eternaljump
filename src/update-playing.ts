@@ -34,7 +34,17 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
         }
       } else if (!i.collected) {
         i.collected = true;
-        game.player.powerUp();
+        let hitFromBelow = game.player.vy < 0 && game.player.y > i.y + i.h * 0.2;
+        if (game.player.isPoweredUp && hitFromBelow) {
+          game.player.jump(config.superJumpPower * 1.6);
+          game.player.isSparkleJumping = true;
+          game.shakeAmount = 15;
+          game.score += 5000;
+          spawnParticles(i.x + i.w / 2, i.y, '#f00', 10, 4);
+          spawnParticles(i.x + i.w / 2, i.y, '#ff0', 8, 3);
+        } else {
+          game.player.powerUp();
+        }
         spawnParticles(i.x + i.w / 2, i.y + i.h, '#ccc', 6);
         if (game.demoMode && game.aiActive) {
           if (game.player.aiPath.length > 0 && game.player.aiPath[0] === i) game.player.aiPath.shift();
