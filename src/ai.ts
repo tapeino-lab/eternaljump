@@ -839,10 +839,10 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       } else {
         let absDy = dy < 0 ? -dy : dy;
         if (initialVy >= 0 || entity.vy > 0) {
-          score -= absDy * 10;
-          score -= eff_dx * 450;
+          score -= absDy * 150;
+          score -= eff_dx * 50;
           if (eff_dx === 0) {
-            score += 20000;
+            score += 2000;
           }
         } else if (absDy <= 16) {
           // Can hop across nearby lateral platforms at similar height if not in icy danger zone
@@ -917,10 +917,10 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         let absDy = dy < 0 ? -dy : dy;
         // When descending, encourage landing on platforms that are reachable by heavily prioritizing horizontal alignment
         if (initialVy >= 0 || entity.vy > 0) {
-          score -= absDy * 10;
-          score -= eff_dx * 500;
+          score -= absDy * 150;
+          score -= eff_dx * 50;
           if (eff_dx === 0) {
-            score += 20000;
+            score += 2000;
           }
         } else if (absDy <= 16) {
           // Same-height platforms (|dy| <= 16) are fully reachable via normal jump arcs!
@@ -1066,8 +1066,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       } else {
         // Prefer platforms that are closer below and horizontally aligned
         let absDy = -dy; // positive distance below
-        fbScore = -absDy * 10 - eff_dx * 500;
-        if (eff_dx === 0) fbScore += 20000;
+        fbScore = -absDy * 150 - eff_dx * 50;
+        if (eff_dx === 0) fbScore += 2000;
       }
     } else {
       // While ascending, evaluate physical jump apex height
