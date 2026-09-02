@@ -979,6 +979,63 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       }
 
+      // --- MULTI-STEP LOOKAHEAD (AI2 Route Construction) ---
+      // Evaluates the potential of the NEXT jump after landing on this candidate
+      if (isReachable && !isStuck && (!cand.type || cand.type === 'normal' || cand.isIcy || cand.type === 'cloud' || cand.type === 'h-slide' || cand.type === 'v-slide')) {
+        let candJumpVy = getPlatformJumpVy(cand, entity);
+        let candMaxAscent = (candJumpVy * candJumpVy) / (2 * g);
+        let candApexY = candPy - candMaxAscent;
+        
+        let bestNextScore = 0;
+        
+        let evaluateNext = (nextCand: any, isItem: boolean) => {
+          if (nextCand === cand || nextCand.broken || nextCand.blacklisted || nextCand.isGround || (isItem && nextCand.collected)) return;
+          let nextPy = nextCand.y;
+          if (nextPy >= maxReachY || nextPy >= candPy + 15 || nextPy < candApexY - 15) return;
+          
+          let nextCandW = nextCand.w || 16;
+          let nextCandPx = nextCand.x + nextCandW / 2;
+          let next_dx = Math.abs(candPx - nextCandPx);
+          if (next_dx > hgw) next_dx = gw - next_dx;
+          let next_eff_dx = Math.max(0, next_dx - (nextCandW / 2) - (playerW / 2));
+          
+          let t_flight = (-candJumpVy * 2) / g;
+          let max_reach_dx = t_flight * maxVx + 24;
+          
+          if (next_eff_dx <= max_reach_dx) {
+            let next_dy = candPy - getTargetTouchY(nextCand);
+            let nextScore = 0;
+            if (next_dy > 0) {
+              nextScore += next_dy * 600;
+              let distFromApex = nextPy - candApexY;
+              if (distFromApex >= -12) {
+                nextScore += 60000 - Math.max(0, distFromApex) * 120;
+              }
+            }
+            
+            if (nextCand.type === 'green' && next_dy > 0) nextScore += 10000000;
+            else if (nextCand.type === 'red') {
+              nextScore += 8000000;
+              if (entity.isPoweredUp && next_dy > 0) nextScore += 1000000;
+            }
+            else if (nextCand.type === 'super') nextScore += 6000000;
+            else if (nextCand.isGlowing) nextScore += 4000000;
+            else if (nextCand.type === 'h-slide' || nextCand.type === 'v-slide') nextScore += 2000000;
+            
+            if (nextScore > bestNextScore) {
+              bestNextScore = nextScore;
+            }
+          }
+        };
+        
+        for (let i = 0; i < candidates.length; i++) evaluateNext(candidates[i], false);
+        for (let i = 0; i < items.length; i++) evaluateNext(items[i], true);
+        
+        if (bestNextScore > 0) {
+          score += bestNextScore * 0.45; // 45% of the next target's score propagates backwards!
+        }
+      }
+
       if (isLastPlat) {
         score -= 40000; // Prefer newly reachable platforms, but keep lastPlatform available if it's the only option
       }
