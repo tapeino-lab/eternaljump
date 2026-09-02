@@ -556,8 +556,26 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   let bestScore = -Infinity;
   let history = entity.visitedHistory || entity.recentPlatforms || [];
   
-  let candidates = game.platforms;
-  let items = game.items || [];
+  let searchRadiusUp = 380;
+  let searchRadiusDown = 220;
+  
+  let candidates = [];
+  for (let i = 0; i < game.platforms.length; i++) {
+    let p = game.platforms[i];
+    if (p.y >= py - searchRadiusUp && p.y <= py + searchRadiusDown && !p.broken && !p.blacklisted && !p.isGround) {
+      candidates.push(p);
+    }
+  }
+  
+  let items = [];
+  if (game.items) {
+    for (let i = 0; i < game.items.length; i++) {
+      let it = game.items[i];
+      if (it.y >= py - searchRadiusUp && it.y <= py + searchRadiusDown && !it.collected && !it.blacklisted) {
+        items.push(it);
+      }
+    }
+  }
   
   let bestFallbackTarget = null;
   let bestFallbackScore = -Infinity;
