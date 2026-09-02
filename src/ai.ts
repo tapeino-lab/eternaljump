@@ -853,7 +853,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
       let bonus = 0;
       if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') bonus += 50000;
-      if (cand.type === 'green' && dy > 0) bonus += 500000;
+      if (cand.type === 'green' && dy > 0) bonus += 1000000;
       else if (cand.collected !== undefined) {
         // Coins: Never dive down, ignore completely in icy zones or when falling
         if (isNearIce || dy < -4 || (entity.vy > 0 && !isGroundedOnPlatform)) {
@@ -926,18 +926,20 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
 
       let bonus = 0;
-      if (cand.type === 'super' || cand.isGlowing) bonus += 80000;
-      
-      if (cand.type === 'red') {
-        if (entity.isPoweredUp && dy > 0) {
-          // Idea 1: Actively seek red mushrooms ABOVE the player to trigger massive rocket jump
-          bonus += 600000;
-        } else {
-          bonus += 80000;
-        }
+      if (cand.type === 'green' && dy > 0) {
+        bonus = 10000000; // 1. 緑キノコ (不動の1位)
+      } else if (cand.type === 'red') {
+        bonus = 8000000; // 2. 赤キノコ (巨大化優先)
+        if (entity.isPoweredUp && dy > 0) bonus += 1000000;
+      } else if (cand.type === 'super') {
+        bonus = 6000000; // 3. 緑のスーパージャンプ台
+      } else if (cand.isGlowing) {
+        bonus = 4000000; // 4. 赤のスーパージャンプ台
+      } else if (cand.type === 'h-slide' || cand.type === 'v-slide') {
+        bonus = 2000000; // 5. 緑のジャンプ台 (動くジャンプ台)
+      } else if (cand.collected !== undefined) {
+        bonus = 1000;
       }
-      if (cand.type === 'green' && dy > 0) bonus += 500000;
-      else if (cand.collected !== undefined) bonus += 1000; 
       
       if (dy < -10) {
         bonus = Math.floor(bonus / 4);
@@ -1008,8 +1010,18 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
     }
 
-    if (cand.type === 'super' || cand.isGlowing || cand.type === 'red') fbScore += 3000;
-    if (cand.type === 'green' && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) fbScore += 500000; // Only boost green mushrooms if within reach
+    if (cand.type === 'green' && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) {
+      fbScore += 10000000;
+    } else if (cand.type === 'red') {
+      fbScore += 8000000;
+    } else if (cand.type === 'super') {
+      fbScore += 6000000;
+    } else if (cand.isGlowing) {
+      fbScore += 4000000;
+    } else if (cand.type === 'h-slide' || cand.type === 'v-slide') {
+      fbScore += 2000000;
+    }
+    
     if (cand.collected !== undefined) {
       // Coins must NEVER be chosen as fallback landing targets because you cannot land on a coin!
       fbScore = -Infinity;
