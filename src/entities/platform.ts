@@ -199,7 +199,20 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
             }
           }
         }
-        if (this.isIcy && !this.broken) {
+        let isOffscreen = true;
+        let scanLimit = config.gameHeight * 1.5;
+        if (Math.abs(this.y - game.cameraY) < scanLimit) {
+          isOffscreen = false;
+        } else if (game.npcs) {
+          for (let i = 0; i < game.npcs.length; i++) {
+            if (game.npcs[i].active && Math.abs(this.y - game.npcs[i].y) < scanLimit) {
+              isOffscreen = false;
+              break;
+            }
+          }
+        }
+
+        if (!isOffscreen && this.isIcy && !this.broken) {
           for (let i = 0; i < this.count; i++) {
             if (this.hits[i] > 0) {
               if (RND() < 0.28) {
@@ -217,7 +230,7 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
             }
           }
         }
-        if ((this.type === 'super' || this.isGlowing) && !this.broken && !this.noEffect) {
+        if (!isOffscreen && (this.type === 'super' || this.isGlowing) && !this.broken && !this.noEffect) {
           let sV = this.isGlowing ? 0.3 : 0.15;
           sV *= this.count;
           while (RND() < sV) {
