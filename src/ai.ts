@@ -839,11 +839,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       } else {
         let absDy = dy < 0 ? -dy : dy;
         if (initialVy >= 0 || entity.vy > 0) {
-          score -= absDy * 150;
-          score -= eff_dx * 50;
-          if (eff_dx === 0) {
-            score += 2000;
-          }
+          score -= absDy * 10;
         } else if (absDy <= 16) {
           // Can hop across nearby lateral platforms at similar height if not in icy danger zone
           if (isNearIce) {
@@ -915,13 +911,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         }
       } else {
         let absDy = dy < 0 ? -dy : dy;
-        // When descending, encourage landing on platforms that are reachable by heavily prioritizing horizontal alignment
+        // When descending, evaluate which reachable platform provides the highest landing point.
         if (initialVy >= 0 || entity.vy > 0) {
-          score -= absDy * 150;
-          score -= eff_dx * 50;
-          if (eff_dx === 0) {
-            score += 2000;
-          }
+          score -= absDy * 10;
         } else if (absDy <= 16) {
           // Same-height platforms (|dy| <= 16) are fully reachable via normal jump arcs!
           // Give them a solid positive baseline so player can comfortably jump laterally across platforms
@@ -930,7 +922,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
           score -= absDy * 300; // Heavily penalize much lower platforms while ascending
         }
       }
-      score -= eff_dx * 1.5; // Minimal lateral penalty so reachable far platforms are pursued
+      // Minimal lateral penalty removed as per user request
 
       // Directional commitment bonus: If moving in a certain direction, favor platforms on that same side
       // to eliminate mid-air target oscillation between symmetrical left/right platforms.
@@ -1064,10 +1056,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       if (dy > 6) {
         fbScore = -Infinity;
       } else {
-        // Prefer platforms that are closer below and horizontally aligned
+        // Prefer platforms that are highest among those reachable below
         let absDy = -dy; // positive distance below
-        fbScore = -absDy * 150 - eff_dx * 50;
-        if (eff_dx === 0) fbScore += 2000;
+        fbScore -= absDy * 10;
       }
     } else {
       // While ascending, evaluate physical jump apex height
