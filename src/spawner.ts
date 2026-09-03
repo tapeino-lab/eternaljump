@@ -148,7 +148,9 @@ export function spawnPlatform() {
   if (y <= game.goalY + 170) {
     addPlatform(getPl(game.goalY + 170, 'normal', false, null, null, null, 1, true));
     addPlatform(getPl(game.goalY + 85, 'normal', false, null, null, null, 1, true));
-    addPlatform(getPl(game.goalY, 'goal', false, 0, config.gameWidth, 32));
+    let goalP = getPl(game.goalY, 'goal', false, 0, config.gameWidth, 32);
+    addPlatform(goalP);
+    game.highestPlatform = goalP;
     return;
   }
   

@@ -629,7 +629,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
     // candidates whose lowest touchable line is above the player are physically impossible to reach.
     let isGroundedOnPlatform = !!(entity.lastPlatform && Math.abs(py - entity.lastPlatform.y) <= 8);
     let topReachLimit = getTargetBottomY(cand);
-    if (initialVy >= 0 && !isGroundedOnPlatform && topReachLimit < py - 6) {
+    let isCandItem = (cand.collected !== undefined || cand.type === 'red' || cand.type === 'green');
+    let touchThreshold = isCandItem ? (py - (entity.h || 16) - 4) : (py - 6);
+    if (initialVy >= 0 && !isGroundedOnPlatform && topReachLimit < touchThreshold) {
       return;
     }
 
@@ -913,7 +915,7 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         let absDy = dy < 0 ? -dy : dy;
         // When descending, evaluate which reachable platform provides the highest landing point.
         if (initialVy >= 0 || entity.vy > 0) {
-          score -= absDy * 10;
+          score -= absDy * 150;
         } else if (absDy <= 16) {
           // Same-height platforms (|dy| <= 16) are fully reachable via normal jump arcs!
           // Give them a solid positive baseline so player can comfortably jump laterally across platforms
@@ -922,7 +924,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
           score -= absDy * 300; // Heavily penalize much lower platforms while ascending
         }
       }
-      // Minimal lateral penalty removed as per user request
+      // Add a horizontal distance penalty to prefer platforms closer to the player
+      score -= eff_dx * 30;
 
       // Directional commitment bonus: If moving in a certain direction, favor platforms on that same side
       // to eliminate mid-air target oscillation between symmetrical left/right platforms.

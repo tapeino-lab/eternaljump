@@ -120,6 +120,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.npcs.length = 0;
   game.birds.length = 0;
   game.platforms.length = 0;
+  game.highestPlatform = null;
   game.items.length = 0;
   game.coins.length = 0;
   game.flyingCoins.length = 0;
