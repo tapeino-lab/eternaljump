@@ -979,20 +979,20 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         let candApexY = candPy - candMaxAscent;
         
         let bestNextScore = 0;
+        let t_flight = (-candJumpVy * 2) / g;
+        let max_reach_dx = t_flight * maxVx + 24;
         
-        let evaluateNext = (nextCand: any, isItem: boolean) => {
-          if (nextCand === cand || nextCand.broken || nextCand.blacklisted || nextCand.isGround || (isItem && nextCand.collected)) return;
+        for (let i = 0; i < candidates.length; i++) {
+          let nextCand = candidates[i];
+          if (nextCand === cand || nextCand.broken || nextCand.blacklisted || nextCand.isGround) continue;
           let nextPy = nextCand.y;
-          if (nextPy >= maxReachY || nextPy >= candPy + 15 || nextPy < candApexY - 15) return;
+          if (nextPy >= maxReachY || nextPy >= candPy + 15 || nextPy < candApexY - 15) continue;
           
           let nextCandW = nextCand.w || 16;
           let nextCandPx = nextCand.x + nextCandW / 2;
           let next_dx = Math.abs(candPx - nextCandPx);
           if (next_dx > hgw) next_dx = gw - next_dx;
           let next_eff_dx = Math.max(0, next_dx - (nextCandW / 2) - (playerW / 2));
-          
-          let t_flight = (-candJumpVy * 2) / g;
-          let max_reach_dx = t_flight * maxVx + 24;
           
           if (next_eff_dx <= max_reach_dx) {
             let next_dy = candPy - getTargetTouchY(nextCand);
@@ -1018,10 +1018,41 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
               bestNextScore = nextScore;
             }
           }
-        };
+        }
         
-        for (let i = 0; i < candidates.length; i++) evaluateNext(candidates[i], false);
-        for (let i = 0; i < items.length; i++) evaluateNext(items[i], true);
+        for (let i = 0; i < items.length; i++) {
+          let nextItem = items[i];
+          if (nextItem === cand || nextItem.blacklisted || nextItem.collected) continue;
+          let nextPy = nextItem.y;
+          if (nextPy >= maxReachY || nextPy >= candPy + 15 || nextPy < candApexY - 15) continue;
+          
+          let nextItemW = nextItem.w || 16;
+          let nextItemPx = nextItem.x + nextItemW / 2;
+          let next_dx = Math.abs(candPx - nextItemPx);
+          if (next_dx > hgw) next_dx = gw - next_dx;
+          let next_eff_dx = Math.max(0, next_dx - (nextItemW / 2) - (playerW / 2));
+          
+          if (next_eff_dx <= max_reach_dx) {
+            let next_dy = candPy - getTargetTouchY(nextItem);
+            let nextScore = 0;
+            if (next_dy > 0) {
+              nextScore += next_dy * 600;
+              let distFromApex = nextPy - candApexY;
+              if (distFromApex >= -12) {
+                nextScore += 60000 - Math.max(0, distFromApex) * 120;
+              }
+            }
+            
+            if (nextItem.type === 'green' && next_dy > 0) nextScore += 10000000;
+            else if (nextItem.type === 'red') {
+              nextScore += 8000000;
+              if (entity.isPoweredUp && next_dy > 0) nextScore += 1000000;
+            }
+            if (nextScore > bestNextScore) {
+              bestNextScore = nextScore;
+            }
+          }
+        }
         
         if (bestNextScore > 0) {
           score += bestNextScore * 0.45; // 45% of the next target's score propagates backwards!
