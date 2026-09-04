@@ -1,3 +1,4 @@
+import { startAttractCycle } from "./lifecycle.js";
 import { game } from './state.js';
 import { secureStorage } from './secureStorage.js';
 import { $ } from './utils.js';
@@ -379,7 +380,7 @@ export function initShop() {
         game.player.x = 44;
         game.player.facingRight = true;
         secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
-        import('./lifecycle.js').then(m => m.startAttractCycle());
+        startAttractCycle();
       }, { passive: false });
     });
   }

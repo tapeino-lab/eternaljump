@@ -1,3 +1,4 @@
+import { startDemoRankingScroll } from "../demo-ranking.js";
 import { game, demoState } from '../state.js';
 import { ctx, IMG } from '../display.js';
 import { isAttractMode, runAttractUICycle, setIgnoreNextTap } from '../lifecycle.js';
@@ -466,7 +467,7 @@ export function updateDemoRanking(ts: number) {
             container.appendChild(oldTop3);
             container.appendChild(oldOthersWrapper);
             
-            import('../demo-ranking.js').then(m => m.startDemoRankingScroll('height', true));
+            startDemoRankingScroll('height', true);
         } else {
             overlay.style.display = 'block';
             overlay.offsetHeight;

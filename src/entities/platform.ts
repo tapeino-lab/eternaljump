@@ -11,7 +11,7 @@ import { ObjectPool } from './pool.js';
 
 export const P_PL = new ObjectPool<Platform>(() => new Platform());
 
-export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any = null, ch: any = null, c = 1, icy = false) {
+export function getPl(y: number, t = 'normal', ig = false, cx: number | null = null, cw: number | null = null, ch: number | null = null, c = 1, icy = false) {
   let p = P_PL.get();
   p.init(y, t, ig, cx, cw, ch, c, icy);
   return p;
@@ -41,7 +41,7 @@ export function getPl(y: any, t = 'normal', ig = false, cx: any = null, cw: any 
       startX: number = 0;
       startY: number = 0;
       
-      init(y: any, t = 'normal', ig = false, cx: any = null, cw: any = null, ch: any = null, count = 1, isIcy = false) {
+      init(y: number, t = 'normal', ig = false, cx: number | null = null, cw: number | null = null, ch: number | null = null, count = 1, isIcy = false) {
         this.isGround = ig;
         this.count = count;
         this.isIcy = isIcy;
