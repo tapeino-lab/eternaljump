@@ -384,7 +384,29 @@ export function runAI(entity: Player) {
     let candW = entity.aiTarget.w || 16;
     let tx = entity.aiTarget.x + candW / 2;
     if (entity.aiTarget.type === 'h-slide' && entity.aiTarget.direction) {
-      tx += entity.aiTarget.direction * 16;
+      let g = config.fallGravity || 0.15;
+      let targetY = getTargetTouchY(entity.aiTarget);
+      let dy_world = targetY - py + 8; // +8 for platform thickness
+      let evalVy = entity.vy;
+      let discriminant = evalVy * evalVy + 2 * g * dy_world;
+      if (discriminant >= 0) {
+        let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
+        if (t_fall > 0 && t_fall < 300) {
+          let simX = entity.aiTarget.x;
+          let simDir = entity.aiTarget.direction;
+          let speed = config.hSlideSpeed || 0.8;
+          let mr = config.gameWidth / 3;
+          let startX = entity.aiTarget.startX || 0;
+          let steps = Math.floor(t_fall);
+          for (let i = 0; i < steps; i++) {
+            simX += speed * simDir;
+            if (simX <= startX - mr / 2 || simX + candW >= startX + mr / 2 || simX <= 0 || simX + candW >= config.gameWidth) {
+              simDir *= -1;
+            }
+          }
+          tx = simX + candW / 2;
+        }
+      }
     }
     
     // Center targeting
@@ -666,12 +688,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             // Near the jump apex, the player has additional hangtime and descent window to adjust horizontally
             let effectiveFlightTime = t_fall + 12; // Extra landing window frames across apex & platform thickness
 
-            // Estimate future candidate position at landing frame if it's a moving platform
+            // Skip future estimation for target evaluation to save processing load as requested by user
             let candPx_future = candPx;
-            if (cand.type === 'h-slide' && cand.direction) {
-              let moveSpeed = cand.hSlideSpeed || config.hSlideSpeed || 0.8;
-              candPx_future += cand.direction * moveSpeed * t_fall;
-            }
             let dx_future = Math.abs(px - candPx_future);
             if (dx_future > hgw) dx_future = gw - dx_future;
             let eff_dx_future = Math.max(0, dx_future - (candW / 2) - (playerW / 2));
@@ -697,10 +715,6 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
           let t_fall = (-evalVy + Math.sqrt(discriminant)) / g;
           if (t_fall >= 0) {
             let candPx_future = candPx;
-            if (cand.type === 'h-slide' && cand.direction) {
-              let moveSpeed = cand.hSlideSpeed || config.hSlideSpeed || 0.8;
-              candPx_future += cand.direction * moveSpeed * t_fall;
-            }
             let dx_future = Math.abs(px - candPx_future);
             if (dx_future > hgw) dx_future = gw - dx_future;
             let eff_dx_future = Math.max(0, dx_future - (candW / 2) - (playerW / 2));
