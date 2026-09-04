@@ -49,6 +49,7 @@ export function updateMeteors(game: GameState) {
     let m = game.meteors[i];
     m.update();
     if (m.y > game.cameraY + config.gameHeight + 100) {
+      m.broken = true;
       P_MT.push(m);
       swapRemove(game.meteors, i);
       i--;
@@ -67,6 +68,8 @@ export function updateMeteors(game: GameState) {
           game.player.stagnationTimer = 0;
           game.player.adventureMode = false;
           game.player.aiPath = [];
+          game.player.aiTarget = null;
+          game.player.aiLockedTarget = null;
         }
         spawnParticles(m.x + m.w / 2, m.y, '#fff', 15, 4);
       } else if (isPunchingUp && game.equipped?.['rod']) {
@@ -108,6 +111,7 @@ export function updateMeteors(game: GameState) {
           spawnFireSparks(m.x + m.w / 2, m.y + m.h / 2, m.isLarge ? 10 : 4);
         }
         game.shakeAmount = 6;
+        m.broken = true;
         P_MT.push(m);
         swapRemove(game.meteors, i);
         i--;

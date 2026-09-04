@@ -598,7 +598,18 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
     }
   }
-  
+
+  let meteors = [];
+  if (game.meteors) {
+    for (let i = 0; i < game.meteors.length; i++) {
+      let m = game.meteors[i];
+      if (m.y >= py - searchRadiusUp && m.y <= py + searchRadiusDown) {
+        (m as any).type = 'meteor';
+        meteors.push(m);
+      }
+    }
+  }
+
   let bestFallbackTarget = null;
   let bestFallbackScore = -Infinity;
 
@@ -966,6 +977,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         bonus = 4000000; // 5. 赤のスーパージャンプ台
       } else if (cand.type === 'h-slide' || cand.type === 'v-slide') {
         bonus = 5000; // 5. 緑のジャンプ台 (動くジャンプ台)
+      } else if (cand.type === 'meteor') {
+        bonus = -50000; // 低優先度 (隕石)
       } else if (cand.collected !== undefined) {
         bonus = 1000;
       }
@@ -1134,6 +1147,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       fbScore += 4000000;
     } else if (cand.type === 'h-slide' || cand.type === 'v-slide') {
       fbScore += 5000;
+    } else if (cand.type === 'meteor') {
+      fbScore -= 50000;
     }
     
     if (cand.collected !== undefined) {
@@ -1182,6 +1197,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   }
   for (let i = 0; i < items.length; i++) {
     processCand(items[i]);
+  }
+  for (let i = 0; i < meteors.length; i++) {
+    processCand(meteors[i]);
   }
   // For Basic AI, only evaluate nearby safe coins if not near ice platforms and coin is not below the player
   if (isBasic) {

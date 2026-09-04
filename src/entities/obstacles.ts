@@ -153,6 +153,7 @@ export function getMt(x: number, y: number, vx: number, vy: number) {
     }
 
     export class Meteor {
+      broken: boolean = false;
       isLarge: boolean = false;
       scale: number = 1;
       w: number = 16;
@@ -167,6 +168,7 @@ export function getMt(x: number, y: number, vx: number, vy: number) {
       hit?: boolean;
 
       init(x: number, y: number, vx: number, vy: number) {
+        this.broken = false;
         this.isLarge = RND() < 0.3;
         this.scale = this.isLarge ? 2 : 1;
         this.w = 16 * this.scale;
