@@ -209,9 +209,10 @@ export function runAI(entity: Player) {
     // Below the bottom death line for this entity
     if (t.y >= maxReachY) return true;
 
-    // Target is only invalid if descending and player's feet have passed below the platform landing line
-    if (entity.vy > 0 && py > t.y + 24) {
-      return true;
+    // Target is invalid if descending and player's feet have passed below the platform landing line
+    if (entity.vy > 0) {
+      let touchBottom = getTargetBottomY(t);
+      if (py > touchBottom + 6) return true;
     }
 
     return false;
@@ -318,8 +319,8 @@ export function runAI(entity: Player) {
     if (isInvalid) {
       entity.aiLockedFromNormalJump = false;
       entity.aiLockedTarget = null;
-      if (aiCalculationsThisFrame < 1) {
-        aiCalculationsThisFrame++;
+      if (isPlayer || aiCalculationsThisFrame < 1) {
+        if (!isPlayer) aiCalculationsThisFrame++;
         let initialVy = entity.vy;
         entity.aiTarget = findBestTarget(entity, px, py, initialVy, isStuck);
       }
@@ -355,11 +356,13 @@ export function runAI(entity: Player) {
     }
 
     if (needsRethink) {
-      // Throttle heavy AI pathfinding calculations to 1 per frame globally across all NPCs and player
-      if (aiCalculationsThisFrame >= 1 && entity.aiTarget && !isTargetInvalid(entity.aiTarget)) {
-        needsRethink = false; // Defer non-critical pathfinding to next frame
+      // Throttle heavy AI pathfinding calculations for non-critical NPC cases:
+      // Player emergency rethink (!entity.aiTarget or isTargetInvalid) must NEVER be blocked!
+      let isEmergency = !entity.aiTarget || isTargetInvalid(entity.aiTarget);
+      if (!isPlayer && !isEmergency && aiCalculationsThisFrame >= 1) {
+        needsRethink = false; // Defer non-critical pathfinding for NPCs to next frame
       } else {
-        aiCalculationsThisFrame++;
+        if (!isPlayer) aiCalculationsThisFrame++;
 
         let history = entity.visitedHistory || entity.recentPlatforms || [];
         let timesVisited = 0;
@@ -442,7 +445,13 @@ export function runAI(entity: Player) {
     } else {
       // During descent: smoothly ride inertia onto the platform surface if within landing span
       if (dist <= halfPlatSpan) {
-        desiredDir = 0;
+        // If drifting away from platform center at noticeable speed, gently counter-steer to stay centered
+        let isDriftingAway = (entity.vx > 0.4 && dx < 0) || (entity.vx < -0.4 && dx > 0);
+        if (isDriftingAway && dist > halfPlatSpan * 0.4) {
+          desiredDir = dx > 0 ? 1 : -1;
+        } else {
+          desiredDir = 0;
+        }
       } else {
         if (prevInput !== 0 && rawDir !== prevInput && dist < 4.5) {
           desiredDir = 0;
@@ -464,14 +473,14 @@ export function runAI(entity: Player) {
 
     // Look-Ahead Landing & Pre-Input Steering:
     // When falling toward a confirmed landing, check next hop target (cached once per descent)
-    // Only pre-steer when in the immediate final frames of touchdown directly above the target platform
-    let isDescendingToPlat = (entity.vy > 0 && !isItem && py <= entity.aiTarget.y + 4 && py >= entity.aiTarget.y - 8);
-    let isHorizontallyAligned = dist <= Math.max(2, halfPlatSpan - 2);
+    // Only pre-steer when securely within inner half of platform and in immediate final frames of touchdown
+    let isDescendingToPlat = (entity.vy > 0 && !isItem && py <= entity.aiTarget.y + 4 && py >= entity.aiTarget.y - 6);
+    let isSecurelyCentered = dist <= Math.max(2, halfPlatSpan * 0.5);
 
-    if (isDescendingToPlat && isHorizontallyAligned) {
+    if (isDescendingToPlat && isSecurelyCentered) {
       if (!entity.aiLookAheadTarget || isTargetInvalid(entity.aiLookAheadTarget)) {
-        if (aiCalculationsThisFrame < 1) {
-          aiCalculationsThisFrame++;
+        if (isPlayer || aiCalculationsThisFrame < 1) {
+          if (!isPlayer) aiCalculationsThisFrame++;
           let nextHopVy = getPlatformJumpVy(entity.aiTarget, entity);
           entity.aiLookAheadTarget = findBestTarget(entity, tx, entity.aiTarget.y, nextHopVy, false);
         }
@@ -485,9 +494,14 @@ export function runAI(entity: Player) {
         else if (nextDx < -config.gameWidth / 2) nextDx += config.gameWidth;
         
         let nextDir = nextDx > 0 ? 1 : -1;
-        entity.inputDir = nextDir;
-        if (isTargetIcy && Math.abs(entity.vx || 0) < 0.6) {
-          entity.vx = (entity.vx || 0) + nextDir * 0.4;
+        // Hold onto safe landing: only pre-steer if it won't pull the entity off the current platform
+        if (dist + Math.abs(entity.vx || 0) < halfPlatSpan - 2) {
+          entity.inputDir = nextDir;
+          if (isTargetIcy && Math.abs(entity.vx || 0) < 0.6) {
+            entity.vx = (entity.vx || 0) + nextDir * 0.4;
+          }
+        } else {
+          entity.inputDir = desiredDir;
         }
       } else {
         if (isTargetIcy || isTargetFragile) {
@@ -730,8 +744,24 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
             if (dx_future > hgw) dx_future = gw - dx_future;
             let eff_dx_future = Math.max(0, dx_future - (candW / 2) - (playerW / 2));
 
-            let currVx = Math.abs(entity.vx || 0);
-            let max_possible_dx = (t_fall + 6) * Math.max(maxVx, currVx) + 20;
+            let candDir = (candPx >= px) ? 1 : -1;
+            let isMovingToward = (entity.vx > 0.1 && candDir > 0) || (entity.vx < -0.1 && candDir < 0);
+            let isMovingAway = (entity.vx > 0.1 && candDir < 0) || (entity.vx < -0.1 && candDir > 0);
+            let currVxAbs = Math.abs(entity.vx || 0);
+            let max_possible_dx = 0;
+            if (isMovingToward) {
+              max_possible_dx = Math.min(maxVx, currVxAbs + 0.15 * t_fall) * t_fall + 8;
+            } else if (isMovingAway) {
+              let stopFrames = currVxAbs / 0.15;
+              if (t_fall > stopFrames) {
+                let remainingFrames = t_fall - stopFrames;
+                max_possible_dx = Math.min(maxVx, 0.15 * remainingFrames) * remainingFrames + 4;
+              } else {
+                max_possible_dx = 0;
+              }
+            } else {
+              max_possible_dx = Math.min(maxVx, 0.15 * t_fall) * t_fall + 6;
+            }
             if (eff_dx_future <= max_possible_dx) {
               isReachable = true;
             }
@@ -867,7 +897,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       } else {
         let absDy = dy < 0 ? -dy : dy;
         if (initialVy >= 0 || entity.vy > 0) {
-          score -= absDy * 10;
+          score -= absDy * 150;
+          score -= eff_dx * 50;
         } else if (absDy <= 16) {
           // Can hop across nearby lateral platforms at similar height if not in icy danger zone
           if (isNearIce) {
@@ -881,8 +912,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
           score -= absDy * downPenalty;
         }
       }
-      // Prefer platforms that are horizontally closer to current position
-      score -= eff_dx * 8;
+      if (initialVy < 0 && entity.vy < 0) {
+        score -= eff_dx * 8;
+      }
 
       let candDirection = (candPx >= px) ? 1 : -1;
       let isMovingSameWay = (entity.vx > 0.15 && candDirection > 0) || (entity.vx < -0.15 && candDirection < 0);
@@ -941,7 +973,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         let absDy = dy < 0 ? -dy : dy;
         // When descending, evaluate which reachable platform provides the highest landing point.
         if (initialVy >= 0 || entity.vy > 0) {
-          score -= absDy * 150;
+          score -= absDy * 250; // Strongly prioritize the highest reachable platform
+          score -= eff_dx * 80; // Strongly penalize horizontal distance so AI lands on platforms right beneath it
         } else if (absDy <= 16) {
           // Same-height platforms (|dy| <= 16) are fully reachable via normal jump arcs!
           // Give them a solid positive baseline so player can comfortably jump laterally across platforms
@@ -950,8 +983,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
           score -= absDy * 300; // Heavily penalize much lower platforms while ascending
         }
       }
-      // Add a horizontal distance penalty to prefer platforms closer to the player
-      score -= eff_dx * 30;
+      if (initialVy < 0 && entity.vy < 0) {
+        score -= eff_dx * 30;
+      }
 
       // Directional commitment bonus: If moving in a certain direction, favor platforms on that same side
       // to eliminate mid-air target oscillation between symmetrical left/right platforms.
@@ -983,7 +1017,11 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
         bonus = 1000;
       }
       
-      if (dy < -10) {
+      let isDescendingMidAir = (initialVy >= 0 || entity.vy > 0);
+      if (isDescendingMidAir && dy < 0) {
+        // While falling in mid-air, cap special bonuses so the AI never bypasses a safe platform directly below it
+        bonus = Math.min(bonus, 8000);
+      } else if (dy < -10) {
         bonus = Math.floor(bonus / 4);
       }
       score += bonus;
@@ -1005,7 +1043,8 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
 
       // --- MULTI-STEP LOOKAHEAD (AI2 Route Construction) ---
       // Evaluates the potential of the NEXT jump after landing on this candidate
-      if (isReachable && !isStuck && (!cand.type || cand.type === 'normal' || cand.isIcy || cand.type === 'cloud' || cand.type === 'h-slide' || cand.type === 'v-slide')) {
+      // CRITICAL: When descending/falling in mid-air, disable lookahead route bonus to focus 100% on immediate safe landing!
+      if (!isDescendingMidAir && isReachable && !isStuck && (!cand.type || cand.type === 'normal' || cand.isIcy || cand.type === 'cloud' || cand.type === 'h-slide' || cand.type === 'v-slide')) {
         let candJumpVy = getPlatformJumpVy(cand, entity);
         let candMaxAscent = (candJumpVy * candJumpVy) / (2 * g);
         let candApexY = candPy - candMaxAscent;
@@ -1115,9 +1154,10 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       if (dy > 6) {
         fbScore = -Infinity;
       } else {
-        // Prefer platforms that are highest among those reachable below
+        // Prefer platforms that are highest among those reachable below and horizontally close
         let absDy = -dy; // positive distance below
-        fbScore -= absDy * 10;
+        fbScore -= absDy * 40;
+        fbScore -= eff_dx * 25;
       }
     } else {
       // While ascending, evaluate physical jump apex height

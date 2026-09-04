@@ -224,12 +224,12 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
     let npc = game.npcs[i];
     npc.update();
 
-    if (npc.y > 1500) {
+    if (npc.y > game.cameraY + config.gameHeight + 350) {
       swapRemove(game.npcs, i);
       i--;
       continue;
     }
-    if (npc.stagnationTimer > 1800 && npc.y > game.cameraY + config.gameHeight) {
+    if (npc.stagnationTimer > 180 && npc.y > game.cameraY + config.gameHeight) {
       swapRemove(game.npcs, i);
       i--;
       continue;

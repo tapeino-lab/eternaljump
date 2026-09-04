@@ -28,12 +28,13 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
   game.score = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
   
   let lowestY = game.player.y;
+  let maxAllowedNpcY = game.cameraY + config.gameHeight + 350;
   for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {
     let n = game.npcs[_idx_npcs];
-    if (n.active && n.y > lowestY) lowestY = n.y;
+    if (n.active && n.y > lowestY && n.y <= maxAllowedNpcY) lowestY = n.y;
   }
   
-  let dL = lowestY + config.gameHeight * 2;
+  let dL = Math.min(lowestY + config.gameHeight * 1.5, game.cameraY + config.gameHeight * 2);
   for (let i = 0; i < game.platforms.length; i++) {
     let p = game.platforms[i];
     if (p.broken || (!p.isGround && p.y >= dL)) {
