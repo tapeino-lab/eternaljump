@@ -650,12 +650,13 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       let maxAscent = (effectiveVy * effectiveVy) / (2 * g);
       let apexY = py - maxAscent;
 
-      // Target touch surface must be at or below the jump apex Y (with generous 12px margin for landing contact/platform thickness)
-      if (targetTouchY >= apexY - 12) {
+      // Target touch surface must be at or below the jump apex Y (with generous margin for landing contact or touching items)
+      let requiredTouchY = isCandItem ? (apexY - (entity.h || 16) - 4) : (apexY - 12);
+      if (targetTouchY >= requiredTouchY) {
         // Platforms have 8px vertical thickness and can be landed on while descending through the top surface
         let landingDyWorld = dy_world + 8;
         let discriminant = evalVy * evalVy + 2 * g * landingDyWorld;
-        if (discriminant < 0 && targetTouchY >= apexY - 12) {
+        if (discriminant < 0 && targetTouchY >= requiredTouchY) {
           discriminant = 0;
         }
         if (discriminant >= 0) {
@@ -939,15 +940,16 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
 
       let bonus = 0;
-      if (cand.type === 'green' && dy > 0) {
-        bonus = 10000000; // 1. 緑キノコ (不動の1位)
+      if (cand.type === 'red' && entity.isPoweredUp && dy > 0) {
+        bonus = 12000000; // 1. 赤キノコ(巨大化上昇中) -> 最優先(特大スーパージャンプ)
+      } else if (cand.type === 'green' && dy > 0) {
+        bonus = 10000000; // 2. 緑キノコ (不動の2位)
       } else if (cand.type === 'red') {
-        bonus = 8000000; // 2. 赤キノコ (巨大化優先)
-        if (entity.isPoweredUp && dy > 0) bonus += 1000000;
+        bonus = 8000000; // 3. 赤キノコ (通常巨大化)
       } else if (cand.type === 'super') {
-        bonus = 6000000; // 3. 緑のスーパージャンプ台
+        bonus = 6000000; // 4. 緑のスーパージャンプ台
       } else if (cand.isGlowing) {
-        bonus = 4000000; // 4. 赤のスーパージャンプ台
+        bonus = 4000000; // 5. 赤のスーパージャンプ台
       } else if (cand.type === 'h-slide' || cand.type === 'v-slide') {
         bonus = 5000; // 5. 緑のジャンプ台 (動くジャンプ台)
       } else if (cand.collected !== undefined) {
@@ -1008,11 +1010,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
               }
             }
             
-            if (nextCand.type === 'green' && next_dy > 0) nextScore += 10000000;
-            else if (nextCand.type === 'red') {
-              nextScore += 8000000;
-              if (entity.isPoweredUp && next_dy > 0) nextScore += 1000000;
-            }
+            if (nextCand.type === 'red' && entity.isPoweredUp && next_dy > 0) nextScore += 12000000;
+            else if (nextCand.type === 'green' && next_dy > 0) nextScore += 10000000;
+            else if (nextCand.type === 'red') nextScore += 8000000;
             else if (nextCand.type === 'super') nextScore += 6000000;
             else if (nextCand.isGlowing) nextScore += 4000000;
             else if (nextCand.type === 'h-slide' || nextCand.type === 'v-slide') nextScore += 5000;
@@ -1046,11 +1046,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
               }
             }
             
-            if (nextItem.type === 'green' && next_dy > 0) nextScore += 10000000;
-            else if (nextItem.type === 'red') {
-              nextScore += 8000000;
-              if (entity.isPoweredUp && next_dy > 0) nextScore += 1000000;
-            }
+            if (nextItem.type === 'red' && entity.isPoweredUp && next_dy > 0) nextScore += 12000000;
+            else if (nextItem.type === 'green' && next_dy > 0) nextScore += 10000000;
+            else if (nextItem.type === 'red') nextScore += 8000000;
             if (nextScore > bestNextScore) {
               bestNextScore = nextScore;
             }
@@ -1110,7 +1108,9 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
       }
     }
 
-    if (cand.type === 'green' && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) {
+    if (cand.type === 'red' && entity.isPoweredUp && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) {
+      fbScore += 12000000;
+    } else if (cand.type === 'green' && dy > 0 && dy <= (evalVy * evalVy) / (2 * g) + 20) {
       fbScore += 10000000;
     } else if (cand.type === 'red') {
       fbScore += 8000000;
