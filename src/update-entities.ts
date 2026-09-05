@@ -2,7 +2,7 @@ import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, spawnDebris, spawnFireSparks, P_PT, P_PL, P_IT, P_CN, P_CL, P_FC, getFc } from './entities/index.js';
-import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
+import { RND, FLR, MAX, MIN, $, swapRemove, isColliding } from './utils.js';
 import { initGame } from './lifecycle.js';
 
 import { RankingAPI } from './ranking.js';
@@ -53,7 +53,7 @@ export function updateMeteors(game: GameState) {
       P_MT.push(m);
       swapRemove(game.meteors, i);
       i--;
-    } else if (game.state === 'playing' && !(game.player.hitTimer > 0) && game.player.x < m.x + m.w && game.player.x + game.player.w > m.x && game.player.y < m.y + m.h && game.player.y + game.player.h > m.y) {
+    } else if (game.state === 'playing' && !(game.player.hitTimer > 0) && isColliding(game.player, m)) {
       let isStomping = (game.player.vy > 0 && (game.player.y + game.player.h - game.player.vy) <= m.y + m.h * 0.5);
       let isPunchingUp = (game.player.vy < 0 && (game.player.y - game.player.vy) >= m.y + m.h * 0.5);
       
@@ -237,14 +237,14 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
     if (!npc.active) continue;
 
     if (npc.isCleared) {
-      if (game.player.x < npc.x + npc.w && game.player.x + game.player.w > npc.x && game.player.y < npc.y + npc.h && game.player.y + game.player.h > npc.y) {
+      if (isColliding(game.player, npc)) {
         let push = npc.x > game.player.x ? 0.5 : -0.5;
         if (Math.abs(npc.vx) < 3) npc.vx += push;
       }
       for (let j = 0; j < game.npcs.length; j++) {
         if (i === j) continue;
         let otherNpc = game.npcs[j];
-        if (npc.x < otherNpc.x + otherNpc.w && npc.x + npc.w > otherNpc.x && npc.y < otherNpc.y + otherNpc.h && npc.y + npc.h > otherNpc.y) {
+        if (isColliding(npc, otherNpc)) {
           let push = 0;
           if (npc.x > otherNpc.x) push = 0.5;
           else if (npc.x < otherNpc.x) push = -0.5;
@@ -252,7 +252,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
           if (Math.abs(npc.vx) < 3) npc.vx += push;
         }
       }
-    } else if (game.state === 'playing' && !(game.player.hitTimer > 0) && !(npc.hitTimer > 0) && game.player.x < npc.x + npc.w && game.player.x + game.player.w > npc.x && game.player.y < npc.y + npc.h && game.player.y + game.player.h > npc.y) {
+    } else if (game.state === 'playing' && !(game.player.hitTimer > 0) && !(npc.hitTimer > 0) && isColliding(game.player, npc)) {
       let pStomp = (game.player.vy > 0 && (game.player.y + game.player.h - game.player.vy) <= npc.y + npc.h * 0.5);
       let nStomp = (npc.vy > 0 && (npc.y + npc.h - npc.vy) <= game.player.y + game.player.h * 0.5);
       

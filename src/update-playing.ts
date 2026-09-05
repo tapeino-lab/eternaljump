@@ -2,7 +2,7 @@ import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, getFc } from './entities/index.js';
-import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
+import { RND, FLR, MAX, MIN, $, swapRemove, isColliding } from './utils.js';
 import { initGame } from './lifecycle.js';
 
 import { RankingAPI } from './ranking.js';
@@ -17,7 +17,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
     let i = game.items[_idx_items];
     if (i.type !== 'green' && (i.y > bot100 || i.y + i.h < top100)) continue;
 
-    if (game.player.x < i.x + i.w && game.player.x + game.player.w > i.x && game.player.y < i.y + i.h && game.player.y + game.player.h > i.y) {
+    if (isColliding(game.player, i)) {
       if (i.type === 'green') {
         let superPower = config.superJumpPower * config.glowingMovingJumpMultiplier;
         game.player.jump(superPower);
@@ -56,7 +56,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
 
     for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {
     let npc = game.npcs[_idx_npcs];
-      if (npc.active && (npc.vy > 0 || i.type === 'green') && npc.x < i.x + i.w && npc.x + npc.w > i.x && npc.y < i.y + i.h && npc.y + npc.h > i.y) {
+      if (npc.active && (npc.vy > 0 || i.type === 'green') && isColliding(npc, i)) {
         let ap = (i.type === 'green') ? config.superJumpPower * config.glowingMovingJumpMultiplier : config.superJumpPower;
         npc.y = i.y - npc.h;
         npc.jump(ap);
