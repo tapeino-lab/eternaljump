@@ -226,7 +226,7 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   {
     id: 'lithuanian',
     name: 'SUPER<br>COSTUME',
-    desc: 'HELMET + SNOW SHOES',
+    desc: 'HELMET + SNOW BOOTS',
     price: 100000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <rect x="4" y="5" width="8" height="4" fill="#dca342"/>
