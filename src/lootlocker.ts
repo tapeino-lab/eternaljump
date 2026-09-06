@@ -23,7 +23,7 @@ export const LootLockerAPI = {
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
   taLeaderboardId: import.meta.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || '',
   coinLeaderboardId: import.meta.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || '',
-  playerIdentifier: safeStorage.getItem('LL_PID'),
+  playerIdentifier: import.meta.env.DEV ? 'p_86fd8b1a11bda28f' : safeStorage.getItem('LL_PID'),
   
   sessionToken: null,
   playerId: null,
@@ -84,9 +84,50 @@ export const LootLockerAPI = {
   },
 
   syncTotalCoins: async function() {
-    let total = secureStorage.getItem('JUMP_TOTAL_COINS', 0);
-    if (total > 0) {
-      await this.submitCoinScore(total, getLang());
+    let localTotal = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+    
+    // Attempt to fetch remote coins
+    try {
+      if (this.coinLeaderboardId && await this.init()) {
+        let r;
+        if (this.isDirectMode) {
+          let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.coinLeaderboardId}/member/${this.playerId}`;
+          r = await fetch(url, {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-session-token': this.sessionToken
+            }
+          });
+        } else {
+          r = await fetch(`/api/lootlocker/leaderboards/member?member_id=${this.playerId}&session_token=${encodeURIComponent(this.sessionToken)}&leaderboard_id=${this.coinLeaderboardId}`);
+        }
+        
+        if (r.ok) {
+          let d = await r.json();
+          if (d && typeof d.score === 'number' && d.score > 0) {
+            let remoteTotal = d.score;
+            if (remoteTotal > localTotal) {
+              this.log(`Remote coins (${remoteTotal}) > Local coins (${localTotal}). Syncing to local.`, 'info');
+              localTotal = remoteTotal;
+              secureStorage.setItem('JUMP_TOTAL_COINS', localTotal);
+              
+              // Try to update global game state if running
+              if (typeof (window as any).game !== 'undefined') {
+                (window as any).game.totalCoins = localTotal;
+              }
+              // Force shop coin display update if element exists
+              let el = document.getElementById('shopCoinCounter');
+              if (el) el.innerText = localTotal.toString();
+            }
+          }
+        }
+      }
+    } catch(e) {
+      console.warn("Failed to fetch remote coins", e);
+    }
+
+    if (localTotal > 0) {
+      await this.submitCoinScore(localTotal, getLang());
     }
   },
 
@@ -654,7 +695,11 @@ export const LootLockerAPI = {
 
 // Auto generate pid if missing
 if (!LootLockerAPI.playerIdentifier) {
-  LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
+  if (import.meta.env.DEV) {
+    LootLockerAPI.playerIdentifier = 'p_86fd8b1a11bda28f';
+  } else {
+    LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
+  }
   safeStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
 }
 

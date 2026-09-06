@@ -351,6 +351,13 @@ export function setupGameCameraAndPlayer(isConsecutive) {
   game.scoreCoin = 0;
   game.flyingCoins = [];
   game.totalCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+  
+  // Dev preview specific: restore known coin balance for the linked player so testing can continue
+  if (import.meta.env.DEV && game.totalCoins === 0) {
+    game.totalCoins = 200827; // Restore JPN T_'s known balance
+    secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+  }
+
   game.inventory = secureStorage.getItem<Record<string, boolean>>('JUMP_INVENTORY', {});
   let loadedEq = secureStorage.getItem<any>('JUMP_EQUIPPED', {});
   if (typeof loadedEq === 'string') {
@@ -387,6 +394,7 @@ export function setupGameEnvironment(isConsecutive) {
   
   let pl3 = getPl(416, 'super', false, 104, config.platformW, 32, 1);
   pl3.noEffect = true;
+  pl3.isPersistent = true;
   addPlatform(pl3);
   
   let pl4 = getPl(416 + config.platformH, 'normal', true, 0, config.gameWidth, 400);

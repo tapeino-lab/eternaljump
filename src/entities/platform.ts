@@ -35,6 +35,7 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
       isCrumbling: boolean = false;
       isGlowing: boolean = false;
       isIntroCover: boolean = false;
+      isPersistent: boolean = false;
       isOverlapping: boolean = false;
       noEffect: boolean = false;
       squishTimers: number[] = [];
@@ -64,7 +65,8 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
         this.isGlowing = ((t === 'h-slide' || t === 'v-slide') && !ig && RND() < config.glowingMovingProb);
         this.broken = false;
         this.blacklisted = false;
-        this.noEffect = false;
+        this.isIntroCover = false;
+        this.isPersistent = false;
         this.isOverlapping = false;
         
         if (cx !== null) {
@@ -175,14 +177,14 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
             this.squishTimers[i]--;
             if (this.squishTimers[i] === 0 && this.isIcy && !this.broken && this.breakOnSquish[i]) {
               this.hits[i]++;
-              let req = game.equipped?.['skates'] ? 2 : 1;
+              let req = (game.equipped?.['skates'] || game.equipped?.['lithuanian']) ? 2 : 1;
               if (this.hits[i] >= req) {
                 this.broken = true;
                 let cX = this.x + i * config.platformW + 8, cY = this.y + 15, iC = ['#fff', '#e0ffff', '#b0e0e6', '#f0ffff'];
                 for (let p = 0; p < 8; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 8, cY + (RND() - 0.5) * 8, (RND() - 0.5) * 6, (RND() - 0.5) * 4 - 1, '#fff', 2 + RND() * 2, 15 + RND() * 10, 0.2 + RND() * 0.1));
                 for (let p = 0; p < 20; p++) game.particles.push(getPt(cX + (RND() - 0.5) * 12, cY + (RND() - 0.5) * 12, (RND() - 0.5) * 1.5, (RND() - 0.8) * 1, iC[FLR(RND() * 4)], RND() * 1.5, 30 + RND() * 45, 0.005 + RND() * 0.015));
 
-                let coinChance = game.equipped?.['skates'] ? 0.75 : 0.5;
+                let coinChance = (game.equipped?.['skates'] || game.equipped?.['lithuanian']) ? 0.75 : 0.5;
                 if (game.equipped?.['golden_glove'] && RND() < coinChance) {
                   let fc = getFc(cX, cY, () => {
                     if (game.scoreCoin < 999) game.scoreCoin++;

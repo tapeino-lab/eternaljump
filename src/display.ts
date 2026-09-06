@@ -15,6 +15,24 @@ export const GREEN_SNOW_IMG: Record<string, HTMLCanvasElement> = {};
 export const BLUE_IMG: Record<string, HTMLCanvasElement> = {};
 export const BLUE_SNOW_IMG: Record<string, HTMLCanvasElement> = {};
 export const ICY_DMG_IMG: Record<string, HTMLCanvasElement> = {};
+export const LITHUANIAN_IMG: Record<string, HTMLImageElement> = {};
+
+const lithuanianFiles: Record<string, string> = {
+  std: 'lit_std',
+  jmp: 'lit_jmp',
+  fal: 'lit_fal',
+  wlk1: 'lit_wlk1',
+  wlk2: 'lit_wlk2',
+  wlk3: 'lit_wlk3',
+  pwr: 'lit_pwr'
+};
+
+for (const key in lithuanianFiles) {
+  const img = new Image();
+  const b64Key = lithuanianFiles[key];
+  img.src = B64[b64Key as keyof typeof B64];
+  LITHUANIAN_IMG[key] = img;
+}
 
 function generateVariant(img: HTMLImageElement, colorMode: 'none' | 'green' | 'blue' | 'icy_dmg', doSnow: boolean): HTMLCanvasElement {
   const cvs = document.createElement('canvas');
@@ -176,6 +194,7 @@ export function drawGroundCache() {
 }
 
 IMG.gnd.onload = drawGroundCache;
+drawCloudCaches(); // Initialize cloud caches immediately on load
 
 export function restoreGameCanvas(): boolean {
   try {

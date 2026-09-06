@@ -26,6 +26,7 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   <rect x="9" y="4" width="3" height="3" fill="#fff"/>
 </svg>`
   },
+
   {
     id: 'helmet',
     name: 'HELMET',
@@ -150,7 +151,7 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   {
     id: 'breakfast',
     name: 'BREAKFAST',
-    desc: 'A bite to wake up.',
+    desc: 'A bite to wake up',
     price: 30000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <rect x="5" y="8" width="6" height="6" fill="#fcc"/>
@@ -200,7 +201,7 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   {
     id: 'golden_glove',
     name: 'GOLDEN GLOVE',
-    desc: 'Harvest gold from ice.',
+    desc: 'Harvest gold from ice',
     price: 75000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <!-- Golden Body Fill (#fd0) -->
@@ -220,6 +221,25 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   <!-- White Fluffy Cuff / Trim directly connected to gold (y=11..13) -->
   <rect x="3" y="11" width="9" height="2" fill="#fff"/>
   <rect x="3" y="13" width="9" height="1" fill="#ddd"/>
+</svg>`
+  },
+  {
+    id: 'lithuanian',
+    name: 'SUPER<br>COSTUME',
+    desc: 'HELMET + SNOW SHOES',
+    price: 100000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="4" y="5" width="8" height="4" fill="#dca342"/>
+  <rect x="2" y="9" width="12" height="2" fill="#dca342"/>
+  <rect x="4" y="4" width="8" height="1" fill="#000"/>
+  <rect x="3" y="5" width="1" height="4" fill="#000"/>
+  <rect x="12" y="5" width="1" height="4" fill="#000"/>
+  <rect x="1" y="9" width="1" height="2" fill="#000"/>
+  <rect x="14" y="9" width="1" height="2" fill="#000"/>
+  <rect x="2" y="11" width="12" height="1" fill="#000"/>
+  <rect x="5" y="5" width="2" height="1" fill="#f4c878"/>
+  <rect x="4" y="6" width="1" height="2" fill="#f4c878"/>
+  <rect x="4" y="8" width="8" height="1" fill="#905010"/>
 </svg>`
   }
 ];
@@ -413,6 +433,12 @@ export function initShop() {
           } else if (id === 'autocruise2' && game.equipped['autocruise']) {
             game.equipped['autocruise'] = false;
           }
+          if (id === 'lithuanian') {
+            game.equipped['helmet'] = false;
+            game.equipped['skates'] = false;
+          } else if (id === 'helmet' || id === 'skates') {
+            game.equipped['lithuanian'] = false;
+          }
 
           let numEquipped = Object.values(game.equipped).filter(Boolean).length;
           if (numEquipped >= 3) {
@@ -440,6 +466,12 @@ export function initShop() {
           game.equipped['autocruise2'] = false;
         } else if (id === 'autocruise2' && game.equipped['autocruise']) {
           game.equipped['autocruise'] = false;
+        }
+        if (id === 'lithuanian') {
+          game.equipped['helmet'] = false;
+          game.equipped['skates'] = false;
+        } else if (id === 'helmet' || id === 'skates') {
+          game.equipped['lithuanian'] = false;
         }
 
         let numEquipped = Object.values(game.equipped).filter(Boolean).length;

@@ -47,7 +47,7 @@ export function runAI(entity: Player) {
   let px = entity.x + (entity.w || 16) / 2;
   let py = entity.y + (entity.h || 16); 
 
-  if ((entity.isNPC && entity.isIntro) || (entity === game.player && game.state === 'intro' && (game.demoMode || isAttractMode))) {
+  if (entity === game.player && game.state === 'intro' && (game.demoMode || isAttractMode)) {
     if (px < 100) entity.inputDir = 1;
     else if (px > 124) entity.inputDir = -1;
     else entity.inputDir = 0;
@@ -102,8 +102,12 @@ export function runAI(entity: Player) {
 
     if (entity.y >= 230) {
       // Inside hole or ascending from super jump until clearing y < 210
-      // Hold strictly neutral (0) to eliminate right drift/tremble
-      entity.inputDir = 0;
+      // Move towards the center if misaligned (e.g. falling from the edge because cover is broken)
+      if (Math.abs(dx) <= 6) {
+        entity.inputDir = 0;
+      } else {
+        entity.inputDir = dx > 0 ? 1 : -1;
+      }
     } else {
       // On ground level approaching hole (y < 230): walk at normal speed towards hole center
       if (Math.abs(dx) <= 6) {
@@ -114,16 +118,6 @@ export function runAI(entity: Player) {
       }
     }
 
-    return;
-  }
-
-  // First Super Jump: Keep inputDir neutral until exceeding the height of the first safety line (looks natural, avoids looking off-screen immediately)
-  if (entity.y > getSafetyLineY()) {
-    entity.inGreenMushroomChain = false;
-    entity.aiTarget = null;
-    entity.aiLockedFromNormalJump = false;
-    entity.aiLockedTarget = null;
-    entity.inputDir = 0;
     return;
   }
 
@@ -239,7 +233,8 @@ export function runAI(entity: Player) {
   let isStuck = (entity.samePlatformVertJumps || 0) >= 2;
 
   // Platform Jump Trigger: Determine optimal target at the EXACT moment of jumping from any platform and lock onto it
-  if (isJustJumped || isPlatChanged) {
+  let needsMidAirSuperJumpTarget = isSuperLaunch && entity.vy < 0 && !entity.aiLockedTarget;
+  if (isJustJumped || isPlatChanged || needsMidAirSuperJumpTarget) {
     let history = entity.visitedHistory || entity.recentPlatforms || [];
     let timesVisited = 0;
     if (currentPlat) {
@@ -593,6 +588,10 @@ function findBestTarget(entity: Player, px: number, py: number, initialVy: numbe
   let history = entity.visitedHistory || entity.recentPlatforms || [];
   
   let searchRadiusUp = 380;
+  if (initialVy < -8) {
+    let g = config.jumpGravity || 0.15;
+    searchRadiusUp = Math.abs(initialVy * initialVy) / (2 * g) + 150;
+  }
   let searchRadiusDown = 220;
   
   let candidates = [];

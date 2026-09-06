@@ -15,7 +15,16 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
 
   for (let _idx_items = 0; _idx_items < game.items.length; _idx_items++) {
     let i = game.items[_idx_items];
-    if (i.type !== 'green' && (i.y > bot100 || i.y + i.h < top100)) continue;
+    let isNearCam = (i.y <= bot100 && i.y + i.h >= top100);
+    let isNearNpc = false;
+    for (let _idx_n = 0; _idx_n < game.npcs.length; _idx_n++) {
+      let n = game.npcs[_idx_n];
+      if (n.active && Math.abs(i.y - n.y) < 200) {
+        isNearNpc = true;
+        break;
+      }
+    }
+    if (i.type !== 'green' && !isNearCam && !isNearNpc) continue;
 
     if (isColliding(game.player, i)) {
       if (i.type === 'green') {

@@ -1,7 +1,7 @@
 import { config } from '../config.js';
 import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
 import { game } from '../state.js';
-import { ctx, IMG, GREEN_IMG, SNOW_IMG, GREEN_SNOW_IMG, BLUE_IMG, BLUE_SNOW_IMG } from '../display.js';
+import { ctx, IMG, GREEN_IMG, SNOW_IMG, GREEN_SNOW_IMG, BLUE_IMG, BLUE_SNOW_IMG, LITHUANIAN_IMG } from '../display.js';
 import { openShopFromPipe } from '../lifecycle.js';
 
 import { dR } from '../renderer/core.js';
@@ -33,6 +33,7 @@ import { spawnParticles } from './particles.js';
       highestReachedY: number = 0;
       sameBounceCount: number = 0;
       stagnationTimer: number = 0;
+      stagnationFrames: number = 0;
       visitedHistory: any[] = [];
       savedIntroImgKey: any = null;
       frameCount: number = 0;
@@ -92,6 +93,7 @@ import { spawnParticles } from './particles.js';
         this.aiPath = [];
         this.visitedHistory = [];
         this.stagnationTimer = 0;
+        this.stagnationFrames = 0;
         this.adventureMode = false;
         this.lastPlatform = null;
         this.sameBounceCount = 0;
@@ -189,7 +191,7 @@ import { spawnParticles } from './particles.js';
           ));
         }
         
-        if (game.state === 'intro' || this.isIntro) {
+        if (!this.isNPC && (game.state === 'intro' || this.isIntro)) {
           if (game.state === 'intro' && this.y >= 200 && (this.x + this.w / 2) <= 17) {
             if (hasPlayedOnce()) {
               openShopFromPipe();
@@ -246,7 +248,7 @@ import { spawnParticles } from './particles.js';
             imgKey = (!this.isNPC && this.savedIntroImgKey) ? this.savedIntroImgKey : 'wlk2';
           } else if (this.squatTimer > 0) {
             imgKey = 'wlk3';
-          } else if ((game.state === 'intro' || this.isIntro) && this.vy > 0) {
+          } else if (!this.isNPC && (game.state === 'intro' || this.isIntro) && this.vy > 0) {
             if (this.y > 272) {
               imgKey = 'fal';
             } else {
@@ -273,7 +275,14 @@ import { spawnParticles } from './particles.js';
           const hasMushroom = game.equipped?.['mushroom'];
           const hasMagnet = game.equipped?.['magnet'];
           const hasSkates = game.equipped?.['skates'];
-          if (hasMagnet) {
+          const hasLithuanian = game.equipped?.['lithuanian'];
+          
+          if (hasLithuanian) {
+            // LITHUANIAN_IMG has priority and includes helmet/shoes implicitly in gameplay effects
+            if (LITHUANIAN_IMG[imgKey] && LITHUANIAN_IMG[imgKey].complete && LITHUANIAN_IMG[imgKey].naturalWidth > 0) {
+              drawImg = LITHUANIAN_IMG[imgKey];
+            }
+          } else if (hasMagnet) {
             if (hasSkates && BLUE_SNOW_IMG[imgKey]) {
               drawImg = BLUE_SNOW_IMG[imgKey];
             } else if (BLUE_IMG[imgKey]) {
@@ -403,11 +412,10 @@ import { spawnParticles } from './particles.js';
       }
 
       drawHelmet(dH: number, vS: number, vOy: number, cImg?: HTMLImageElement) {
-        if (this.isNPC || !game.equipped?.['helmet']) return;
-        
-        // 巨大化してもヘルメットのサイズは変えない (固定のコンパクトサイズ)
-        let helmW = 10;
-        let helmH = 5;
+        const hasHelmet = game.equipped?.['helmet'];
+        const hasLithuanian = game.equipped?.['lithuanian'];
+        if (!hasHelmet && !hasLithuanian) return;
+        if (this.isNPC && !hasLithuanian) return;
         
         // 基本位置：頭の上にセット (yShift = -2)
         let yShift = -2;
@@ -430,10 +438,40 @@ import { spawnParticles } from './particles.js';
         }
 
         let topY = -dH * vS + vOy + yShift;
-        let startX = -Math.floor(helmW / 2);
 
         // 落ちる画像（IMG.fal）などで正面を向いているか
         let isFrontFalling = (cImg === IMG.fal);
+
+        if (hasLithuanian) {
+          // スーパーコスチュームの帽子 (一回り小さく8x4)
+          let helmW = 8;
+          let helmH = 4;
+          let startX = -Math.floor(helmW / 2);
+          topY -= 1; // 1px上に
+          
+          // メインカラー (本体)
+          ctx.fillStyle = '#dca342';
+          ctx.fillRect(startX, topY, helmW, helmH);
+          
+          // ツバ (本体より左右に2pxずつ広くする)
+          ctx.fillRect(startX - 2, topY + helmH - 1, helmW + 4, 2);
+          
+          // ハイライト
+          ctx.fillStyle = '#f4c878';
+          ctx.fillRect(startX + 1, topY + 1, 2, 1);
+          ctx.fillRect(startX, topY + 1, 1, 2);
+          
+          // バンド部分
+          ctx.fillStyle = '#905010';
+          ctx.fillRect(startX, topY + helmH - 2, helmW, 1);
+          
+          return;
+        }
+
+        // --- 既存のヘルメットの描画処理 ---
+        let helmW = 10;
+        let helmH = 5;
+        let startX = -Math.floor(helmW / 2);
 
         // 1. 黄色ドームベース (#ffdd00) - 上部左右を削って丸みを持たせる
         ctx.fillStyle = '#ffdd00';

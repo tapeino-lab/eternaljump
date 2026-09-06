@@ -10,6 +10,7 @@ import { $ } from './utils.js';
 import { RankingAPI } from './ranking/index.js';
 import './display.js';
 
+(window as any).game = game;
 game.player = new Player();
 initSpawner(game);
 

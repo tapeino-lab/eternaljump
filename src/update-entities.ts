@@ -117,7 +117,7 @@ export function updateMeteors(game: GameState) {
         i--;
         if (game.player.isPoweredUp) {
           // 巨大化時は減速なし（チビにはなる）
-          if (!game.equipped?.['helmet']) {
+          if (!(game.equipped?.['helmet'] || game.equipped?.['lithuanian'])) {
             game.player.history = [];
             game.player.savedVy = game.player.vy;
             game.player.savedVx = game.player.vx;
@@ -134,7 +134,7 @@ export function updateMeteors(game: GameState) {
         if (m.hitTimer > 0) continue;
         m.hitTimer = 60;
         if (game.demoMode && game.aiActive) game.player.aiPath = [];
-        if (game.player.isPoweredUp && !game.equipped?.['helmet']) {
+        if (game.player.isPoweredUp && !(game.equipped?.['helmet'] || game.equipped?.['lithuanian'])) {
           game.player.history = [];
           game.player.savedVy = game.player.vy;
           game.player.savedVx = game.player.vx;
@@ -146,7 +146,7 @@ export function updateMeteors(game: GameState) {
           game.player.vy = 0;
           game.player.vx = game.player.x < m.x ? -1.5 : 1.5;
           game.shakeAmount = m.isLarge ? 8 : 4;
-          if (game.equipped?.['helmet']) {
+          if (game.equipped?.['helmet'] || game.equipped?.['lithuanian']) {
             spawnParticles(game.player.x + game.player.w / 2, game.player.y + game.player.h / 2, '#ffd700', 8, 2);
           }
         }
@@ -220,19 +220,40 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
       }
     }
   }
+  let lowestPlatY = -Infinity;
+  for (let _p = 0; _p < game.platforms.length; _p++) {
+    let plat = game.platforms[_p];
+    if (!plat.broken && plat.y > lowestPlatY) {
+      lowestPlatY = plat.y;
+    }
+  }
+
   for (let i = 0; i < game.npcs.length; i++) {
     let npc = game.npcs[i];
     npc.update();
 
-    if (npc.y > game.cameraY + config.gameHeight + 350) {
-      swapRemove(game.npcs, i);
-      i--;
-      continue;
-    }
-    if (npc.stagnationTimer > 180 && npc.y > game.cameraY + config.gameHeight) {
-      swapRemove(game.npcs, i);
-      i--;
-      continue;
+    let isStartingPhase = !npc.active || npc.isIntro || npc.y >= 200;
+    if (!isStartingPhase) {
+      if (npc.y < npc.highestReachedY - 2) {
+        npc.highestReachedY = npc.y;
+        npc.stagnationFrames = 0;
+      } else {
+        npc.stagnationFrames = (npc.stagnationFrames || 0) + 1;
+      }
+
+      let isFallenBelowWorld = npc.y > 650;
+      let isFallenPastPlatforms = (lowestPlatY > -Infinity && npc.y > lowestPlatY + config.gameHeight * 2.5 && npc.vy > 0);
+      if (isFallenBelowWorld || isFallenPastPlatforms) {
+        swapRemove(game.npcs, i);
+        i--;
+        continue;
+      }
+      // 30 seconds (1800 frames at 60fps) without increasing highest reached altitude, below player screen
+      if (npc.stagnationFrames > 1800 && npc.y > game.cameraY + config.gameHeight) {
+        swapRemove(game.npcs, i);
+        i--;
+        continue;
+      }
     }
     if (!npc.active) continue;
 
@@ -283,6 +304,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
       for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
         let p = game.platforms[_idx_plats];
         if (Math.abs(p.y - npc.y) > 200) continue;
+        if (p.broken || p.isCrumbling || p.isIntroCover) continue;
         if (p.isGround && p.y === 240 && npc.x + npc.w > p.x && npc.x < p.x + p.w && npc.y + npc.h >= p.y && npc.y + npc.h < p.y + 15) {
           npc.y = p.y - npc.h;
           npc.vy = 0;
@@ -295,7 +317,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
       for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
         let p = game.platforms[_idx_plats];
         if (Math.abs(p.y - npc.y) > 200) continue;
-        if (p.broken || p.isCrumbling) continue;
+        if (p.broken || p.isCrumbling || p.isIntroCover) continue;
         if (npc.isIntro && p.isGround) continue;
         if (npc.y + npc.h >= p.y && npc.y + npc.h < p.y + p.h + npc.vy && npc.x + npc.w > p.x && npc.x < p.x + p.w) {
           if (p.type === 'goal') {
@@ -320,6 +342,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
             npc.highestReachedY = p.y;
             npc.visitedHistory = [];
             npc.stagnationTimer = 0;
+            npc.stagnationFrames = 0;
             npc.adventureMode = false;
             npc.sameBounceCount = 0;
           } else {
