@@ -192,7 +192,10 @@ export function updateFlyingCoins(game: GameState) {
 
 
 export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean) {
-  if (game.state === 'playing' && game.npcs.length > 0 && Math.random() < 0.00003) {
+  const hasLithuanian = game.equipped?.['lithuanian'] || false;
+  const balloonChance = hasLithuanian ? 0.00006 : 0.00003;
+
+  if (game.state === 'playing' && game.npcs.length > 0 && Math.random() < balloonChance) {
     let anyBalloon = false;
     for (let i = 0; i < game.npcs.length; i++) {
       if (game.npcs[i].balloonTimer > 0) { anyBalloon = true; break; }
@@ -210,7 +213,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
           let n = game.npcs[i];
           if (n.active && n.y < game.cameraY + config.gameHeight + 300) {
             if (curr === chosenIdx) {
-              n.balloonText = 'Load!';
+              n.balloonText = hasLithuanian ? 'Super!' : 'Load!';
               n.balloonTimer = 90;
               break;
             }
