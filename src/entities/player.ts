@@ -443,26 +443,55 @@ import { spawnParticles } from './particles.js';
         let isFrontFalling = (cImg === IMG.fal);
 
         if (hasLithuanian) {
-          // スーパーコスチュームの帽子 (一回り小さく8x4)
+          // リトアニアコスチュームの帽子 (8x4)
           let helmW = 8;
           let helmH = 4;
           let startX = -Math.floor(helmW / 2);
           topY -= 1; // 1px上に
           
+          let mainColor = '#dca342';
+          let highlightColor = '#f4c878';
+          let bandColor = '#905010';
+
+          if (this.isNPC) {
+            const idx = this.npcIndex !== undefined ? this.npcIndex : 0;
+            if (idx === 0) {
+              // NPC 1: サンドベージュ&ブラウンの服に合わせた深みのあるローストブラウン
+              mainColor = '#4a301e';
+              highlightColor = '#6f4b32';
+              bandColor = '#e6c587';
+            } else if (idx === 1) {
+              // NPC 2: ホワイト&シアンの服に合わせた引き締まったディープミッドナイトネイビー
+              mainColor = '#1b3252';
+              highlightColor = '#2f4f7d';
+              bandColor = '#ffd800';
+            } else if (idx === 2) {
+              // NPC 3: グリーン&オレンジの服に合わせた深みのあるハンターフォレストグリーン
+              mainColor = '#184227';
+              highlightColor = '#26633d';
+              bandColor = '#e08200';
+            } else {
+              // フォールバック: 深いダークバイオレット
+              mainColor = '#332244';
+              highlightColor = '#553d6e';
+              bandColor = '#c49ae8';
+            }
+          }
+
           // メインカラー (本体)
-          ctx.fillStyle = '#dca342';
+          ctx.fillStyle = mainColor;
           ctx.fillRect(startX, topY, helmW, helmH);
           
           // ツバ (本体より左右に2pxずつ広くする)
           ctx.fillRect(startX - 2, topY + helmH - 1, helmW + 4, 2);
           
           // ハイライト
-          ctx.fillStyle = '#f4c878';
+          ctx.fillStyle = highlightColor;
           ctx.fillRect(startX + 1, topY + 1, 2, 1);
           ctx.fillRect(startX, topY + 1, 1, 2);
           
           // バンド部分
-          ctx.fillStyle = '#905010';
+          ctx.fillStyle = bandColor;
           ctx.fillRect(startX, topY + helmH - 2, helmW, 1);
           
           return;
