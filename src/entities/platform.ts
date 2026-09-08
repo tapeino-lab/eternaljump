@@ -274,7 +274,7 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
         for (let i = 0; i < this.count; i++) {
           let dY = this.y, dH = this.h, px = this.x + i * config.platformW;
           
-          let isSpecial = (this.type === 'h-slide' || this.type === 'v-slide' || this.isGlowing);
+          let isSpecial = (this.type === 'h-slide' || this.type === 'v-slide' || this.type === 'super' || this.isGlowing);
           let isDamagedIce = (this.isIcy && this.hits[i] > 0);
           let cImg: any;
           if (this.isIcy) {
@@ -301,6 +301,12 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
             ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
           } else {
             dR(px, dY, config.platformW, dH, '#A0522D');
+          }
+          if (this.type === 'super' && !this.isGround) {
+            ctx.fillStyle = '#666';
+            ctx.fillRect(FLR(px + config.platformW / 2 - 6), FLR(dY - 4), 12, 4);
+            ctx.fillStyle = '#f33';
+            ctx.fillRect(FLR(px + config.platformW / 2 - 8), FLR(dY - 8), 16, 4);
           }
         }
       }
