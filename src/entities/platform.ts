@@ -202,7 +202,7 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
           }
         }
         let isOffscreen = true;
-        let scanLimit = config.gameHeight * 1.5;
+        let scanLimit = config.gameHeight * 2.5;
         if (Math.abs(this.y - game.cameraY) < scanLimit) {
           isOffscreen = false;
         } else if (game.npcs) {
