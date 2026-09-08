@@ -235,8 +235,14 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
         if (!isOffscreen && (this.type === 'super' || this.isGlowing) && !this.broken && !this.noEffect) {
           let sV = this.isGlowing ? 0.3 : 0.15;
           sV *= this.count;
+          let pVx = 0;
+          let pVy = 0;
+          if (this.type === 'h-slide') pVx = config.hSlideSpeed * this.direction;
+          else if (this.type === 'v-slide') pVy = config.vSlideSpeed * this.direction;
           while (RND() < sV) {
-            game.particles.push(getPt(this.x + RND() * this.w, this.y - 12 + RND() * (this.h + 12), (RND() - 0.5) * 0.1, -0.16 - RND() * 0.17, null, 1, 15 + RND() * 20, 0, true));
+            let ptVx = (RND() - 0.5) * 0.1 + pVx;
+            let ptVy = -0.16 - RND() * 0.17 + pVy;
+            game.particles.push(getPt(this.x + RND() * this.w, this.y - 12 + RND() * (this.h + 12), ptVx, ptVy, null, 1, 15 + RND() * 20, 0, true));
             sV -= 1;
           }
         }
@@ -274,7 +280,7 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
         for (let i = 0; i < this.count; i++) {
           let dY = this.y, dH = this.h, px = this.x + i * config.platformW;
           
-          let isSpecial = (this.type === 'h-slide' || this.type === 'v-slide' || this.type === 'super' || this.isGlowing);
+          let isSpecial = (this.type === 'h-slide' || this.type === 'v-slide' || this.isGlowing);
           let isDamagedIce = (this.isIcy && this.hits[i] > 0);
           let cImg: any;
           if (this.isIcy) {
@@ -301,12 +307,6 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
             ctx.drawImage(cImg, FLR(px), FLR(dY), FLR(config.platformW), FLR(dH));
           } else {
             dR(px, dY, config.platformW, dH, '#A0522D');
-          }
-          if (this.type === 'super' && !this.isGround) {
-            ctx.fillStyle = '#666';
-            ctx.fillRect(FLR(px + config.platformW / 2 - 6), FLR(dY - 4), 12, 4);
-            ctx.fillStyle = '#f33';
-            ctx.fillRect(FLR(px + config.platformW / 2 - 8), FLR(dY - 8), 16, 4);
           }
         }
       }
