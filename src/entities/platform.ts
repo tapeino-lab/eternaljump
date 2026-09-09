@@ -38,6 +38,7 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
       isPersistent: boolean = false;
       isOverlapping: boolean = false;
       noEffect: boolean = false;
+      wasOffscreen: boolean = false;
       squishTimers: number[] = [];
       startX: number = 0;
       startY: number = 0;
@@ -202,17 +203,19 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
           }
         }
         let isOffscreen = true;
-        let scanLimit = config.gameHeight * 2.5;
-        if (Math.abs(this.y - game.cameraY) < scanLimit) {
+        if (Math.abs(this.y - game.cameraY) < config.platformCullingMargin) {
           isOffscreen = false;
         } else if (game.npcs) {
           for (let i = 0; i < game.npcs.length; i++) {
-            if (game.npcs[i].active && Math.abs(this.y - game.npcs[i].y) < scanLimit) {
+            if (game.npcs[i].active && Math.abs(this.y - game.npcs[i].y) < config.platformCullingMargin) {
               isOffscreen = false;
               break;
             }
           }
         }
+
+        let justEnteredScreen = this.wasOffscreen && !isOffscreen;
+        this.wasOffscreen = isOffscreen;
 
         if (!isOffscreen && this.isIcy && !this.broken) {
           for (let i = 0; i < this.count; i++) {
@@ -235,6 +238,7 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
         if (!isOffscreen && (this.type === 'super' || this.isGlowing) && !this.broken && !this.noEffect) {
           let sV = this.isGlowing ? 0.3 : 0.15;
           sV *= this.count;
+          if (justEnteredScreen) sV *= 20; // Pre-warm particles
           let pVx = 0;
           let pVy = 0;
           if (this.type === 'h-slide') pVx = config.hSlideSpeed * this.direction;

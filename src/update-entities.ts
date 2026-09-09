@@ -11,7 +11,7 @@ export function updateBirds(game: GameState) {
   for (let i = 0; i < game.birds.length; i++) {
     let b = game.birds[i];
     b.update();
-    if (b.y > game.cameraY + config.gameHeight + 100 || b.y < game.cameraY - 1000 || b.x < -50 || b.x > config.gameWidth + 50) {
+    if (b.y > game.cameraY + config.gameHeight + config.despawnBottomMargin || b.y < game.cameraY - config.despawnTopMargin || b.x < -50 || b.x > config.gameWidth + 50) {
       P_BD.push(b);
       swapRemove(game.birds, i);
       i--;
@@ -48,7 +48,7 @@ export function updateMeteors(game: GameState) {
   for (let i = 0; i < game.meteors.length; i++) {
     let m = game.meteors[i];
     m.update();
-    if (m.y > game.cameraY + config.gameHeight + 100) {
+    if (m.y > game.cameraY + config.gameHeight + config.despawnBottomMargin) {
       m.broken = true;
       P_MT.push(m);
       swapRemove(game.meteors, i);
@@ -169,7 +169,7 @@ export function updateParticles(game: GameState) {
   for (let i = 0; i < game.particles.length; i++) {
     let pt = game.particles[i];
     pt.update();
-    if (pt.life <= 0 || pt.y > game.cameraY + config.gameHeight + 200 || pt.y < game.cameraY - 400) {
+    if (pt.life <= 0 || pt.y > game.cameraY + config.gameHeight + config.despawnBottomMargin || pt.y < game.cameraY - config.despawnTopMargin) {
       P_PT.push(pt);
       swapRemove(game.particles, i);
       i--;
@@ -204,14 +204,14 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
       let activeCount = 0;
       for (let i = 0; i < game.npcs.length; i++) {
         let n = game.npcs[i];
-        if (n.active && n.y < game.cameraY + config.gameHeight + 300) activeCount++;
+        if (n.active && n.y < game.cameraY + config.gameHeight + config.despawnBottomMargin) activeCount++;
       }
       if (activeCount > 0) {
         let chosenIdx = Math.floor(Math.random() * activeCount);
         let curr = 0;
         for (let i = 0; i < game.npcs.length; i++) {
           let n = game.npcs[i];
-          if (n.active && n.y < game.cameraY + config.gameHeight + 300) {
+          if (n.active && n.y < game.cameraY + config.gameHeight + config.despawnBottomMargin) {
             if (curr === chosenIdx) {
               n.balloonText = hasLithuanian ? 'Super!' : 'Load!';
               n.balloonTimer = 90;
@@ -252,7 +252,7 @@ export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => 
         continue;
       }
       // 30 seconds (1800 frames at 60fps) without increasing highest reached altitude, below player screen
-      if (npc.stagnationFrames > 1800 && npc.y > game.cameraY + config.gameHeight) {
+      if (npc.stagnationFrames > 1800 && npc.y > game.cameraY + config.gameHeight + config.despawnBottomMargin) {
         swapRemove(game.npcs, i);
         i--;
         continue;

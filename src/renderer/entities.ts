@@ -67,41 +67,39 @@ export function drawHorizontalPipe(ctx: CanvasRenderingContext2D) {
 export function drawGameEntities(ts) {
   const camY = game.cameraY;
   const camH = config.gameHeight;
-  const top50 = camY - 50;
-  const bot50 = camY + camH + 50;
-  const top100 = camY - 100;
-  const bot100 = camY + camH + 100;
+  const topBound = camY - config.renderMargin;
+  const botBound = camY + camH + config.renderMargin;
 
   airplaneSystem.draw(ctx, game, isAttractMode);
   for (let _idx_birds = 0; _idx_birds < game.birds.length; _idx_birds++) {
     let b = game.birds[_idx_birds];
-    if (b.y > bot50 || b.y < top50) continue;
+    if (b.y > botBound || b.y < topBound) continue;
     if (!b.isPerched && (b.type === 1 || b.type === 2)) b.draw(ts);
   }
   for (let _idx_plats = 0; _idx_plats < game.platforms.length; _idx_plats++) {
     let p = game.platforms[_idx_plats];
-    if (p.y > bot100 || p.y + (p.h || 32) < top100) continue;
+    if (p.y > botBound || p.y + (p.h || 32) < topBound) continue;
     p.draw();
   }
   for (let _idx_items = 0; _idx_items < game.items.length; _idx_items++) {
     let i = game.items[_idx_items];
-    if (i.y > bot50 || i.y + i.h < top50) continue;
+    if (i.y > botBound || i.y + i.h < topBound) continue;
     i.draw();
   }
   for (let _idx_coins = 0; _idx_coins < game.coins.length; _idx_coins++) {
     let c = game.coins[_idx_coins];
-    if (c.y > bot50 || c.y + c.h < top50) continue;
+    if (c.y > botBound || c.y + c.h < topBound) continue;
     c.draw();
   }
   for (let _idx_meteors = 0; _idx_meteors < game.meteors.length; _idx_meteors++) {
     let m = game.meteors[_idx_meteors];
-    if (m.y > bot100 || m.y < top100) continue;
+    if (m.y > botBound || m.y < topBound) continue;
     m.draw();
   }
   let lastAlpha = -1, lastColor = '';
   for (let _idx_particles = 0; _idx_particles < game.particles.length; _idx_particles++) {
     let pt = game.particles[_idx_particles];
-    if (pt.y > bot50 || pt.y < top50) continue;
+    if (pt.y > botBound || pt.y < topBound) continue;
     if (pt.isSp) {
       let b = pt.life % 6 < 3, s = b ? 4 : 2, c = SPARKLE_COLORS[(RND() * 7) | 0];
       if (lastAlpha !== 0.9) { ctx.globalAlpha = 0.9; lastAlpha = 0.9; }
@@ -119,12 +117,12 @@ export function drawGameEntities(ts) {
   if (lastAlpha !== -1) ctx.globalAlpha = 1.0;
   for (let _idx_birds = 0; _idx_birds < game.birds.length; _idx_birds++) {
     let b = game.birds[_idx_birds];
-    if (b.y > bot50 || b.y < top50) continue;
+    if (b.y > botBound || b.y < topBound) continue;
     if (b.type === 0 || (b.isPerched && b.type === 1)) b.draw(ts);
   }
   for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {
     let n = game.npcs[_idx_npcs];
-    if (n.y > bot100 || n.y + (n.h || 32) < top100) continue;
+    if (n.y > botBound || n.y + (n.h || 32) < topBound) continue;
     n.draw();
   }
   game.player.draw();

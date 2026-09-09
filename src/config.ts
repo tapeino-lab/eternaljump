@@ -70,5 +70,9 @@ export const config = {
   glowingMovingProb: 0.2,
   glowingMovingJumpMultiplier: 1.5,
   playerSpriteScale: 1,
-  playerSpriteOffsetY: 0
+  playerSpriteOffsetY: 0,
+  renderMargin: 100,
+  despawnTopMargin: 1000,
+  despawnBottomMargin: 300,
+  platformCullingMargin: 900
 };

@@ -27,15 +27,15 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
   
   game.score = MIN(config.goalScore, MAX(game.startScore, FLR((game.baseScoreY - game.highestPlayerY) * config.scoreMultiplier)));
   
-  // Base deletion line: 2.5 screens below player camera/position
-  let dL = Math.max(game.cameraY + config.gameHeight * 2.5, game.player.y + config.gameHeight * 2.5);
+  // Base deletion line: below player camera/position by culling margin
+  let dL = Math.max(game.cameraY + config.platformCullingMargin, game.player.y + config.platformCullingMargin);
 
-  // Platforms, items, and coins up to 2.5 screens below each active NPC must never be deleted,
+  // Platforms, items, and coins up to culling margin below each active NPC must never be deleted,
   // no matter how far away they are from the protagonist.
   for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {
     let n = game.npcs[_idx_npcs];
     if (n.active) {
-      let npcFloor = n.y + config.gameHeight * 2.5 + 50;
+      let npcFloor = n.y + config.platformCullingMargin + 50;
       if (npcFloor > dL) {
         dL = npcFloor;
       }
