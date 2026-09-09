@@ -193,7 +193,8 @@ export function updateFlyingCoins(game: GameState) {
 
 export function updateNPCs(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean) {
   const hasLithuanian = game.equipped?.['lithuanian'] || false;
-  const balloonChance = hasLithuanian ? 0.00006 : 0.00003;
+  // At 60 FPS, 10 seconds = 600 frames. Probability = 1/600 ≈ 0.00166.
+  const balloonChance = hasLithuanian ? (1 / 600) : 0.00003;
 
   if (game.state === 'playing' && game.npcs.length > 0 && Math.random() < balloonChance) {
     let anyBalloon = false;

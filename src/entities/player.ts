@@ -234,10 +234,12 @@ import { spawnParticles } from './particles.js';
         
         let imgKey = isPwr ? 'pwr' : 'jmp';
         if (this.isNPC) {
+          const hasLithuanian = game.equipped?.['lithuanian'];
+          const suffix = hasLithuanian ? '_lit' : '';
           if (this.isCleared) {
-            imgKey = 'n' + (this.npcIndex + 1) + 's';
+            imgKey = 'n' + (this.npcIndex + 1) + 's' + suffix;
           } else {
-            imgKey = this.active ? ('n' + (this.npcIndex + 1) + 'j') : ('n' + (this.npcIndex + 1) + 's');
+            imgKey = this.active ? ('n' + (this.npcIndex + 1) + 'j' + suffix) : ('n' + (this.npcIndex + 1) + 's' + suffix);
           }
         } else if (!isPwr) {
           if (game.state === 'gameover') {
@@ -412,10 +414,11 @@ import { spawnParticles } from './particles.js';
       }
 
       drawHelmet(dH: number, vS: number, vOy: number, cImg?: HTMLImageElement) {
+        if (this.isNPC) return; // NPCs have custom sprites for costumes
+
         const hasHelmet = game.equipped?.['helmet'];
         const hasLithuanian = game.equipped?.['lithuanian'];
         if (!hasHelmet && !hasLithuanian) return;
-        if (this.isNPC && !hasLithuanian) return;
         
         // 基本位置：頭の上にセット (yShift = -2)
         let yShift = -2;
