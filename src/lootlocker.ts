@@ -85,6 +85,7 @@ export const LootLockerAPI = {
 
   syncTotalCoins: async function() {
     let localTotal = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+    let remoteTotal = 0;
     
     // Attempt to fetch remote coins
     try {
@@ -105,7 +106,7 @@ export const LootLockerAPI = {
         if (r.ok) {
           let d = await r.json();
           if (d && typeof d.score === 'number' && d.score > 0) {
-            let remoteTotal = d.score;
+            remoteTotal = d.score;
             if (remoteTotal > localTotal) {
               this.log(`Remote coins (${remoteTotal}) > Local coins (${localTotal}). Syncing to local.`, 'info');
               localTotal = remoteTotal;
