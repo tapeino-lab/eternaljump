@@ -23,7 +23,7 @@ export const LootLockerAPI = {
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
   taLeaderboardId: import.meta.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || '',
   coinLeaderboardId: import.meta.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || '',
-  playerIdentifier: import.meta.env.DEV ? 'p_86fd8b1a11bda28f' : safeStorage.getItem('LL_PID'),
+  playerIdentifier: safeStorage.getItem('LL_PID'),
   
   sessionToken: null,
   playerId: null,
@@ -425,7 +425,7 @@ export const LootLockerAPI = {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
           },
-          body: JSON.stringify({ score: sc, metadata: meta })
+          body: JSON.stringify({ member_id: this.playerId ? this.playerId.toString() : undefined, score: sc, metadata: meta })
         });
       } else {
         this.log('Submitting score via server proxy...', 'info');
@@ -433,6 +433,7 @@ export const LootLockerAPI = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            member_id: this.playerId ? this.playerId.toString() : undefined,
             score: sc,
             metadata: meta,
             session_token: this.sessionToken
@@ -498,13 +499,14 @@ export const LootLockerAPI = {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
           },
-          body: JSON.stringify({ score: sc, metadata: meta })
+          body: JSON.stringify({ member_id: this.playerId ? this.playerId.toString() : undefined, score: sc, metadata: meta })
         });
       } else {
         r = await fetch('/api/lootlocker/leaderboards/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            member_id: this.playerId ? this.playerId.toString() : undefined,
             score: sc,
             metadata: meta,
             session_token: this.sessionToken,
@@ -549,13 +551,14 @@ export const LootLockerAPI = {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
           },
-          body: JSON.stringify({ score: sc, metadata: meta })
+          body: JSON.stringify({ member_id: this.playerId ? this.playerId.toString() : undefined, score: sc, metadata: meta })
         });
       } else {
         r = await fetch('/api/lootlocker/leaderboards/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            member_id: this.playerId ? this.playerId.toString() : undefined,
             score: sc,
             metadata: meta,
             session_token: this.sessionToken,
@@ -696,11 +699,7 @@ export const LootLockerAPI = {
 
 // Auto generate pid if missing
 if (!LootLockerAPI.playerIdentifier) {
-  if (import.meta.env.DEV) {
-    LootLockerAPI.playerIdentifier = 'p_86fd8b1a11bda28f';
-  } else {
-    LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
-  }
+  LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
   safeStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
 }
 
