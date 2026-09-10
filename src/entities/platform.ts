@@ -69,6 +69,10 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
         this.isIntroCover = false;
         this.isPersistent = false;
         this.isOverlapping = false;
+        this.noEffect = false;
+        this.isCrumbling = false;
+        this.blink = false;
+        this.wasOffscreen = false;
         
         if (cx !== null) {
           this.x = FLR(cx);
