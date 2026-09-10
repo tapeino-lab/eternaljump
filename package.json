@@ -1,8 +1,7 @@
 {
   "name": "react-example",
-  "version": "2.10.11",
+  "version": "2.10.12",
   "private": true,
-
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -15,8 +14,10 @@
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.1.14",
+    "@types/geoip-lite": "^1.4.4",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "geoip-lite": "^2.0.3",
     "vite": "^6.2.3"
   },
   "devDependencies": {

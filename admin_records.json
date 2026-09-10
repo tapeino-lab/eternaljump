@@ -1,0 +1,36 @@
+[
+  {
+    "id": "test_1",
+    "timestamp": "2026-09-10T15:01:30.134Z",
+    "timeJst": "2026/09/10 17:01:23",
+    "playerName": "テスト跳躍王",
+    "score": 125500,
+    "alt": 125,
+    "coins": 500,
+    "leaderboardId": "hct2",
+    "leaderboardType": "通常",
+    "ip": "126.160.0.1",
+    "country": "JP",
+    "regionCode": "13",
+    "prefecture": "東京都",
+    "city": "東村山市",
+    "timezone": "Asia/Tokyo"
+  },
+  {
+    "id": "test_2",
+    "timestamp": "2026-09-10T15:01:30.134Z",
+    "timeJst": "2026/09/10 17:05:40",
+    "playerName": "大阪ジャンプ",
+    "score": 350200,
+    "alt": 350,
+    "coins": 200,
+    "leaderboardId": "hct2",
+    "leaderboardType": "通常",
+    "ip": "153.120.0.1",
+    "country": "JP",
+    "regionCode": "27",
+    "prefecture": "大阪府",
+    "city": "大阪市",
+    "timezone": "Asia/Tokyo"
+  }
+]
