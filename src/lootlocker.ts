@@ -28,6 +28,7 @@ export const LootLockerAPI = {
   sessionToken: null,
   playerId: null,
   version: `v${import.meta.env.VITE_APP_VERSION}`,
+  _initPromise: null as Promise<any> | null,
   logs: [],
 
   log: function(msg, type = 'info') {
@@ -170,65 +171,75 @@ export const LootLockerAPI = {
       return true;
     }
 
-    try {
-      let r;
-      let url = '';
-      if (this.isDirectMode) {
-        url = `https://${this.domainKey}.api.lootlocker.io/game/v2/session/guest`;
-        this.log(`POSTing to Direct API: ${url}`, 'info');
-        r = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            game_key: this.apiKey,
-            player_identifier: this.playerIdentifier,
-            game_version: this.version.replace('v', '')
-          })
-        });
-      } else {
-        url = '/api/lootlocker/session/guest';
-        this.log(`POSTing to Server Proxy: ${url}`, 'info');
-        r = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            player_identifier: this.playerIdentifier,
-            game_version: this.version.replace('v', '')
-          })
-        });
-      }
-
-      this.log(`Session response status: ${r.status}`, 'info');
-      let d = await r.json();
-      
-      if (!r.ok) {
-        this.log(`Session initialization error: ${JSON.stringify(d)}`, 'error');
-        return false;
-      }
-      
-      if (d.session_token) {
-        this.sessionToken = d.session_token;
-        setTimeout(() => this.submitPendingScores(), 2000);
-        this.playerId = d.player_id;
-        safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
-        this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
-        
-        // Use client-generated or loaded customizable player name (e.g., "JPN XY")
-        try {
-          let localName = getPlayerName();
-          let tn = document.getElementById('gamePlayerName');
-          if (tn) tn.innerText = 'ID: ' + localName;
-          this.setPlayerName(localName);
-        } catch(e) {}
-
-        return d;
-      }
-      this.log('No session token in response data.', 'error');
-      return false;
-    } catch (e) {
-      this.log(`Session guest login failed: ${e.message}`, 'error');
-      return false;
+    if (this._initPromise) {
+      return this._initPromise;
     }
+
+    this._initPromise = (async () => {
+      try {
+        let r;
+        let url = '';
+        if (this.isDirectMode) {
+          url = `https://${this.domainKey}.api.lootlocker.io/game/v2/session/guest`;
+          this.log(`POSTing to Direct API: ${url}`, 'info');
+          r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              game_key: this.apiKey,
+              player_identifier: this.playerIdentifier,
+              game_version: this.version.replace('v', '')
+            })
+          });
+        } else {
+          url = '/api/lootlocker/session/guest';
+          this.log(`POSTing to Server Proxy: ${url}`, 'info');
+          r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              player_identifier: this.playerIdentifier,
+              game_version: this.version.replace('v', '')
+            })
+          });
+        }
+
+        this.log(`Session response status: ${r.status}`, 'info');
+        let d = await r.json();
+        
+        if (!r.ok) {
+          this.log(`Session initialization error: ${JSON.stringify(d)}`, 'error');
+          return false;
+        }
+        
+        if (d.session_token) {
+          this.sessionToken = d.session_token;
+          setTimeout(() => this.submitPendingScores(), 2000);
+          this.playerId = d.player_id;
+          safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
+          this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
+          
+          // Use client-generated or loaded customizable player name (e.g., "JPN XY")
+          try {
+            let localName = getPlayerName();
+            let tn = document.getElementById('gamePlayerName');
+            if (tn) tn.innerText = 'ID: ' + localName;
+            this.setPlayerName(localName);
+          } catch(e) {}
+
+          return d;
+        }
+        this.log('No session token in response data.', 'error');
+        return false;
+      } catch (e) {
+        this.log(`Session guest login failed: ${e.message}`, 'error');
+        return false;
+      } finally {
+        this._initPromise = null;
+      }
+    })();
+
+    return this._initPromise;
   },
 
 
