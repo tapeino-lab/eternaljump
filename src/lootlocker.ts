@@ -291,6 +291,19 @@ export const LootLockerAPI = {
       });
       // Sort by lowest time
       validItems.sort((A, B) => A.t - B.t);
+      
+      // Deduplicate by name to prevent same player appearing multiple times
+      let uniqueValidItems: any[] = [];
+      let seenNames = new Set();
+      validItems.forEach(v => {
+        let nameKey = String(v.n).trim().toLowerCase();
+        if (!seenNames.has(nameKey)) {
+          seenNames.add(nameKey);
+          uniqueValidItems.push(v);
+        }
+      });
+      validItems = uniqueValidItems;
+      
       validItems.forEach((v, idx) => v.rank = idx + 1);
       return validItems;
     } catch(e) {
@@ -682,6 +695,19 @@ export const LootLockerAPI = {
         }
       });
       
+      // Deduplicate by name to prevent same player appearing multiple times
+      // validItems is already ordered by score from LootLocker
+      let uniqueValidItems: any[] = [];
+      let seenNames = new Set();
+      validItems.forEach(v => {
+        let nameKey = String(v.n).trim().toLowerCase();
+        if (!seenNames.has(nameKey)) {
+          seenNames.add(nameKey);
+          uniqueValidItems.push(v);
+        }
+      });
+      validItems = uniqueValidItems;
+
       // Re-assign ranks based on filtered list
       validItems.forEach((v, idx) => {
          v.rank = idx + 1;

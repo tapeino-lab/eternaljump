@@ -152,13 +152,16 @@ import { RankingAPI } from './api.js';
                 });
                 scores.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.t - B.t);
                 
-                // Deduplicate by ID to keep only best score per player (if they appear multiple times)
-                let uniqueScores = [];
-                let seen = new Set();
+                // Deduplicate to keep only best score per player/name
+                let uniqueScores: any[] = [];
+                let seenId = new Set();
+                let seenName = new Set();
                 scores.forEach(s => {
                   let id = String(s.id);
-                  if (!seen.has(id)) {
-                    seen.add(id);
+                  let nameKey = String(s.n).trim().toLowerCase();
+                  if (!seenId.has(id) && !seenName.has(nameKey)) {
+                    seenId.add(id);
+                    seenName.add(nameKey);
                     uniqueScores.push(s);
                   }
                 });
