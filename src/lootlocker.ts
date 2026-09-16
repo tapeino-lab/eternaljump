@@ -304,8 +304,14 @@ export const LootLockerAPI = {
                       // Only merge if one of them is explicitly flagged as a duplicate account
                       if (item.d || existing.d) {
                           isDuplicate = true;
-                          // Keep the better score (lower time)
+                          // Keep the better score (lower time, or higher coins if same time)
+                          let isBetter = false;
                           if (item.t < existing.t) {
+                              isBetter = true;
+                          } else if (item.t === existing.t && (item.coins || 0) > (existing.coins || 0)) {
+                              isBetter = true;
+                          }
+                          if (isBetter) {
                               Object.assign(existing, item); // Overwrite existing with better item
                           }
                           // Persist the dup flag
@@ -322,8 +328,8 @@ export const LootLockerAPI = {
       };
       
       validItems = deduplicateItems(validItems);
-      // Sort by lowest time
-      validItems.sort((A, B) => A.t - B.t);
+      // Sort by lowest time, tie-break with coins
+      validItems.sort((A, B) => A.t - B.t || (B.coins || 0) - (A.coins || 0));
       validItems.forEach((v, idx) => v.rank = idx + 1);
       return validItems;
     } catch(e) {
@@ -720,7 +726,7 @@ export const LootLockerAPI = {
             // MANUALLY FLAG SPECIFIC USERS WHO SUFFERED THE DUPLICATION BUG BEFORE THE FIX WAS DEPLOYED
             // Add their exact in-game names here.
             let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
-            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, d: !!m.d || isManualTarget });
+            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, t: (typeof m.t === 'number') ? m.t : 0, d: !!m.d || isManualTarget });
         }
       });
       
@@ -734,8 +740,20 @@ export const LootLockerAPI = {
                       // Only merge if one of them is explicitly flagged as a duplicate account
                       if (item.d || existing.d) {
                           isDuplicate = true;
-                          // Keep the better score (higher altitude)
+                          // Keep the better score (higher altitude -> higher coins -> lower time)
+                          let isBetter = false;
                           if (item.alt > existing.alt) {
+                              isBetter = true;
+                          } else if (item.alt === existing.alt) {
+                              let itemCoins = item.coins || 0;
+                              let existCoins = existing.coins || 0;
+                              if (itemCoins > existCoins) {
+                                  isBetter = true;
+                              } else if (itemCoins === existCoins && item.t && existing.t && item.t < existing.t) {
+                                  isBetter = true;
+                              }
+                          }
+                          if (isBetter) {
                               Object.assign(existing, item); // Overwrite existing with better item
                           }
                           // Persist the dup flag
@@ -752,7 +770,8 @@ export const LootLockerAPI = {
       };
       
       validItems = deduplicateItemsAlt(validItems);
-      validItems.sort((A, B) => B.alt - A.alt);
+      // Sort by altitude (highest), tie-break with coins (highest) and time (lowest)
+      validItems.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || ((A.t || 0) - (B.t || 0)));
 
       // Re-assign ranks based on filtered list
       validItems.forEach((v, idx) => {
