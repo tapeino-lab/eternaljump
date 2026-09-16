@@ -150,7 +150,7 @@ import { RankingAPI } from './api.js';
                 pending.forEach(p => {
                   scores.push({ id: pid, alt: p.alt, coins: p.coins, lang: p.lang, n: playerName, t: p.t });
                 });
-                scores.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.t - B.t);
+                scores.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.t || 99999999) - (B.t || 99999999));
                 
                 // Deduplicate by ID to keep only best score per player (if they appear multiple times)
                 let uniqueScores = [];
@@ -178,7 +178,7 @@ import { RankingAPI } from './api.js';
                   if (Array.isArray(s) && s.length > 0) return s;
               }
               let s = secureStorage.getItem<any[]>(RankingAPI.key, []);
-              s.sort((A: any, B: any) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
+              s.sort((A: any, B: any) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.time || 99999999) - (B.time || 99999999));
               return s.map((r: any, i: number) => ({ ...r, rank: i + 1 }));
             } catch (e) {
               secureStorage.removeItem(RankingAPI.key);
@@ -274,13 +274,14 @@ import { RankingAPI } from './api.js';
 
             if (existingIndex !== -1) {
               let current = scores[existingIndex];
-              if (alt > current.alt || (alt === current.alt && coins > current.coins) || (alt === current.alt && coins === current.coins && time < current.time)) {
+              let curTime = current.time || 99999999;
+              if (alt > current.alt || (alt === current.alt && coins > current.coins) || (alt === current.alt && coins === current.coins && time < curTime)) {
                 scores[existingIndex] = { ...current, ...myEntry };
               }
             } else {
               scores.push(myEntry);
             }
-            scores.sort((A, B) => (B.alt || 0) - (A.alt || 0) || (B.coins || 0) - (A.coins || 0) || (A.time || 0) - (B.time || 0));
+            scores.sort((A, B) => (B.alt || 0) - (A.alt || 0) || (B.coins || 0) - (A.coins || 0) || (A.time || 99999999) - (B.time || 99999999));
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
           } else {
@@ -292,13 +293,13 @@ import { RankingAPI } from './api.js';
             if (existingIndex !== -1) {
               let current = scores[existingIndex];
               let curT = (typeof current.t === 'number') ? current.t : current.time;
-              if (typeof curT !== 'number' || time < curT) {
+              if (typeof curT !== 'number' || curT === 0 || time < curT) {
                 scores[existingIndex] = { ...current, ...myEntry };
               }
             } else {
               scores.push(myEntry);
             }
-            scores.sort((A, B) => ((typeof A.t === 'number') ? A.t : A.time || 0) - ((typeof B.t === 'number') ? B.t : B.time || 0));
+            scores.sort((A, B) => ((typeof A.t === 'number' && A.t > 0) ? A.t : A.time || 99999999) - ((typeof B.t === 'number' && B.t > 0) ? B.t : B.time || 99999999));
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_TA_LEADERBOARD', JSON.stringify(scores));
           }
@@ -391,7 +392,7 @@ import { RankingAPI } from './api.js';
             } else {
               s.push(game.lastScoreObj);
             }
-            s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.time - B.time);
+            s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.time || 99999999) - (B.time || 99999999));
             game.lastRank = s.findIndex(x => x.id === pid) + 1;
             secureStorage.setItem(RankingAPI.key, s);
           } catch (e) {}

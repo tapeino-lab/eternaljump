@@ -306,9 +306,11 @@ export const LootLockerAPI = {
                           isDuplicate = true;
                           // Keep the better score (lower time, or higher coins if same time)
                           let isBetter = false;
-                          if (item.t < existing.t) {
+                          let iT = item.t || 99999999;
+                          let eT = existing.t || 99999999;
+                          if (iT < eT) {
                               isBetter = true;
-                          } else if (item.t === existing.t && (item.coins || 0) > (existing.coins || 0)) {
+                          } else if (iT === eT && (item.coins || 0) > (existing.coins || 0)) {
                               isBetter = true;
                           }
                           if (isBetter) {
@@ -329,7 +331,7 @@ export const LootLockerAPI = {
       
       validItems = deduplicateItems(validItems);
       // Sort by lowest time, tie-break with coins
-      validItems.sort((A, B) => A.t - B.t || (B.coins || 0) - (A.coins || 0));
+      validItems.sort((A, B) => (A.t || 99999999) - (B.t || 99999999) || (B.coins || 0) - (A.coins || 0));
       validItems.forEach((v, idx) => v.rank = idx + 1);
       return validItems;
     } catch(e) {
@@ -510,7 +512,7 @@ export const LootLockerAPI = {
         try {
           let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
           pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
-          pending.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || A.t - B.t);
+          pending.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.t || 99999999) - (B.t || 99999999));
           pending = pending.slice(0, 1);
           safeStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
           this.log('Score saved locally for offline queue (PB only).', 'warning');
@@ -749,8 +751,12 @@ export const LootLockerAPI = {
                               let existCoins = existing.coins || 0;
                               if (itemCoins > existCoins) {
                                   isBetter = true;
-                              } else if (itemCoins === existCoins && item.t && existing.t && item.t < existing.t) {
-                                  isBetter = true;
+                              } else if (itemCoins === existCoins) {
+                                  let iT = item.t || 99999999;
+                                  let eT = existing.t || 99999999;
+                                  if (iT < eT) {
+                                      isBetter = true;
+                                  }
                               }
                           }
                           if (isBetter) {
@@ -771,7 +777,7 @@ export const LootLockerAPI = {
       
       validItems = deduplicateItemsAlt(validItems);
       // Sort by altitude (highest), tie-break with coins (highest) and time (lowest)
-      validItems.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || ((A.t || 0) - (B.t || 0)));
+      validItems.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || ((A.t || 99999999) - (B.t || 99999999)));
 
       // Re-assign ranks based on filtered list
       validItems.forEach((v, idx) => {
