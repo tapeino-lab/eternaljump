@@ -289,15 +289,37 @@ export const LootLockerAPI = {
             validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, t: 1000000000 - i.score });
         }
       });
-      // Deduplicate by name (keep lowest time)
+      // Deduplicate by name AND similar coin count (to avoid merging different users with same name)
+      // Coins must be within ~10% or +/- 50 to be considered the "same" user account
       let uniqueMap = new Map();
-      validItems.forEach(item => {
-          let existing = uniqueMap.get(item.n);
-          if (!existing || item.t < existing.t) {
-              uniqueMap.set(item.n, item);
+      let deduplicateItems = (items: any[]) => {
+          let merged = [];
+          for (let item of items) {
+              let isDuplicate = false;
+              for (let existing of merged) {
+                  if (item.n === existing.n) {
+                      // Check coin similarity (within 15% difference OR absolute difference <= 200)
+                      let coinDiff = Math.abs((item.coins || 0) - (existing.coins || 0));
+                      let maxCoins = Math.max(item.coins || 0, existing.coins || 0);
+                      
+                      if (coinDiff <= 200 || (maxCoins > 0 && (coinDiff / maxCoins) <= 0.15)) {
+                          isDuplicate = true;
+                          // Keep the better score (lower time)
+                          if (item.t < existing.t) {
+                              Object.assign(existing, item); // Overwrite existing with better item
+                          }
+                          break;
+                      }
+                  }
+              }
+              if (!isDuplicate) {
+                  merged.push(item);
+              }
           }
-      });
-      validItems = Array.from(uniqueMap.values());
+          return merged;
+      };
+      
+      validItems = deduplicateItems(validItems);
       // Sort by lowest time
       validItems.sort((A, B) => A.t - B.t);
       validItems.forEach((v, idx) => v.rank = idx + 1);
@@ -691,15 +713,35 @@ export const LootLockerAPI = {
         }
       });
       
-      // Deduplicate by name (keep highest altitude)
-      let uniqueMap = new Map();
-      validItems.forEach(item => {
-          let existing = uniqueMap.get(item.n);
-          if (!existing || item.alt > existing.alt) {
-              uniqueMap.set(item.n, item);
+      // Deduplicate by name AND similar coin count (keep highest altitude)
+      let deduplicateItemsAlt = (items: any[]) => {
+          let merged = [];
+          for (let item of items) {
+              let isDuplicate = false;
+              for (let existing of merged) {
+                  if (item.n === existing.n) {
+                      // Check coin similarity (within 15% difference OR absolute difference <= 200)
+                      let coinDiff = Math.abs((item.coins || 0) - (existing.coins || 0));
+                      let maxCoins = Math.max(item.coins || 0, existing.coins || 0);
+                      
+                      if (coinDiff <= 200 || (maxCoins > 0 && (coinDiff / maxCoins) <= 0.15)) {
+                          isDuplicate = true;
+                          // Keep the better score (higher altitude)
+                          if (item.alt > existing.alt) {
+                              Object.assign(existing, item); // Overwrite existing with better item
+                          }
+                          break;
+                      }
+                  }
+              }
+              if (!isDuplicate) {
+                  merged.push(item);
+              }
           }
-      });
-      validItems = Array.from(uniqueMap.values());
+          return merged;
+      };
+      
+      validItems = deduplicateItemsAlt(validItems);
       validItems.sort((A, B) => B.alt - A.alt);
 
       // Re-assign ranks based on filtered list
