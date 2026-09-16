@@ -286,28 +286,25 @@ export const LootLockerAPI = {
         try { m = JSON.parse(i.metadata); } catch(e) {}
         if (m && m.t) {
             let playerName = (i.player && i.player.name) ? i.player.name : '???';
-            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, t: 1000000000 - i.score });
+            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, t: 1000000000 - i.score, d: !!m.d });
         }
       });
-      // Deduplicate by name AND similar coin count (to avoid merging different users with same name)
-      // Coins must be within ~10% or +/- 50 to be considered the "same" user account
-      let uniqueMap = new Map();
+      // Deduplicate by name but ONLY if explicitly flagged as a duplication bug
       let deduplicateItems = (items: any[]) => {
           let merged = [];
           for (let item of items) {
               let isDuplicate = false;
               for (let existing of merged) {
                   if (item.n === existing.n) {
-                      // Check coin similarity (within 15% difference OR absolute difference <= 200)
-                      let coinDiff = Math.abs((item.coins || 0) - (existing.coins || 0));
-                      let maxCoins = Math.max(item.coins || 0, existing.coins || 0);
-                      
-                      if (coinDiff <= 200 || (maxCoins > 0 && (coinDiff / maxCoins) <= 0.15)) {
+                      // Only merge if one of them is explicitly flagged as a duplicate account
+                      if (item.d || existing.d) {
                           isDuplicate = true;
                           // Keep the better score (lower time)
                           if (item.t < existing.t) {
                               Object.assign(existing, item); // Overwrite existing with better item
                           }
+                          // Persist the dup flag
+                          existing.d = true;
                           break;
                       }
                   }
@@ -455,7 +452,8 @@ export const LootLockerAPI = {
     }
     let sc = a * 1000 + c;
     let sig = generateSignature(a, c, t, l);
-    let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig });
+    let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
+    let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig, d: isDup });
     try {
       let r;
       if (this.isDirectMode) {
@@ -529,7 +527,8 @@ export const LootLockerAPI = {
 
     let sc = Math.floor(coins);
     let sig = generateSignature(0, sc, 0, lang);
-    let meta = JSON.stringify({ coins: sc, lang: lang, name: getPlayerName(), sig: sig });
+    let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
+    let meta = JSON.stringify({ coins: sc, lang: lang, name: getPlayerName(), sig: sig, d: isDup });
 
     try {
       let r;
@@ -582,7 +581,8 @@ export const LootLockerAPI = {
     // Convert time to a score where higher is better, e.g. 100,000,000 - Math.floor(t)
     let sc = 1000000000 - Math.floor(t);
     let sig = generateSignature(a, c, t, l);
-    let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig });
+    let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
+    let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig, d: isDup });
     try {
       let r;
       if (this.isDirectMode) {
@@ -709,27 +709,26 @@ export const LootLockerAPI = {
         
         if (isValid) {
             let playerName = (i.player && i.player.name) ? i.player.name : '???';
-            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName });
+            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, d: !!m.d });
         }
       });
       
-      // Deduplicate by name AND similar coin count (keep highest altitude)
+      // Deduplicate by name but ONLY if explicitly flagged as a duplication bug
       let deduplicateItemsAlt = (items: any[]) => {
           let merged = [];
           for (let item of items) {
               let isDuplicate = false;
               for (let existing of merged) {
                   if (item.n === existing.n) {
-                      // Check coin similarity (within 15% difference OR absolute difference <= 200)
-                      let coinDiff = Math.abs((item.coins || 0) - (existing.coins || 0));
-                      let maxCoins = Math.max(item.coins || 0, existing.coins || 0);
-                      
-                      if (coinDiff <= 200 || (maxCoins > 0 && (coinDiff / maxCoins) <= 0.15)) {
+                      // Only merge if one of them is explicitly flagged as a duplicate account
+                      if (item.d || existing.d) {
                           isDuplicate = true;
                           // Keep the better score (higher altitude)
                           if (item.alt > existing.alt) {
                               Object.assign(existing, item); // Overwrite existing with better item
                           }
+                          // Persist the dup flag
+                          existing.d = true;
                           break;
                       }
                   }
@@ -774,5 +773,11 @@ export const LootLockerAPI = {
 if (!LootLockerAPI.playerIdentifier) {
   LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
   safeStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
+  
+  // Anti-Duplication Heuristic: Check if this "new" device already has significant coins
+  const existingCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+  if (existingCoins >= 100) {
+    safeStorage.setItem('LL_IS_DUPLICATE_BUG', 'true');
+  }
 }
 
