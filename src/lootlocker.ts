@@ -286,9 +286,6 @@ export const LootLockerAPI = {
         try { m = JSON.parse(i.metadata); } catch(e) {}
         if (m && m.t) {
             let playerName = (i.player && i.player.name) ? i.player.name : '???';
-            if (playerName === "JPN 05" && m.coins < 100000) {
-                playerName = "JPN 05*";
-            }
             // MANUALLY FLAG SPECIFIC USERS WHO SUFFERED THE DUPLICATION BUG BEFORE THE FIX WAS DEPLOYED
             let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
             validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, t: 1000000000 - i.score, d: !!m.d || isManualTarget });
@@ -722,9 +719,6 @@ export const LootLockerAPI = {
         
         if (isValid) {
             let playerName = (i.player && i.player.name) ? i.player.name : '???';
-            if (playerName === "JPN 05" && m.coins < 100000) {
-                playerName = "JPN 05*";
-            }
             // MANUALLY FLAG SPECIFIC USERS WHO SUFFERED THE DUPLICATION BUG BEFORE THE FIX WAS DEPLOYED
             // Add their exact in-game names here.
             let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
