@@ -416,6 +416,10 @@ export const LootLockerAPI = {
     } catch(e) {}
   },
   submitScore: async function(a, c, t, l, isRetry = false) {
+    if (safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true') {
+      this.log('Submission blocked: Suspected duplication bug (high coins on new ID).', 'warning');
+      return false;
+    }
     c = Math.min(c || 0, 999);
     this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
     if (!await this.init()) {
@@ -486,6 +490,10 @@ export const LootLockerAPI = {
   cachedLeaderboardData: null,
 
   submitCoinScore: async function(coins, lang) {
+    if (safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true') {
+      this.log('Coin submission blocked: Suspected duplication bug.', 'warning');
+      return false;
+    }
     if (!this.coinLeaderboardId) {
       this.log('Coin submission skipped (no coin leaderboard ID)', 'info');
       return false;
@@ -538,6 +546,10 @@ export const LootLockerAPI = {
   },
 
   submitTimeAttackScore: async function(t, a, c, l) {
+    if (safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true') {
+      this.log('TA submission blocked: Suspected duplication bug.', 'warning');
+      return false;
+    }
     if (!this.taLeaderboardId) {
       this.log('Time Attack submission skipped (no TA leaderboard ID)', 'info');
       return false;
@@ -712,5 +724,14 @@ export const LootLockerAPI = {
 if (!LootLockerAPI.playerIdentifier) {
   LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
   safeStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
+
+  // Anti-Duplication Heuristic:
+  // If a brand new player ID is generated but they already have massive coins,
+  // it means LL_PID was lost but secureStorage survived (iOS Safari bug).
+  // We flag this state to prevent polluting the leaderboards with duplicated/inferior scores.
+  const existingCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+  if (existingCoins >= 500) {
+    safeStorage.setItem('LL_IS_DUPLICATE_BUG', 'true');
+  }
 }
 
