@@ -423,7 +423,11 @@ export let currentLangFilter = '';
             let scores = JSON.parse(raw);
             if (Array.isArray(scores) && scores.length > 0) {
               const counts: Record<string, number> = {};
+              const seen = new Set<string>();
               scores.forEach((r: any) => {
+                const playerKey = r.n || r.id || `${r.alt}_${r.coins}`;
+                if (seen.has(playerKey)) return;
+                seen.add(playerKey);
                 const lang = normalizeLangCode(r.lang || r.l);
                 counts[lang] = (counts[lang] || 0) + 1;
               });
@@ -452,7 +456,11 @@ export let currentLangFilter = '';
         let renderData = (sList: any[]) => {
             if (sList && sList.length > 0) {
               const counts: Record<string, number> = {};
+              const seen = new Set<string>();
               sList.forEach((r: any) => {
+                const playerKey = r.n || r.id || `${r.alt}_${r.coins}`;
+                if (seen.has(playerKey)) return;
+                seen.add(playerKey);
                 const lang = normalizeLangCode(r.lang || r.l);
                 counts[lang] = (counts[lang] || 0) + 1;
               });
