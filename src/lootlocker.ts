@@ -697,7 +697,7 @@ export const LootLockerAPI = {
       
       let validItems = [];
       allItems.forEach(i => {
-        let m = { alt: FLR(i.score / 1000), coins: i.score % 1000, lang: '---', t: 0, sig: '' };
+        let m: any = { alt: FLR(i.score / 1000), coins: i.score % 1000, lang: '---', t: 0, sig: '', d: 0 };
         try {
           if (i.metadata) m = JSON.parse(i.metadata);
         } catch (e) {}

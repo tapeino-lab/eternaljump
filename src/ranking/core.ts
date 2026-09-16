@@ -37,10 +37,12 @@ import { RankingAPI } from './api.js';
             let localPB = secureStorage.getItem<any>(pbKey, null);
             
             let onlineIsBetter = false;
+            let localTime = (localPB && typeof localPB.time === 'number' && localPB.time > 0) ? localPB.time : 99999999;
+            let onlineTime = (onlinePB && typeof onlinePB.time === 'number' && onlinePB.time > 0) ? onlinePB.time : 99999999;
             if (!localPB || 
                 onlinePB.alt > localPB.alt || 
                 (onlinePB.alt === localPB.alt && onlinePB.coins > localPB.coins) || 
-                (onlinePB.alt === localPB.alt && onlinePB.coins === localPB.coins && onlinePB.time < localPB.time)) {
+                (onlinePB.alt === localPB.alt && onlinePB.coins === localPB.coins && onlineTime < localTime)) {
               onlineIsBetter = true;
             }
 
@@ -81,7 +83,8 @@ import { RankingAPI } from './api.js';
               secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
             } else {
               let localTAPB = secureStorage.getItem<any>(taPbKey, null);
-              if (!localTAPB || typeof localTAPB.time !== 'number' || onlineTAPB.time <= localTAPB.time) {
+              let localTime = (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0) ? localTAPB.time : 99999999;
+              if (!localTAPB || typeof localTAPB.time !== 'number' || localTAPB.time <= 0 || onlineTAPB.time <= localTime) {
                 secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
               }
             }
@@ -299,7 +302,7 @@ import { RankingAPI } from './api.js';
             } else {
               scores.push(myEntry);
             }
-            scores.sort((A, B) => ((typeof A.t === 'number' && A.t > 0) ? A.t : A.time || 99999999) - ((typeof B.t === 'number' && B.t > 0) ? B.t : B.time || 99999999));
+            scores.sort((A, B) => ((typeof A.t === 'number' && A.t > 0) ? A.t : A.time || 99999999) - ((typeof B.t === 'number' && B.t > 0) ? B.t : B.time || 99999999) || (B.coins || 0) - (A.coins || 0));
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_TA_LEADERBOARD', JSON.stringify(scores));
           }
@@ -328,7 +331,9 @@ import { RankingAPI } from './api.js';
         }
 
         let isNewRecordLocal = false;
-        if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins) || (cObj.alt === localPB.alt && cObj.coins === localPB.coins && cObj.time < localPB.time)) {
+        let prevPBTime = (localPB && typeof localPB.time === 'number' && localPB.time > 0) ? localPB.time : 99999999;
+        let currTime = (cObj.time && cObj.time > 0) ? cObj.time : 99999999;
+        if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins) || (cObj.alt === localPB.alt && cObj.coins === localPB.coins && currTime < prevPBTime)) {
           isNewRecordLocal = true;
           game.isNewRecord = true;
           secureStorage.setItem(pbKey, cObj);
@@ -339,7 +344,8 @@ import { RankingAPI } from './api.js';
         if (r === 'CLEAR' || a >= 144000) {
           let taPbKey = RankingAPI.taPbKey;
           let localTAPB = secureStorage.getItem<any>(taPbKey, null);
-          if (!localTAPB || typeof localTAPB.time !== 'number' || t < localTAPB.time) {
+          let prevTATime = (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0) ? localTAPB.time : 99999999;
+          if (!localTAPB || typeof localTAPB.time !== 'number' || localTAPB.time <= 0 || t < prevTATime) {
             isNewTARecordLocal = true;
             game.isNewTARecord = true;
             secureStorage.setItem(taPbKey, { time: t });
@@ -387,8 +393,12 @@ import { RankingAPI } from './api.js';
             let s = await RankingAPI.getScores();
             let ex = s.findIndex(x => x.id === pid);
             if (ex !== -1) {
-              let ca = s[ex].alt, cc = s[ex].coins;
-              if (a > ca || (a === ca && c > cc)) s[ex] = game.lastScoreObj;
+              let ca = s[ex].alt, cc = s[ex].coins || 0;
+              let ct = (s[ex].time && s[ex].time > 0) ? s[ex].time : 99999999;
+              let nt = (game.lastScoreObj.time && game.lastScoreObj.time > 0) ? game.lastScoreObj.time : 99999999;
+              if (a > ca || (a === ca && c > cc) || (a === ca && c === cc && nt < ct)) {
+                s[ex] = game.lastScoreObj;
+              }
             } else {
               s.push(game.lastScoreObj);
             }
