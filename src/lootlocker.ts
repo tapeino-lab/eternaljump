@@ -1,6 +1,7 @@
 import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage, safeCrypto } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
+import { game } from './state.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -113,9 +114,9 @@ export const LootLockerAPI = {
               localTotal = remoteTotal;
               secureStorage.setItem('JUMP_TOTAL_COINS', localTotal);
               
-              // Try to update global game state if running
-              if (typeof (window as any).game !== 'undefined') {
-                (window as any).game.totalCoins = localTotal;
+              // Update game state if available
+              if (game) {
+                game.totalCoins = localTotal;
               }
               // Force shop coin display update if element exists
               let el = document.getElementById('shopCoinCounter');

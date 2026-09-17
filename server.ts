@@ -21,6 +21,7 @@ async function startServer() {
   const DB_FILE = path.join(process.cwd(), 'players.json');
   let playerMappings = {};
   let langCounters = {};
+  const lastCoinSubmissions = new Map<string, { coins: number; time: number }>();
   try {
     if (fsSync.existsSync(DB_FILE)) {
       const data = JSON.parse(fsSync.readFileSync(DB_FILE, 'utf-8'));
@@ -143,6 +144,34 @@ async function startServer() {
           if (metaObj.alt > 150000) {
              console.log("Extreme score detected:", metaObj);
              return res.status(400).json({ error: "Score too high" });
+          }
+
+          // Coin Leaderboard specific validation
+          const coinLeaderboardId = process.env.LOOTLOCKER_COIN_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || 'cointtl';
+          if (targetLeaderboardId === coinLeaderboardId) {
+            const submittedCoins = Number(score || metaObj.coins || 0);
+            // Hard ceiling check (500,000 coins max conceivable even with extreme play)
+            if (submittedCoins > 500000 || submittedCoins < 0) {
+              console.log("Abnormal coin total rejected:", submittedCoins);
+              return res.status(400).json({ error: "Coin total exceeds allowable limit" });
+            }
+
+            // Incremental rate check against previous submission if member_id is present
+            if (member_id) {
+              const memIdStr = String(member_id);
+              const now = Date.now();
+              const prev = lastCoinSubmissions.get(memIdStr);
+              if (prev) {
+                const coinDelta = submittedCoins - prev.coins;
+                const timeDiffSeconds = Math.max(1, (now - prev.time) / 1000);
+                // Maximum 1,000 coins per submission, or rate cannot exceed 50 coins/second
+                if (coinDelta > 1500 || (coinDelta > 100 && (coinDelta / timeDiffSeconds) > 50)) {
+                  console.log(`Suspicious coin surge detected for ${memIdStr}: +${coinDelta} coins in ${timeDiffSeconds.toFixed(1)}s`);
+                  return res.status(400).json({ error: "Abnormal coin increment rate detected" });
+                }
+              }
+              lastCoinSubmissions.set(memIdStr, { coins: submittedCoins, time: now });
+            }
           }
         }
       }
