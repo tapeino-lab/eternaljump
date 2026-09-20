@@ -4,6 +4,7 @@ import { safeStorage } from '../safeStorage.js';
 import { LootLockerAPI } from '../lootlocker.js';
 import { getLang, MIN, getPlayerName, markHasPlayed } from '../utils.js';
 import { RankingAPI } from './api.js';
+import { validatePhysicalScore } from '../security.js';
       export const hasLootLocker = function() {
         return LootLockerAPI.hasLootLockerConfig === true;
 }
@@ -65,14 +66,17 @@ import { RankingAPI } from './api.js';
             }
           } else if (onlinePB && onlinePB.notFound) {
             // Player preservation: If online PB is not found but local PB exists,
-            // do NOT delete the local PB! Instead, re-submit local record to restore server sync.
+            // check anti-cheat physical validity before re-submitting to restore server sync.
             let localPB = secureStorage.getItem<any>(pbKey, null);
             if (localPB && typeof localPB.alt === 'number' && localPB.alt > 0) {
-              LootLockerAPI.submitScore(localPB.alt, localPB.coins || 0, localPB.time || 0, currentLang).then(res => {
-                if (res) {
-                  safeStorage.setItem('LL_LAST_FETCH', '0');
-                }
-              });
+              const v = validatePhysicalScore(localPB.alt, localPB.coins || 0, localPB.time || 0);
+              if (v.valid) {
+                LootLockerAPI.submitScore(localPB.alt, localPB.coins || 0, localPB.time || 0, currentLang).then(res => {
+                  if (res) {
+                    safeStorage.setItem('LL_LAST_FETCH', '0');
+                  }
+                });
+              }
             }
           }
 
@@ -104,17 +108,20 @@ import { RankingAPI } from './api.js';
             }
           } else if (onlineTAPB && onlineTAPB.notFound) {
             // Player preservation: If online TA PB is not found but local TA record exists,
-            // do NOT delete the local TA PB! Instead, re-submit local TA record to restore server sync.
+            // check anti-cheat physical validity before re-submitting to restore server sync.
             let localTAPB = secureStorage.getItem<any>(taPbKey, null);
             if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0 && localTAPB.time < 86400000) {
               let localPB = secureStorage.getItem<any>(pbKey, null);
               let alt = (localPB && typeof localPB.alt === 'number') ? localPB.alt : 144000;
               let coins = (localPB && typeof localPB.coins === 'number') ? localPB.coins : 0;
-              LootLockerAPI.submitTimeAttackScore(localTAPB.time, alt, coins, currentLang).then(res => {
-                if (res) {
-                  safeStorage.setItem('LL_LAST_TA_FETCH', '0');
-                }
-              });
+              const v = validatePhysicalScore(alt, coins, localTAPB.time);
+              if (v.valid) {
+                LootLockerAPI.submitTimeAttackScore(localTAPB.time, alt, coins, currentLang).then(res => {
+                  if (res) {
+                    safeStorage.setItem('LL_LAST_TA_FETCH', '0');
+                  }
+                });
+              }
             }
           }
         })();
@@ -328,6 +335,14 @@ import { RankingAPI } from './api.js';
         markHasPlayed();
         if (game.demoMode && !game.allowAutoRank) return;
         if (!a || a <= 0) return; // Exclude 0m scores
+
+        // Anti-Cheat: Verify physical score validity before recording PB or submitting
+        const valCheck = validatePhysicalScore(a, c, t);
+        if (!valCheck.valid) {
+          console.warn('[Anti-Cheat] Rejected invalid score run:', valCheck.reason, { alt: a, coins: c, time: t });
+          return;
+        }
+
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;
         game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l };
         game.lastScoreId = pid;

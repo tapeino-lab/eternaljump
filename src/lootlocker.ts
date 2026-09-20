@@ -3,6 +3,7 @@ import { safeStorage, safeCrypto } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
 import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier } from './identity.js';
+import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -456,13 +457,27 @@ export const LootLockerAPI = {
   },
   submitScore: async function(a, c, t, l, isRetry = false) {
     c = Math.min(c || 0, 999);
+    
+    // Anti-Cheat: Validate physical feasibility
+    const validation = validatePhysicalScore(a, c, t);
+    if (!validation.valid) {
+      this.log(`Score submission rejected by anti-cheat: ${validation.reason} (alt=${a}, coins=${c}, time=${t})`, 'warning');
+      return false;
+    }
+
+    // Anti-Cheat: Rate limit rapid automated submissions
+    if (!isRetry && !checkSubmissionRateLimit()) {
+      this.log('Score submission throttled: minimum interval violation', 'warning');
+      return false;
+    }
+
     this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
     if (!await this.init()) {
       this.log('Score submission aborted (Init Failed)', 'error');
       return false;
     }
     let sc = a * 1000 + c;
-    let sig = generateSignature(a, c, t, l);
+    let sig = computeGameSignature(a, c, t, l);
     let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
     let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig, d: isDup });
     try {
@@ -584,6 +599,20 @@ export const LootLockerAPI = {
       return false;
     }
     c = Math.min(c || 0, 999);
+
+    // Anti-Cheat: Validate physical feasibility
+    const validation = validatePhysicalScore(a || 144000, c, t);
+    if (!validation.valid) {
+      this.log(`TA Score submission rejected by anti-cheat: ${validation.reason} (alt=${a}, coins=${c}, time=${t})`, 'warning');
+      return false;
+    }
+
+    // Anti-Cheat: Rate limit rapid automated submissions
+    if (!checkSubmissionRateLimit('time_attack')) {
+      this.log('TA Score submission throttled: minimum interval violation', 'warning');
+      return false;
+    }
+
     this.log(`Attempting to submit TA score: time ${t}ms (Lang: ${l})`, 'info');
     if (!await this.init()) {
       this.log('TA Score submission aborted (Init Failed)', 'error');
@@ -591,7 +620,7 @@ export const LootLockerAPI = {
     }
     // Convert time to a score where higher is better, e.g. 100,000,000 - Math.floor(t)
     let sc = 1000000000 - Math.floor(t);
-    let sig = generateSignature(a, c, t, l);
+    let sig = computeGameSignature(a, c, t, l);
     let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
     let meta = JSON.stringify({ alt: a, coins: c, lang: l, t: Math.floor(t / 1000), sig: sig, d: isDup });
     try {
