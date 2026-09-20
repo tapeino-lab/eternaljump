@@ -64,11 +64,15 @@ import { RankingAPI } from './api.js';
               });
             }
           } else if (onlinePB && onlinePB.notFound) {
-            if (pending.length === 0) {
-              secureStorage.removeItem(pbKey);
-              if (game.personalBest) {
-                game.personalBest = null;
-              }
+            // Player preservation: If online PB is not found but local PB exists,
+            // do NOT delete the local PB! Instead, re-submit local record to restore server sync.
+            let localPB = secureStorage.getItem<any>(pbKey, null);
+            if (localPB && typeof localPB.alt === 'number' && localPB.alt > 0) {
+              LootLockerAPI.submitScore(localPB.alt, localPB.coins || 0, localPB.time || 0, currentLang).then(res => {
+                if (res) {
+                  safeStorage.setItem('LL_LAST_FETCH', '0');
+                }
+              });
             }
           }
 
@@ -99,8 +103,18 @@ import { RankingAPI } from './api.js';
               });
             }
           } else if (onlineTAPB && onlineTAPB.notFound) {
-            if (pending.length === 0) {
-              secureStorage.removeItem(taPbKey);
+            // Player preservation: If online TA PB is not found but local TA record exists,
+            // do NOT delete the local TA PB! Instead, re-submit local TA record to restore server sync.
+            let localTAPB = secureStorage.getItem<any>(taPbKey, null);
+            if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0 && localTAPB.time < 86400000) {
+              let localPB = secureStorage.getItem<any>(pbKey, null);
+              let alt = (localPB && typeof localPB.alt === 'number') ? localPB.alt : 144000;
+              let coins = (localPB && typeof localPB.coins === 'number') ? localPB.coins : 0;
+              LootLockerAPI.submitTimeAttackScore(localTAPB.time, alt, coins, currentLang).then(res => {
+                if (res) {
+                  safeStorage.setItem('LL_LAST_TA_FETCH', '0');
+                }
+              });
             }
           }
         })();
