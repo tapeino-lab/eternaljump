@@ -2,6 +2,7 @@ import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage, safeCrypto } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
+import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier } from './identity.js';
 
 
 function generateSignature(alt, coins, playTime, lang) {
@@ -24,7 +25,7 @@ export const LootLockerAPI = {
   leaderboardId: import.meta.env.VITE_LOOTLOCKER_LEADERBOARD_ID || '',
   taLeaderboardId: import.meta.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || '',
   coinLeaderboardId: import.meta.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || '',
-  playerIdentifier: safeStorage.getItem('LL_PID'),
+  playerIdentifier: getStoredPlayerIdentifierSync(),
   
   sessionToken: null,
   playerId: null,
@@ -159,11 +160,10 @@ export const LootLockerAPI = {
 
     
     if (!this.playerIdentifier) {
-      this.playerIdentifier = safeCrypto.generateRandomId('p');
-      safeStorage.setItem('LL_PID', this.playerIdentifier);
-      this.log(`Generated new Player Identifier: ${this.playerIdentifier}`, 'info');
-      
+      this.playerIdentifier = await resolvePlayerIdentifier();
+      this.log(`Resolved Player Identifier: ${this.playerIdentifier}`, 'info');
     } else {
+      persistPlayerIdentifier(this.playerIdentifier);
       this.log(`Loaded existing Player Identifier: ${this.playerIdentifier}`, 'info');
     }
     
@@ -800,15 +800,19 @@ export const LootLockerAPI = {
   }
 };
 
-// Auto generate pid if missing
+// Auto sync/resolve pid if missing or ensure multi-layer persistence
 if (!LootLockerAPI.playerIdentifier) {
-  LootLockerAPI.playerIdentifier = safeCrypto.generateRandomId('p');
-  safeStorage.setItem('LL_PID', LootLockerAPI.playerIdentifier);
-  
-  // Anti-Duplication Heuristic: Check if this "new" device already has significant coins
-  const existingCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
-  if (existingCoins >= 100) {
-    safeStorage.setItem('LL_IS_DUPLICATE_BUG', 'true');
+  // Try synchronous multi-layer lookup (localStorage or Cookie)
+  const syncPid = getStoredPlayerIdentifierSync();
+  if (syncPid) {
+    LootLockerAPI.playerIdentifier = syncPid;
+  } else {
+    // Schedule async IDB resolution before any first network call
+    resolvePlayerIdentifier().then(pid => {
+      LootLockerAPI.playerIdentifier = pid;
+    });
   }
+} else {
+  persistPlayerIdentifier(LootLockerAPI.playerIdentifier);
 }
 

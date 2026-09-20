@@ -1,6 +1,7 @@
 import { $, getPlayerName } from "./utils.js";
 import { LootLockerAPI } from "./lootlocker.js";
 import { safeStorage } from "./safeStorage.js";
+import { persistPlayerName } from "./identity.js";
 
 let tempNameVal = '';
 let originalNameVal = '';
@@ -161,7 +162,7 @@ export function setupKeyboardUI() {
       let lang = parts[0] || '---';
       let newFullName = `${lang} ${tempNameVal}`;
       
-      safeStorage.setItem('JUMP_PLAYER_NAME', newFullName);
+      persistPlayerName(newFullName);
       
       LootLockerAPI.setPlayerName(newFullName);
       

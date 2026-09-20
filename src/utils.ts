@@ -1,5 +1,6 @@
 import { safeStorage } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
+import { getStoredPlayerNameSync, persistPlayerName } from './identity.js';
 
 export const RND = Math.random;
 export const FLR = Math.floor;
@@ -162,7 +163,7 @@ export const escapeHTML = (str: string | number): string => {
 };
 
 export const getPlayerName = (): string => {
-  let n = safeStorage.getItem('JUMP_PLAYER_NAME');
+  let n = getStoredPlayerNameSync();
   let currentLang = getLang();
   
   // Validate if player name matches "LANG XX" format (3-letter country code + space + 2 chars)
@@ -173,13 +174,15 @@ export const getPlayerName = (): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randName = chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
     n = `${currentLang} ${randName}`;
-    safeStorage.setItem('JUMP_PLAYER_NAME', n);
+    persistPlayerName(n);
   } else {
     // If device locale language changed, sync country prefix while preserving 2-character tag
     let parts = n.split(' ');
     if (parts[0] !== currentLang) {
       n = `${currentLang} ${parts[1]}`;
-      safeStorage.setItem('JUMP_PLAYER_NAME', n);
+      persistPlayerName(n);
+    } else {
+      persistPlayerName(n);
     }
   }
   return n;
