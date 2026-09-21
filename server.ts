@@ -3,8 +3,6 @@ import path from "path";
 import fsSync from "fs";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import geoip from "geoip-lite";
-
 dotenv.config();
 
 // Simple in-memory & JSON file store for play logs and player directory
@@ -120,6 +118,27 @@ async function startServer() {
     return `${os} / ${browser}`;
   };
 
+  // Zero-dependency geo resolution using standard CDN/Cloud headers
+  const resolveGeoInfo = (req: express.Request, ip: string): { country: string; region: string; city: string } => {
+    const countryHeader = req.headers['x-client-geo-country'] || req.headers['cf-ipcountry'] || req.headers['x-appengine-country'];
+    const regionHeader = req.headers['x-client-geo-region'] || req.headers['x-appengine-region'];
+    const cityHeader = req.headers['x-client-geo-city'] || req.headers['x-appengine-city'];
+
+    if (countryHeader) {
+      return {
+        country: String(countryHeader).toUpperCase(),
+        region: regionHeader ? String(regionHeader) : '-',
+        city: cityHeader ? decodeURIComponent(String(cityHeader)) : '-'
+      };
+    }
+
+    if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.16.')) {
+      return { country: 'Local', region: 'Private', city: 'Localhost' };
+    }
+
+    return { country: 'Global', region: '-', city: '-' };
+  };
+
   // Helper to record a play action
   const recordPlayAction = (
     req: express.Request,
@@ -130,10 +149,7 @@ async function startServer() {
   ) => {
     try {
       const ip = getClientIp(req);
-      const geo = geoip.lookup(ip);
-      const country = geo ? geo.country : '-';
-      const region = geo ? geo.region : '-';
-      const city = geo ? geo.city : '-';
+      const { country, region, city } = resolveGeoInfo(req, ip);
       const device = parseDevice(req.headers['user-agent']);
       
       const now = new Date();

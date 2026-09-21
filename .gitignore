@@ -7,3 +7,4 @@ coverage/
 .env*
 !.env.example
 players.json
+play_logs.json
