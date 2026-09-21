@@ -399,7 +399,7 @@ import { validatePhysicalScore } from '../security.js';
           RankingAPI.prefetchTAScores(false);
 
           let submitTasks: Promise<any>[] = [];
-          if (isNewRecordLocal) {
+          if (isNewRecordLocal || r === 'CLEAR' || a >= 144000) {
             submitTasks.push(LootLockerAPI.submitScore(a, c, t, l).then(res => {
               if (res) safeStorage.setItem('LL_LAST_FETCH', '0');
             }));

@@ -294,10 +294,11 @@
       if (customServer && customServer.trim() !== '') {
         return customServer.trim().replace(/\/+$/, '') + '/admin/api/data';
       }
-      // Handles both /admin and /eternaljump/admin paths
       const p = window.location.pathname;
-      const base = p.substring(0, p.lastIndexOf('/') + 1) || './';
-      return base + 'admin/api/data';
+      if (p.includes('/eternaljump/')) {
+        return '/eternaljump/admin/api/data';
+      }
+      return '/admin/api/data';
     }
 
     function showDashboard() {
@@ -348,7 +349,14 @@
       let maxAlt = 0;
       serverData.summaries.forEach(s => { if (s.maxAlt > maxAlt) maxAlt = s.maxAlt; });
       document.getElementById('statMaxAlt').innerText = maxAlt > 0 ? (maxAlt.toLocaleString() + ' m') : '-';
-      document.getElementById('statFastestTA').innerText = '-';
+      
+      let fastestTA = 99999999;
+      (serverData.logs || []).forEach(l => {
+        if (l.type === 'ta_submit' && l.playTimeSec && l.playTimeSec > 0 && l.playTimeSec < fastestTA) {
+          fastestTA = l.playTimeSec;
+        }
+      });
+      document.getElementById('statFastestTA').innerText = fastestTA < 99999999 ? (fastestTA + ' 秒') : '-';
 
       // Hourly Bar Chart
       const chartEl = document.getElementById('barChart');
@@ -451,7 +459,7 @@
               body: JSON.stringify({
                 game_key: cfg.apiKey,
                 player_identifier: 'admin_dash_' + Math.random().toString(36).substring(2, 9),
-                game_version: '2.10.43'
+                game_version: '2.10.45'
               })
             });
             if (sessRes.ok) {
@@ -511,10 +519,14 @@
         document.getElementById('statTotalLogs').innerText = (totalLogsCount || (lootlockerData.coins.length + lootlockerData.altitude.length)).toLocaleString();
 
         if (lootlockerData.altitude.length > 0) {
-          document.getElementById('statMaxAlt').innerText = lootlockerData.altitude[0].score.toLocaleString() + ' m';
+          const rawScore = lootlockerData.altitude[0].score;
+          const altM = Math.floor(rawScore / 1000);
+          document.getElementById('statMaxAlt').innerText = altM.toLocaleString() + ' m';
         }
         if (lootlockerData.timeAttack.length > 0) {
-          const sec = (lootlockerData.timeAttack[0].score / 1000).toFixed(2);
+          const rawScore = lootlockerData.timeAttack[0].score;
+          const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
+          const sec = (actualMs / 1000).toFixed(2);
           document.getElementById('statFastestTA').innerText = sec + ' 秒';
         }
 
@@ -613,12 +625,14 @@
 
       filteredAlt.forEach(item => {
         const name = (item.player && item.player.name) || '名無し';
+        const altM = Math.floor(item.score / 1000);
+        const coins = item.score % 1000;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="font-weight:bold; color:#38bdf8;">#${item.rank}</td>
           <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
           <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
-          <td style="font-weight:bold; color:#34d399;">${item.score.toLocaleString()} m</td>
+          <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
           <td>${formatDate(item.created_at)}</td>
         `;
         pBody.appendChild(tr);
@@ -635,7 +649,9 @@
 
       filteredTa.forEach(item => {
         const name = (item.player && item.player.name) || '名無し';
-        const sec = (item.score / 1000).toFixed(2);
+        const rawScore = item.score;
+        const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
+        const sec = (actualMs / 1000).toFixed(2);
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="font-weight:bold; color:#c084fc;">#${item.rank}</td>
@@ -697,6 +713,14 @@
     if (getSavedPass()) {
       fetchData();
     }
+
+    // Periodic auto-refresh every 30 seconds when tab is active and visible
+    setInterval(() => {
+      const dashView = document.getElementById('dashView');
+      if (dashView && !dashView.classList.contains('hidden') && document.visibilityState === 'visible') {
+        fetchData();
+      }
+    }, 30000);
   </script>
 </body>
 </html>

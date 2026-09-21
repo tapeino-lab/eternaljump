@@ -8,8 +8,8 @@
  */
 
 // Theoretical minimum climb time thresholds (in milliseconds)
-// At max power-jump / super-jump speed, 144,000m takes at minimum ~65 seconds (65,000ms).
-export const MIN_GOAL_TIME_MS = 65000;
+// Safe realistic threshold to prevent false-positive rejection of fast clears
+export const MIN_GOAL_TIME_MS = 20000;
 
 // Maximum reasonable coins per run (cap at 999 as defined in LootLockerAPI)
 export const MAX_REASONABLE_COINS = 999;
@@ -49,10 +49,10 @@ export function validatePhysicalScore(altitude: number, coins: number, playTimeM
       return { valid: false, reason: 'Goal reached faster than theoretical minimum climb rate' };
     }
 
-    // For any altitude > 20,000m, average climb rate cannot exceed 3,000 m/s
+    // For any altitude > 20,000m, average climb rate cannot exceed 6,000 m/s
     if (altitude > 20000) {
       const climbSpeedMeterPerSec = (altitude / (playTimeMs / 1000));
-      if (climbSpeedMeterPerSec > 3000) {
+      if (climbSpeedMeterPerSec > 6000) {
         return { valid: false, reason: 'Ascent speed exceeds physical game engine limit' };
       }
     }

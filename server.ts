@@ -296,7 +296,8 @@ async function startServer() {
   app.post("/api/lootlocker/leaderboards/submit", async (req, res) => {
     const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
     const defaultLeaderboardId = process.env.LOOTLOCKER_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2';
-    const { member_id, score, metadata, session_token, leaderboard_id } = req.body;
+    const { member_id, score, metadata, leaderboard_id } = req.body;
+    const session_token = req.body.session_token || (req.headers['x-session-token'] as string);
     const targetLeaderboardId = leaderboard_id || defaultLeaderboardId;
 
     // --- Validation Logic ---
@@ -312,18 +313,30 @@ async function startServer() {
           let coins = metaObj.coins || 0;
           let lang = metaObj.lang || "";
           
-          const salt = "E7eRn4L_JumP_Pr0t3ct10n";
-          let str = alt + "_" + (coins || 0) + "_" + Math.floor(playTime / 1000) + "_" + lang + "_" + salt;
-          let hash = 0;
-          for (let i = 0; i < str.length; i++) {
-              let char = str.charCodeAt(i);
-              hash = ((hash << 5) - hash) + char;
-              hash = hash & hash;
-          }
-          let expectedSig = hash.toString(36);
+          const saltV1 = "E7eRn4L_JumP_Pr0t3ct10n";
+          const saltV2 = "E7eRn4L_JumP_Pr0t3ct10n_v2";
+          const str1 = alt + "_" + (coins || 0) + "_" + Math.floor(playTime / 1000) + "_" + lang + "_" + saltV1;
+          const str2 = Math.floor(alt) + "_" + Math.floor(coins || 0) + "_" + Math.floor(playTime / 1000) + "_" + lang + "_" + saltV2;
           
-          if (expectedSig !== metaObj.sig) {
-             console.log("Invalid signature detected:", metaObj);
+          let h1 = 0, h2 = 0;
+          for (let i = 0; i < str1.length; i++) {
+            h1 = ((h1 << 5) - h1) + str1.charCodeAt(i);
+            h1 = h1 & h1;
+          }
+          for (let i = 0; i < str2.length; i++) {
+            h2 = ((h2 << 5) - h2) + str2.charCodeAt(i);
+            h2 = h2 & h2;
+          }
+
+          const validSigs = new Set([
+            h1.toString(36),
+            Math.abs(h1).toString(36),
+            h2.toString(36),
+            Math.abs(h2).toString(36)
+          ]);
+          
+          if (!validSigs.has(metaObj.sig)) {
+             console.log("Invalid signature detected:", metaObj, "valid options:", Array.from(validSigs));
              return res.status(400).json({ error: "Invalid score signature" });
           }
           
@@ -393,7 +406,7 @@ async function startServer() {
       if (response.ok) {
         try {
           const coinLeaderboardId = process.env.LOOTLOCKER_COIN_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || 'cointtl';
-          const taLeaderboardId = process.env.LOOTLOCKER_TA_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || 'time_attack_leaderboard_id';
+          const taLeaderboardId = process.env.LOOTLOCKER_TA_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || 'tatk';
           
           let actionType: 'score_submit' | 'coin_submit' | 'ta_submit' = 'score_submit';
           if (targetLeaderboardId === coinLeaderboardId) actionType = 'coin_submit';
