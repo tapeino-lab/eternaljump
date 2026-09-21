@@ -18,6 +18,8 @@ interface PlayLogEntry {
   country: string;
   region: string;
   city: string;
+  isp?: string;
+  geoFormatted?: string;
   device: string;
   alt?: number;
   coins?: number;
@@ -29,6 +31,7 @@ interface PlayerSummary {
   pid: string;
   lastIp: string;
   lastLocation: string;
+  isp?: string;
   device: string;
   firstSeen: string;
   lastSeen: string;
@@ -61,6 +64,8 @@ async function startServer() {
 
   const DB_FILE = path.join(process.cwd(), 'players.json');
   const LOGS_FILE = path.join(process.cwd(), 'play_logs.json');
+  const PUB_DB_FILE = path.join(process.cwd(), 'public', 'players.json');
+  const PUB_LOGS_FILE = path.join(process.cwd(), 'public', 'play_logs.json');
   const MAX_LOGS = 3000; // Cap file size to ~300KB
 
   let playerMappings = {};
@@ -70,6 +75,7 @@ async function startServer() {
   // Storage for play logs and player summaries
   let playLogs: PlayLogEntry[] = [];
   let playerSummaries: Record<string, PlayerSummary> = {};
+  const sessionToPlayerMap = new Map<string, { pid: string; playerIdentifier?: string }>();
 
   try {
     if (fsSync.existsSync(DB_FILE)) {
@@ -85,7 +91,9 @@ async function startServer() {
 
   const saveDB = () => {
     try {
-      fsSync.writeFileSync(DB_FILE, JSON.stringify({ playerMappings, langCounters, playerSummaries }));
+      const content = JSON.stringify({ playerMappings, langCounters, playerSummaries });
+      fsSync.writeFileSync(DB_FILE, content);
+      fsSync.writeFileSync(PUB_DB_FILE, content);
     } catch(e) {}
   };
 
@@ -94,7 +102,9 @@ async function startServer() {
       if (playLogs.length > MAX_LOGS) {
         playLogs = playLogs.slice(playLogs.length - MAX_LOGS);
       }
-      fsSync.writeFileSync(LOGS_FILE, JSON.stringify(playLogs));
+      const content = JSON.stringify(playLogs);
+      fsSync.writeFileSync(LOGS_FILE, content);
+      fsSync.writeFileSync(PUB_LOGS_FILE, content);
     } catch(e) {}
   };
 
@@ -129,22 +139,200 @@ async function startServer() {
     return `${os} / ${browser}`;
   };
 
-  // Zero-dependency geo resolution using standard CDN/Cloud headers
+  // Japanese prefecture mapping for JIS X 0401 and standard romanized names
+  const JP_PREFECTURES: Record<string, string> = {
+    '1': '北海道', '01': '北海道', 'Hokkaido': '北海道',
+    '2': '青森県', '02': '青森県', 'Aomori': '青森県',
+    '3': '岩手県', '03': '岩手県', 'Iwate': '岩手県',
+    '4': '宮城県', '04': '宮城県', 'Miyagi': '宮城県',
+    '5': '秋田県', '05': '秋田県', 'Akita': '秋田県',
+    '6': '山形県', '06': '山形県', 'Yamagata': '山形県',
+    '7': '福島県', '07': '福島県', 'Fukushima': '福島県',
+    '8': '茨城県', '08': '茨城県', 'Ibaraki': '茨城県',
+    '9': '栃木県', '09': '栃木県', 'Tochigi': '栃木県',
+    '10': '群馬県', 'Gunma': '群馬県',
+    '11': '埼玉県', 'Saitama': '埼玉県',
+    '12': '千葉県', 'Chiba': '千葉県',
+    '13': '東京都', 'Tokyo': '東京都',
+    '14': '神奈川県', 'Kanagawa': '神奈川県',
+    '15': '新潟県', 'Niigata': '新潟県',
+    '16': '富山県', 'Toyama': '富山県',
+    '17': '石川県', 'Ishikawa': '石川県',
+    '18': '福井県', 'Fukui': '福井県',
+    '19': '山梨県', 'Yamanashi': '山梨県',
+    '20': '長野県', 'Nagano': '長野県',
+    '21': '岐阜県', 'Gifu': '岐阜県',
+    '22': '静岡県', 'Shizuoka': '静岡県',
+    '23': '愛知県', 'Aichi': '愛知県',
+    '24': '三重県', 'Mie': '三重県',
+    '25': '滋賀県', 'Shiga': '滋賀県',
+    '26': '京都府', 'Kyoto': '京都府',
+    '27': '大阪府', 'Osaka': '大阪府',
+    '28': '兵庫県', 'Hyogo': '兵庫県',
+    '29': '奈良県', 'Nara': '奈良県',
+    '30': '和歌山県', 'Wakayama': '和歌山県',
+    '31': '鳥取県', 'Tottori': '鳥取県',
+    '32': '島根県', 'Shimane': '島根県',
+    '33': '岡山県', 'Okayama': '岡山県',
+    '34': '広島県', 'Hiroshima': '広島県',
+    '35': '山口県', 'Yamaguchi': '山口県',
+    '36': '徳島県', 'Tokushima': '徳島県',
+    '37': '香川県', 'Kagawa': '香川県',
+    '38': '愛媛県', 'Ehime': '愛媛県',
+    '39': '高知県', 'Kochi': '高知県',
+    '40': '福岡県', 'Fukuoka': '福岡県',
+    '41': '佐賀県', 'Saga': '佐賀県',
+    '42': '長崎県', 'Nagasaki': '長崎県',
+    '43': '熊本県', 'Kumamoto': '熊本県',
+    '44': '大分県', 'Oita': '大分県',
+    '45': '宮崎県', 'Miyazaki': '宮崎県',
+    '46': '鹿児島県', 'Kagoshima': '鹿児島県',
+    '47': '沖縄県', 'Okinawa': '沖縄県'
+  };
+
+  interface GeoDetails {
+    country: string;
+    countryCode: string;
+    region: string;
+    city: string;
+    isp?: string;
+    formatted: string;
+  }
+
+  const geoCache = new Map<string, GeoDetails>();
+
+  // Helper to format clean Japanese-readable geo descriptions purely from IP resolution
+  const formatGeoText = (countryCode: string, countryName: string, region: string, city: string): string => {
+    if (countryCode === 'LOC' || countryName === 'Local' || countryName === 'Localhost') {
+      return '💻 ローカル開発環境 (127.0.0.1)';
+    }
+    let flag = '🌐';
+    if (countryCode === 'JP' || countryName === 'Japan' || countryName === '日本') flag = '🇯🇵';
+    else if (countryCode === 'US' || countryName === 'USA' || countryName === 'United States') flag = '🇺🇸';
+    else if (countryCode === 'KR' || countryName === 'Korea' || countryName === 'South Korea') flag = '🇰🇷';
+    else if (countryCode === 'TW' || countryName === 'Taiwan') flag = '🇹🇼';
+    else if (countryCode === 'GB' || countryName === 'United Kingdom') flag = '🇬🇧';
+    else if (countryCode === 'RU' || countryName === 'Russia') flag = '🇷🇺';
+    else if (countryCode === 'DE' || countryName === 'Germany') flag = '🇩🇪';
+    else if (countryCode === 'FR' || countryName === 'France') flag = '🇫🇷';
+    else if (countryCode === 'CN' || countryName === 'China') flag = '🇨🇳';
+    else if (countryCode === 'CA' || countryName === 'Canada') flag = '🇨🇦';
+    else if (countryCode === 'AU' || countryName === 'Australia') flag = '🇦🇺';
+
+    let prefOrRegion = region;
+    if ((countryCode === 'JP' || countryName === 'Japan' || countryName === '日本') && JP_PREFECTURES[region]) {
+      prefOrRegion = JP_PREFECTURES[region];
+    }
+
+    let text = '';
+    if (flag === '🇯🇵') {
+      text = `${flag} ${prefOrRegion && prefOrRegion !== '-' ? prefOrRegion : '日本'}`;
+      if (city && city !== '-' && city !== prefOrRegion) {
+        text += ` (${city})`;
+      }
+    } else {
+      text = `${flag} ${countryName || countryCode}`;
+      if (prefOrRegion && prefOrRegion !== '-') text += ` ${prefOrRegion}`;
+      if (city && city !== '-' && city !== prefOrRegion) text += ` (${city})`;
+    }
+    return text.trim();
+  };
+
+  // Pure IP Geo resolver
+  const resolveIpLocation = async (ip: string): Promise<GeoDetails> => {
+    if (!ip || ip === 'Unknown') {
+      return { country: 'Unknown', countryCode: '??', region: '-', city: '-', formatted: 'IP未取得' };
+    }
+    if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.16.') || ip.startsWith('172.31.')) {
+      return { country: 'Local', countryCode: 'LOC', region: 'Local', city: 'Localhost', isp: 'Private', formatted: '💻 ローカル開発環境 (127.0.0.1)' };
+    }
+
+    if (geoCache.has(ip)) {
+      return geoCache.get(ip)!;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(`https://ipwho.is/${ip}`, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          const country = data.country || 'Global';
+          const countryCode = data.country_code || '??';
+          let region = data.region || '-';
+          if (data.region_code && JP_PREFECTURES[data.region_code]) {
+            region = JP_PREFECTURES[data.region_code];
+          } else if (JP_PREFECTURES[region]) {
+            region = JP_PREFECTURES[region];
+          }
+          const city = data.city || '-';
+          const isp = data.connection?.isp || data.connection?.org;
+          const formatted = formatGeoText(countryCode, country, region, city);
+          const geo: GeoDetails = { country, countryCode, region, city, isp, formatted };
+          geoCache.set(ip, geo);
+          return geo;
+        }
+      }
+    } catch(e) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2500);
+        const res = await fetch(`http://ip-api.com/json/${ip}`, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'success') {
+            const country = data.country || 'Global';
+            const countryCode = data.countryCode || '??';
+            let region = data.regionName || '-';
+            if (data.region && JP_PREFECTURES[data.region]) {
+              region = JP_PREFECTURES[data.region];
+            } else if (JP_PREFECTURES[region]) {
+              region = JP_PREFECTURES[region];
+            }
+            const city = data.city || '-';
+            const isp = data.isp;
+            const formatted = formatGeoText(countryCode, country, region, city);
+            const geo: GeoDetails = { country, countryCode, region, city, isp, formatted };
+            geoCache.set(ip, geo);
+            return geo;
+          }
+        }
+      } catch(e2) {}
+    }
+
+    const fallback: GeoDetails = { country: 'Global', countryCode: 'GL', region: '-', city: '-', formatted: '🌐 接続地域未特定' };
+    geoCache.set(ip, fallback);
+    return fallback;
+  };
+
+  // Zero-dependency geo resolution using standard CDN/Cloud headers + Geo cache
   const resolveGeoInfo = (req: express.Request, ip: string): { country: string; region: string; city: string } => {
     const countryHeader = req.headers['x-client-geo-country'] || req.headers['cf-ipcountry'] || req.headers['x-appengine-country'];
     const regionHeader = req.headers['x-client-geo-region'] || req.headers['x-appengine-region'];
     const cityHeader = req.headers['x-client-geo-city'] || req.headers['x-appengine-city'];
 
     if (countryHeader) {
+      const cCode = String(countryHeader).toUpperCase();
+      let reg = regionHeader ? String(regionHeader) : '-';
+      if (cCode === 'JP' && JP_PREFECTURES[reg]) reg = JP_PREFECTURES[reg];
       return {
-        country: String(countryHeader).toUpperCase(),
-        region: regionHeader ? String(regionHeader) : '-',
+        country: cCode,
+        region: reg,
         city: cityHeader ? decodeURIComponent(String(cityHeader)) : '-'
       };
     }
 
+    if (geoCache.has(ip)) {
+      const g = geoCache.get(ip)!;
+      return { country: g.countryCode, region: g.region, city: g.city };
+    }
+
     if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.16.')) {
-      return { country: 'Local', region: 'Private', city: 'Localhost' };
+      return { country: 'Local', region: 'Local', city: 'Localhost' };
     }
 
     return { country: 'Global', region: '-', city: '-' };
@@ -156,12 +344,17 @@ async function startServer() {
     type: 'session_start' | 'score_submit' | 'coin_submit' | 'ta_submit',
     pid: string,
     name: string,
-    extra?: { alt?: number; coins?: number; playTimeSec?: number }
+    extra?: { alt?: number; coins?: number; playTimeSec?: number; dev?: string; loc?: string; ip?: string; isp?: string }
   ) => {
     try {
-      const ip = getClientIp(req);
-      const { country, region, city } = resolveGeoInfo(req, ip);
-      const device = parseDevice(req.headers['user-agent']);
+      const ip = extra?.ip || getClientIp(req);
+      let { country, region, city } = resolveGeoInfo(req, ip);
+      let device = extra?.dev || parseDevice(req.headers['user-agent']);
+      let isp = extra?.isp;
+
+      if (extra?.loc && extra.loc.includes('(') && (country === 'Global' || country === '-')) {
+        region = extra.loc;
+      }
       
       const now = new Date();
       // Calculate JST hour (UTC+9)
@@ -180,6 +373,8 @@ async function startServer() {
         country,
         region,
         city,
+        isp,
+        geoFormatted: formatGeoText(country, country, region, city),
         device,
         alt: extra?.alt,
         coins: extra?.coins,
@@ -189,14 +384,36 @@ async function startServer() {
       playLogs.push(entry);
       saveLogs();
 
+      // Trigger asynchronous background GeoIP resolution if not already cached
+      if (ip && ip !== 'Unknown' && !geoCache.has(ip) && ip !== '127.0.0.1' && ip !== '::1') {
+        resolveIpLocation(ip).then(resolved => {
+          entry.country = resolved.countryCode;
+          entry.region = resolved.region;
+          entry.city = resolved.city;
+          entry.isp = resolved.isp;
+          entry.geoFormatted = resolved.formatted;
+          saveLogs();
+
+          const playerKey = pid || name;
+          if (playerKey && playerSummaries[playerKey]) {
+            playerSummaries[playerKey].lastLocation = resolved.formatted;
+            playerSummaries[playerKey].isp = resolved.isp;
+            saveDB();
+          }
+        }).catch(() => {});
+      }
+
       // Update Player Summary
       const playerKey = pid || name;
       if (playerKey && playerKey !== 'Unknown') {
+        const cachedGeo = geoCache.get(ip);
+        const locDesc = cachedGeo ? cachedGeo.formatted : formatGeoText(country, country, region, city);
         const existing = playerSummaries[playerKey] || {
           name: name || 'Anonymous',
           pid: pid || 'Unknown',
           lastIp: ip,
-          lastLocation: `${country} / ${city !== '-' ? city : region}`,
+          lastLocation: locDesc,
+          isp: cachedGeo?.isp || isp,
           device,
           firstSeen: timeStr,
           lastSeen: timeStr,
@@ -208,7 +425,8 @@ async function startServer() {
 
         if (name && name !== 'Anonymous') existing.name = name;
         existing.lastIp = ip;
-        existing.lastLocation = `${country} / ${city !== '-' ? city : region}`;
+        existing.lastLocation = locDesc;
+        if (cachedGeo?.isp || isp) existing.isp = cachedGeo?.isp || isp;
         existing.device = device;
         existing.lastSeen = timeStr;
         existing.playCount += 1;
@@ -281,7 +499,10 @@ async function startServer() {
       if (response.ok && data) {
         // Record session start play action
         const pid = String(data.player_id || playerIdentifier || '');
-        const playerName = (playerIdentifier && playerMappings[playerIdentifier]) || 'Anonymous';
+        if (data.session_token) {
+          sessionToPlayerMap.set(data.session_token, { pid, playerIdentifier });
+        }
+        const playerName = (playerIdentifier && playerMappings[playerIdentifier]) || (pid && playerSummaries[pid]?.name) || 'Anonymous';
         recordPlayAction(req, 'session_start', pid || playerIdentifier, playerName);
       }
 
@@ -415,17 +636,41 @@ async function startServer() {
           let altVal: number | undefined;
           let coinsVal: number | undefined;
           let playTimeSec: number | undefined;
-          let playerName = 'Anonymous';
 
           if (metadata) {
-            const meta = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-            altVal = meta.alt;
-            coinsVal = meta.coins;
-            if (meta.t) playTimeSec = Number(meta.t);
-            if (meta.name) playerName = meta.name;
+            try {
+              const meta = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+              if (meta.alt !== undefined) altVal = Number(meta.alt);
+              if (meta.coins !== undefined) coinsVal = Number(meta.coins);
+              if (meta.t !== undefined) playTimeSec = Number(meta.t);
+            } catch (e) {}
           }
 
-          const pid = member_id ? String(member_id) : 'Unknown';
+          if (targetLeaderboardId === coinLeaderboardId) {
+            coinsVal = Number(score);
+          } else if (targetLeaderboardId === taLeaderboardId) {
+            altVal = 144000;
+            const numScore = Number(score);
+            if (numScore > 500000000) {
+              playTimeSec = Math.floor((1000000000 - numScore) / 1000);
+            }
+          }
+
+          const sessionInfo = session_token ? sessionToPlayerMap.get(session_token) : undefined;
+          const pid = member_id ? String(member_id) : (sessionInfo?.pid || 'Unknown');
+
+          let playerName = (pid && playerSummaries[pid]?.name) ||
+            (sessionInfo?.playerIdentifier && playerMappings[sessionInfo.playerIdentifier]) ||
+            'Anonymous';
+          if (metadata) {
+            try {
+              const meta = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+              if (meta.name && (playerName === 'Anonymous' || !playerName)) {
+                playerName = meta.name;
+              }
+            } catch (e) {}
+          }
+
           recordPlayAction(req, actionType, pid, playerName, {
             alt: altVal,
             coins: coinsVal,
@@ -495,13 +740,49 @@ async function startServer() {
       const data = await response.json();
       
       if (response.ok && name) {
-        // If there's an existing summary that matches this player, update the display name
-        for (const key of Object.keys(playerSummaries)) {
-          if (playerSummaries[key].name === 'Anonymous' || !playerSummaries[key].name) {
-            playerSummaries[key].name = name;
-          }
+        const sessionInfo = session_token ? sessionToPlayerMap.get(session_token) : undefined;
+        const pid = sessionInfo?.pid;
+        if (sessionInfo?.playerIdentifier) {
+          playerMappings[sessionInfo.playerIdentifier] = name;
         }
-        saveDB();
+        if (pid) {
+          if (playerSummaries[pid]) {
+            playerSummaries[pid].name = name;
+          } else {
+            const ip = getClientIp(req);
+            const cachedGeo = geoCache.get(ip);
+            const dev = parseDevice(req.headers['user-agent']);
+            playerSummaries[pid] = {
+              name,
+              pid,
+              lastIp: ip,
+              lastLocation: cachedGeo ? cachedGeo.formatted : 'IP未取得',
+              isp: cachedGeo?.isp,
+              device: dev,
+              firstSeen: new Date().toISOString(),
+              lastSeen: new Date().toISOString(),
+              playCount: 1,
+              maxAlt: 0,
+              maxCoins: 0,
+              totalPlayTimeSec: 0
+            };
+          }
+          playLogs.forEach(entry => {
+            if (entry.pid === pid && (entry.name === 'Anonymous' || !entry.name)) {
+              entry.name = name;
+            }
+          });
+          saveLogs();
+          saveDB();
+        } else {
+          // If no mapped pid, update any recent anonymous summary
+          for (const key of Object.keys(playerSummaries)) {
+            if (playerSummaries[key].name === 'Anonymous' || !playerSummaries[key].name) {
+              playerSummaries[key].name = name;
+            }
+          }
+          saveDB();
+        }
       }
 
       res.status(response.status).json(data);
@@ -552,10 +833,63 @@ async function startServer() {
     return false;
   };
 
+  // Endpoint to resolve GeoIP details from IP address (callable by client and admin)
+  app.get("/api/geoip", async (req, res) => {
+    const targetIp = (req.query.ip as string) || getClientIp(req);
+    const geo = await resolveIpLocation(targetIp);
+    res.json({
+      ip: targetIp,
+      ...geo
+    });
+  });
+
   // API to fetch play logs and summaries (JSON)
-  app.get("/admin/api/data", (req, res) => {
+  app.get("/admin/api/data", async (req, res) => {
     if (!verifyAdmin(req)) {
       return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Resolve any pending unique IP addresses (batch resolve up to 15 unique IPs)
+    const pendingIps = new Set<string>();
+    playLogs.forEach(l => {
+      if (l.ip && l.ip !== 'Unknown' && l.ip !== '127.0.0.1' && l.ip !== '::1' && (!geoCache.has(l.ip) || l.country === 'Global' || l.region === '-')) {
+        pendingIps.add(l.ip);
+      }
+    });
+    Object.values(playerSummaries).forEach(s => {
+      if (s.lastIp && s.lastIp !== 'Unknown' && s.lastIp !== '127.0.0.1' && s.lastIp !== '::1' && !geoCache.has(s.lastIp)) {
+        pendingIps.add(s.lastIp);
+      }
+    });
+
+    if (pendingIps.size > 0) {
+      const ipsToResolve = Array.from(pendingIps).slice(0, 15);
+      await Promise.all(ipsToResolve.map(ip => resolveIpLocation(ip)));
+
+      let updated = false;
+      playLogs.forEach(l => {
+        const g = geoCache.get(l.ip);
+        if (g && g.countryCode !== 'GL') {
+          l.country = g.countryCode;
+          l.region = g.region;
+          l.city = g.city;
+          l.isp = g.isp;
+          l.geoFormatted = g.formatted;
+          updated = true;
+        }
+      });
+      Object.values(playerSummaries).forEach(s => {
+        const g = geoCache.get(s.lastIp);
+        if (g && g.countryCode !== 'GL') {
+          s.lastLocation = g.formatted;
+          s.isp = g.isp;
+          updated = true;
+        }
+      });
+      if (updated) {
+        saveLogs();
+        saveDB();
+      }
     }
 
     // Calculate hourly play distribution (0-23 JST)

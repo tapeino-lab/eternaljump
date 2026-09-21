@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FOLLOW ME! - Admin Dashboard</title>
+  <title>FOLLOW ME! - 管理者ダッシュボード</title>
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background: #0f172a; color: #f8fafc; padding: 16px; min-height: 100vh; }
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container { max-width: 1240px; margin: 0 auto; }
     
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #334155; flex-wrap: wrap; gap: 12px; }
     h1 { font-size: 20px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
@@ -16,10 +16,11 @@
     .mode-badge.server { background: #064e3b; color: #34d399; border-color: #059669; }
     .mode-badge.static { background: #1e3a8a; color: #60a5fa; border-color: #2563eb; }
 
-    .btn { padding: 8px 14px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn { padding: 8px 14px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { background: #0369a1; }
     .btn-secondary { background: #334155; color: #cbd5e1; }
-    .btn-secondary:hover { background: #475569; }
+    .btn-secondary:hover { background: #475569; color: #fff; }
+    .btn-secondary.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
     
     .login-box { max-width: 420px; margin: 60px auto; background: #1e293b; padding: 28px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     .login-box h2 { font-size: 18px; margin-bottom: 6px; color: #38bdf8; }
@@ -29,9 +30,9 @@
     .server-url-field { font-size: 12px; color: #94a3b8; margin-top: 12px; border-top: 1px solid #334155; padding-top: 12px; }
     .server-url-field input { padding: 8px 10px; font-size: 12px; margin-top: 6px; margin-bottom: 4px; }
     
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px; }
-    .stat-label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
+    .stat-label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; font-weight: 600; }
     .stat-val { font-size: 22px; font-weight: 700; color: #38bdf8; }
     
     .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
@@ -43,8 +44,9 @@
     .bar-count { font-size: 8px; color: #94a3b8; margin-bottom: 2px; }
 
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
-    .nav-tabs { display: flex; gap: 6px; }
-    .tab-btn { background: none; border: none; color: #94a3b8; font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; border-radius: 6px; }
+    .nav-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab-btn { background: none; border: none; color: #94a3b8; font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+    .tab-btn:hover { color: #fff; background: #1e293b; }
     .tab-btn.active { background: #334155; color: #38bdf8; }
     .search-input { padding: 8px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 13px; min-width: 220px; }
 
@@ -54,11 +56,24 @@
     td { padding: 10px 12px; border-bottom: 1px solid #243248; color: #cbd5e1; }
     tr:hover td { background: #243347; }
     
-    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; white-space: nowrap; }
     .badge-start { background: #1e3a5f; color: #60a5fa; }
     .badge-score { background: #064e3b; color: #34d399; }
     .badge-coin { background: #713f12; color: #facc15; }
     .badge-ta { background: #581c87; color: #c084fc; }
+    .badge-device { background: #334155; color: #e2e8f0; font-family: monospace; }
+    .badge-region { background: #1e293b; border: 1px solid #475569; color: #94a3b8; }
+    .badge-no-ip { display: inline-block; font-size: 11px; color: #64748b; background: rgba(100, 116, 139, 0.15); border: 1px dashed rgba(100, 116, 139, 0.35); padding: 3px 8px; border-radius: 4px; }
+    
+    .ip-cell { display: flex; flex-direction: column; gap: 3px; min-width: 170px; }
+    .ip-row { display: inline-flex; align-items: center; gap: 6px; }
+    .ip-addr { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.25); letter-spacing: -0.2px; word-break: break-all; }
+    .ip-copy-btn { background: transparent; border: none; cursor: pointer; font-size: 11px; padding: 2px 4px; border-radius: 4px; color: #94a3b8; transition: all 0.15s; }
+    .ip-copy-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
+    .geo-row { font-size: 12px; font-weight: 600; color: #f1f5f9; display: flex; align-items: center; gap: 4px; }
+    .isp-row { font-size: 10px; color: #64748b; line-height: 1.2; }
+    
+    .dot-online { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 4px; vertical-align: middle; }
     
     .hidden { display: none !important; }
     .notice-card { background: #1e293b; border-left: 4px solid #38bdf8; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 20px; font-size: 13px; line-height: 1.5; color: #cbd5e1; }
@@ -70,10 +85,10 @@
   <div class="container">
     <!-- Login Screen -->
     <div id="loginView" class="login-box">
-      <h2>FOLLOW ME! 管理者</h2>
+      <h2>FOLLOW ME! 管理者ダッシュボード</h2>
       <p>アクセスパスワードを入力してください。</p>
       <input type="password" id="passInput" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')login()">
-      <button class="btn" style="width:100%;" onclick="login()">ダッシュボードを開く</button>
+      <button class="btn" style="width:100%; justify-content:center;" onclick="login()">ダッシュボードを開く</button>
       <div id="loginErr" style="color:#f87171; font-size:12px; margin-top:8px;" class="hidden">パスワードが正しくありません</div>
       
       <div class="server-url-field">
@@ -97,15 +112,14 @@
       <header>
         <div>
           <h1>
-            FOLLOW ME! ダッシュボード
+            FOLLOW ME! 利用者アクティビティ
             <span id="modeBadge" class="mode-badge">検出中...</span>
           </h1>
-          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">プレイヤー動向・アクセス時間帯・リーダーボード分析</div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">ユーザー・利用端末・プレイ区域・プレイ日時の動向分析</div>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <a href="./" class="return-link" style="margin-right:8px;">← ゲームに戻る</a>
-          <button id="modeSwitchBtn" class="btn btn-secondary" onclick="toggleDashboardMode()" style="font-size:12px; display:none;"></button>
-          <button class="btn btn-secondary" onclick="fetchData()">最新に更新</button>
+          <button class="btn btn-secondary" onclick="fetchData()">🔄 最新に更新</button>
           <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
         </div>
       </header>
@@ -115,24 +129,24 @@
       <!-- Quick Metrics -->
       <div class="stats-row">
         <div class="stat-card">
-          <div class="stat-label">総レコード数</div>
-          <div class="stat-val" id="statTotalLogs">-</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">プレイヤー数</div>
+          <div class="stat-label">👥 登録プレイヤー数</div>
           <div class="stat-val" id="statUniquePlayers">-</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">最高到達高度</div>
-          <div class="stat-val" id="statMaxAlt">-</div>
+          <div class="stat-label">📱 端末利用比率</div>
+          <div class="stat-val" id="statDeviceBreakdown" style="font-size:17px; line-height:1.4;">-</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">最速TAクリア</div>
-          <div class="stat-val" id="statFastestTA">-</div>
+          <div class="stat-label">📍 主要IP接続地域 (GeoIP)</div>
+          <div class="stat-val" id="statRegionBreakdown" style="font-size:17px; line-height:1.4;">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">🕒 直近のアクティビティ</div>
+          <div class="stat-val" id="statLatestActivity" style="font-size:17px; line-height:1.4;">-</div>
         </div>
       </div>
 
-      <!-- Hourly Chart (Only available when server logs exist) -->
+      <!-- Hourly Chart (When server logs or timestamp logs exist) -->
       <div id="chartSection" class="chart-card hidden">
         <div class="chart-title">
           <span>時間帯別アクセス分布 (JST 日本時間 0時〜23時)</span>
@@ -144,42 +158,67 @@
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="nav-tabs" id="tabContainer">
-          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">最新履歴 / 高度ランキング</button>
-          <button id="tabSecondary" class="tab-btn" onclick="switchTab('secondary')">プレイヤー一覧 / TA記録</button>
-          <button id="tabCoins" class="tab-btn" onclick="switchTab('coins')">コイン獲得記録</button>
+          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">👥 ユーザー利用状況 (端末・IP地域・日時)</button>
+          <button id="tabSecondary" class="tab-btn" onclick="switchTab('secondary')">🕒 プレイ履歴タイムライン (最新順)</button>
+          <button id="tabLeaderboards" class="tab-btn" onclick="switchTab('leaderboards')">🏆 参考ランキング</button>
         </div>
-        <input type="text" id="searchInput" class="search-input" placeholder="名前 / ID / 地域で検索..." oninput="renderTables()">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <select id="sortSelect" onchange="renderTables()" style="padding:7px 10px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#cbd5e1; font-size:12px; outline:none;">
+            <option value="recent">並び替え: 最新プレイ順</option>
+            <option value="alt">並び替え: 到達高度順</option>
+            <option value="coins">並び替え: コイン獲得順</option>
+            <option value="name">並び替え: ユーザー名順</option>
+          </select>
+          <input type="text" id="searchInput" class="search-input" placeholder="名前 / ID / 端末 / IP / 接続地域で検索..." oninput="renderTables()">
+        </div>
       </div>
 
-      <!-- Table 1 -->
+      <!-- Table 1: Consolidated User Activity List (Main Request) -->
       <div id="tablePrimaryView" class="table-container">
         <table>
-          <thead id="tablePrimaryHead"></thead>
+          <thead>
+            <tr>
+              <th>ユーザー名</th>
+              <th>メンバーID</th>
+              <th>使用端末</th>
+              <th>🌐 IPアドレス / 接続地域</th>
+              <th>最終プレイ日時</th>
+              <th>到達記録</th>
+              <th>ステータス</th>
+            </tr>
+          </thead>
           <tbody id="tablePrimaryBody"></tbody>
         </table>
       </div>
 
-      <!-- Table 2 -->
+      <!-- Table 2: Chronological Play Event Timeline -->
       <div id="tableSecondaryView" class="table-container hidden">
         <table>
-          <thead id="tableSecondaryHead"></thead>
+          <thead>
+            <tr>
+              <th>発生日時 (JST)</th>
+              <th>アクション</th>
+              <th>ユーザー名</th>
+              <th>メンバーID</th>
+              <th>使用端末</th>
+              <th>🌐 IPアドレス / 接続地域</th>
+              <th>プレイ内容</th>
+            </tr>
+          </thead>
           <tbody id="tableSecondaryBody"></tbody>
         </table>
       </div>
 
-      <!-- Table 3 (Coins) -->
-      <div id="tableCoinsView" class="table-container hidden">
+      <!-- Table 3: Reference Leaderboards (Altitude / TA / Coins) -->
+      <div id="tableLeaderboardsView" class="table-container hidden">
+        <div style="padding:10px 14px; border-bottom:1px solid #334155; display:flex; gap:8px; background:#0f172a; flex-wrap:wrap;">
+          <button class="btn btn-secondary sub-tab active" id="subTabAlt" onclick="switchLeaderboardSubTab('alt')">到達高度 (Top 100)</button>
+          <button class="btn btn-secondary sub-tab" id="subTabTa" onclick="switchLeaderboardSubTab('ta')">タイムアタック記録</button>
+          <button class="btn btn-secondary sub-tab" id="subTabCoins" onclick="switchLeaderboardSubTab('coins')">累計コイン獲得状況</button>
+        </div>
         <table>
-          <thead id="tableCoinsHead">
-            <tr>
-              <th>順位</th>
-              <th>プレイヤー名</th>
-              <th>ID</th>
-              <th>累計コイン数</th>
-              <th>付加情報</th>
-            </tr>
-          </thead>
-          <tbody id="tableCoinsBody"></tbody>
+          <thead id="tableLeaderboardHead"></thead>
+          <tbody id="tableLeaderboardBody"></tbody>
         </table>
       </div>
     </div>
@@ -187,59 +226,53 @@
 
   <script>
     let currentMode = 'detecting'; // 'server' or 'static'
-    let serverData = null;
-    let lootlockerData = { altitude: [], timeAttack: [], coins: [] };
-    let currentTab = 'primary';
+    let currentTab = 'primary'; // 'primary', 'secondary', 'leaderboards'
+    let currentLbSubTab = 'alt'; // 'alt', 'ta', 'coins'
+    
+    // Core consolidated data stores
+    let playerActivityList = [];
+    let activityTimeline = [];
+    let lootlockerRawData = { altitude: [], timeAttack: [], coins: [] };
+    let serverRawData = null;
 
-    // LootLocker Config injected at build/server time
-    const LL_API_KEY = '__LL_API_KEY__';
-    const LL_DOMAIN = '__LL_DOMAIN__';
-    const LL_BOARDS = {
-      alt: '__LL_ALT_ID__',
-      ta: '__LL_TA_ID__',
-      coins: '__LL_COIN_ID__'
-    };
-
-    function getLLConfig() {
-      return {
-        apiKey: (typeof LL_API_KEY !== 'undefined' && LL_API_KEY && !LL_API_KEY.startsWith('__')) ? LL_API_KEY : 'dev_a30dce847162445799eac173326a4f9d',
-        domain: (typeof LL_DOMAIN !== 'undefined' && LL_DOMAIN && !LL_DOMAIN.startsWith('__')) ? LL_DOMAIN : '83ib54ok',
-        altBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.alt && !LL_BOARDS.alt.startsWith('__')) ? LL_BOARDS.alt : 'hct2',
-        taBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.ta && !LL_BOARDS.ta.startsWith('__')) ? LL_BOARDS.ta : 'tatk',
-        coinBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.coins && !LL_BOARDS.coins.startsWith('__')) ? LL_BOARDS.coins : 'cointtl'
-      };
-    }
-
+    // Password & Storage Helpers
     function getSavedPass() {
-      return sessionStorage.getItem('ADMIN_KEY') || '';
+      return sessionStorage.getItem('ADMIN_AUTH') || '';
+    }
+    function savePass(p) {
+      sessionStorage.setItem('ADMIN_AUTH', p);
+    }
+    function logout() {
+      sessionStorage.removeItem('ADMIN_AUTH');
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('dashView').classList.add('hidden');
+      document.getElementById('passInput').value = '';
     }
 
     function toggleCustomServer() {
       const box = document.getElementById('customServerBox');
       const icon = document.getElementById('customServerToggleIcon');
-      const isHidden = box.classList.contains('hidden');
-      box.classList.toggle('hidden', !isHidden);
-      icon.innerText = isHidden ? '▲ 閉じる' : '▼ 表示';
+      if (box.classList.contains('hidden')) {
+        box.classList.remove('hidden');
+        icon.innerText = '▲ 閉じる';
+      } else {
+        box.classList.add('hidden');
+        icon.innerText = '▼ 表示';
+      }
     }
 
     async function login() {
-      const p = document.getElementById('passInput').value.trim();
-      const customUrl = (document.getElementById('customServerInput').value || '').trim();
-      sessionStorage.setItem('ADMIN_KEY', p);
-      if (customUrl) {
-        localStorage.setItem('ADMIN_CUSTOM_SERVER', customUrl);
-      }
+      const pass = document.getElementById('passInput').value;
+      if (!pass) return;
+
+      savePass(pass);
       const ok = await fetchData();
       if (!ok) {
         document.getElementById('loginErr').classList.remove('hidden');
+        sessionStorage.removeItem('ADMIN_AUTH');
+      } else {
+        document.getElementById('loginErr').classList.add('hidden');
       }
-    }
-
-    function logout() {
-      sessionStorage.removeItem('ADMIN_KEY');
-      document.getElementById('loginView').classList.remove('hidden');
-      document.getElementById('dashView').classList.add('hidden');
-      document.getElementById('passInput').value = '';
     }
 
     async function verifyAdminPassword(inputPass) {
@@ -248,46 +281,14 @@
         const enc = new TextEncoder();
         const buf = await crypto.subtle.digest('SHA-256', enc.encode(inputPass.trim()));
         const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-        const expectedHash = '__ADMIN_PASSWORD_HASH__';
+        // Fallback hash for 'zxcv0987'
+        const expectedHash = '__ADMIN_PASSWORD_HASH__' !== '__ADMIN_PASSWORD_HASH__' 
+          ? '__ADMIN_PASSWORD_HASH__' 
+          : '05e9824f196ce156b8dc7c618f989a87d58ebf32881de8eda2e5fb9ce123a91d';
         return hash === expectedHash;
       } catch (e) {
         return false;
       }
-    }
-
-    async function fetchData() {
-      const pass = getSavedPass();
-      if (!pass) return false;
-
-      // 1. First, check if backend server API is available
-      const apiPath = resolveServerApiPath();
-      try {
-        const res = await fetch(apiPath, {
-          headers: { 'Authorization': 'Bearer ' + pass }
-        });
-
-        if (res.ok) {
-          serverData = await res.json();
-          currentMode = 'server';
-          showDashboard();
-          renderServerDashboard();
-          return true;
-        }
-      } catch (e) {
-        // Not a server environment or unreachable
-      }
-
-      // 2. If server API returns 404 or fails, we are in GitHub Pages (Static Mode)
-      // Verify password via cryptographic SHA-256 hash matching the configured ADMIN_PASSWORD
-      const isAuth = await verifyAdminPassword(pass);
-      if (!isAuth) {
-        return false;
-      }
-
-      currentMode = 'static';
-      showDashboard();
-      await fetchLootLockerDashboard();
-      return true;
     }
 
     function resolveServerApiPath() {
@@ -302,361 +303,170 @@
       return '/admin/api/data';
     }
 
-    function showDashboard() {
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('dashView').classList.remove('hidden');
-      
-      const badge = document.getElementById('modeBadge');
-      const switchBtn = document.getElementById('modeSwitchBtn');
-      const notice = document.getElementById('noticeMsg');
-
-      if (currentMode === 'server') {
-        badge.className = 'mode-badge server';
-        badge.innerText = 'Node.js サーバー同期中 (リアルタイムログ & 時間帯分析)';
-        document.getElementById('chartSection').classList.remove('hidden');
-        notice.classList.add('hidden');
-        if (switchBtn) {
-          switchBtn.style.display = 'inline-block';
-          switchBtn.innerText = '📊 LootLocker 全ランキング表示';
-        }
-      } else {
-        badge.className = 'mode-badge static';
-        badge.innerText = 'GitHub Pages モード (LootLocker リーダーボード直結)';
-        document.getElementById('chartSection').classList.add('hidden');
-        if (switchBtn) {
-          switchBtn.style.display = 'inline-block';
-          switchBtn.innerText = '⚡ Cloud Run サーバー同期';
-        }
-        
-        notice.classList.remove('hidden');
-        notice.innerHTML = `
-          <div style="font-weight:600; color:#38bdf8; margin-bottom:4px;">🌐 GitHub Pages（静的ホスティング）上で動作中</div>
-          <div>LootLocker オンラインリーダーボードに直接接続し、全登録プレイヤーの最高到達高度（Top 100）、タイムアタック、コイン獲得記録を表示しています。</div>
-          <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <span style="font-size:12px; color:#94a3b8;">詳細なNode.jsアクセスログ（IP/地域/時間帯グラフ）を閲覧:</span>
-            <button onclick="connectToCloudRunServer()" style="font-size: 12px; padding: 5px 12px; background: #0284c7; color: #fff; border: 1px solid #38bdf8; border-radius: 6px; cursor: pointer;">
-              ⚡ Cloud Run サーバー同期に接続
-            </button>
-          </div>
-        `;
-      }
-    }
-
-    function toggleDashboardMode() {
-      if (currentMode === 'server') {
-        currentMode = 'static';
-        showDashboard();
-        fetchLootLockerDashboard();
-      } else {
-        connectToCloudRunServer();
-      }
-    }
-
-    function connectToCloudRunServer() {
-      const cloudRunUrl = 'https://ais-pre-5zlayvdywpzqlzdvjlowwx-619792866394.asia-northeast1.run.app';
-      localStorage.setItem('ADMIN_CUSTOM_SERVER', cloudRunUrl);
-      const input = document.getElementById('customServerInput');
-      if (input) input.value = cloudRunUrl;
-      fetchData();
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      document.getElementById('tabPrimary').classList.toggle('active', tab === 'primary');
-      document.getElementById('tabSecondary').classList.toggle('active', tab === 'secondary');
-      document.getElementById('tabCoins').classList.toggle('active', tab === 'coins');
-
-      document.getElementById('tablePrimaryView').classList.toggle('hidden', tab !== 'primary');
-      document.getElementById('tableSecondaryView').classList.toggle('hidden', tab !== 'secondary');
-      document.getElementById('tableCoinsView').classList.toggle('hidden', tab !== 'coins');
-
-      renderTables();
+    // Config for LootLocker
+    function getLLConfig() {
+      return {
+        apiKey: 'dev_a30dce847162445799eac173326a4f9d',
+        domain: '83ib54ok',
+        altBoard: 'hct2',
+        taBoard: 'tatk',
+        coinBoard: 'cointtl'
+      };
     }
 
     // ==========================================
-    // Mode 1: Server Side Dashboard Render
+    // IP Address & GeoIP Resolution (Purely IP-based)
     // ==========================================
-    function renderServerDashboard() {
-      if (!serverData) return;
-      document.getElementById('statTotalLogs').innerText = serverData.totalLogs.toLocaleString();
-      document.getElementById('statUniquePlayers').innerText = serverData.summaries.length.toLocaleString();
-
-      let maxAlt = 0;
-      serverData.summaries.forEach(s => { if (s.maxAlt > maxAlt) maxAlt = s.maxAlt; });
-      document.getElementById('statMaxAlt').innerText = maxAlt > 0 ? (maxAlt.toLocaleString() + ' m') : '-';
-      
-      let fastestTA = 99999999;
-      (serverData.logs || []).forEach(l => {
-        if (l.type === 'ta_submit' && l.playTimeSec && l.playTimeSec > 0 && l.playTimeSec < fastestTA) {
-          fastestTA = l.playTimeSec;
-        }
-      });
-      document.getElementById('statFastestTA').innerText = fastestTA < 99999999 ? (fastestTA + ' 秒') : '-';
-
-      // Hourly Bar Chart
-      const chartEl = document.getElementById('barChart');
-      chartEl.innerHTML = '';
-      const counts = serverData.hourlyCounts || Array(24).fill(0);
-      const maxCount = Math.max(...counts, 1);
-
-      for (let h = 0; h < 24; h++) {
-        const col = document.createElement('div');
-        col.className = 'bar-col';
-        const pct = (counts[h] / maxCount) * 100;
-        col.innerHTML = `
-          <div class="bar-count">${counts[h] > 0 ? counts[h] : ''}</div>
-          <div class="bar-fill" style="height: ${Math.max(pct, 2)}%;"></div>
-          <div class="bar-label">${h}h</div>
-        `;
-        chartEl.appendChild(col);
+    const geoIpCache = new Map();
+    try {
+      const stored = localStorage.getItem('LL_ADMIN_GEO_CACHE');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        Object.keys(parsed).forEach(k => geoIpCache.set(k, parsed[k]));
       }
+    } catch (e) {}
 
-      // Tab Headers
-      document.getElementById('tabPrimary').innerText = '最新のプレイ履歴';
-      document.getElementById('tabSecondary').innerText = 'プレイヤー別集約一覧';
-      document.getElementById('tabCoins').classList.add('hidden');
-
-      document.getElementById('tablePrimaryHead').innerHTML = `
-        <tr>
-          <th>日時 (JST)</th>
-          <th>アクション</th>
-          <th>プレイヤー名</th>
-          <th>ID</th>
-          <th>地域 (IP)</th>
-          <th>端末</th>
-          <th>プレイ内容</th>
-        </tr>
-      `;
-
-      document.getElementById('tableSecondaryHead').innerHTML = `
-        <tr>
-          <th>プレイヤー名</th>
-          <th>ID</th>
-          <th>最新地域 (IP)</th>
-          <th>端末</th>
-          <th>初回 / 最終アクセス</th>
-          <th>プレイ回数</th>
-          <th>最高高度 / コイン</th>
-        </tr>
-      `;
-
-      renderTables();
+    function saveGeoIpCache() {
+      try {
+        const obj = {};
+        geoIpCache.forEach((v, k) => { obj[k] = v; });
+        localStorage.setItem('LL_ADMIN_GEO_CACHE', JSON.stringify(obj));
+      } catch (e) {}
     }
 
-    // ==========================================
-    // Mode 2: Static LootLocker Dashboard
-    // ==========================================
-    async function fetchLootLockerDashboard() {
-      const cfg = getLLConfig();
-
-      document.getElementById('tabPrimary').innerText = '高度リーダーボード (Top 100)';
-      document.getElementById('tabSecondary').innerText = 'タイムアタック記録';
-      document.getElementById('tabCoins').classList.remove('hidden');
-      document.getElementById('tabCoins').innerText = '累計コイン獲得状況';
-
-      const pHead = document.getElementById('tablePrimaryHead');
-      if (pHead) {
-        pHead.innerHTML = `
-          <tr>
-            <th>順位</th>
-            <th>プレイヤー名</th>
-            <th>メンバーID</th>
-            <th>最高到達高度</th>
-            <th>付加情報</th>
-          </tr>
-        `;
-      }
-
-      const sHead = document.getElementById('tableSecondaryHead');
-      if (sHead) {
-        sHead.innerHTML = `
-          <tr>
-            <th>順位</th>
-            <th>プレイヤー名</th>
-            <th>メンバーID</th>
-            <th>クリアタイム</th>
-            <th>付加情報</th>
-          </tr>
-        `;
-      }
-
-      const cHead = document.getElementById('tableCoinsHead');
-      if (cHead) {
-        cHead.innerHTML = `
-          <tr>
-            <th>順位</th>
-            <th>プレイヤー名</th>
-            <th>メンバーID</th>
-            <th>累計コイン</th>
-            <th>付加情報</th>
-          </tr>
-        `;
-      }
+    const pendingGeoLookups = new Set();
+    async function queueIpLookup(ip) {
+      if (!ip || ip === 'Unknown' || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('192.168.')) return;
+      if (geoIpCache.has(ip) || pendingGeoLookups.has(ip)) return;
+      pendingGeoLookups.add(ip);
 
       try {
-        let sessionToken = '';
-        if (cfg.apiKey) {
-          try {
-            const sessRes = await fetch(`https://${cfg.domain}.api.lootlocker.io/game/v2/session/guest`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                game_key: cfg.apiKey,
-                player_identifier: 'admin_dash_' + Math.random().toString(36).substring(2, 9),
-                game_version: '2.10.46'
-              })
-            });
-            if (sessRes.ok) {
-              const sessData = await sessRes.json();
-              sessionToken = sessData.session_token || '';
-            } else {
-              console.warn('LootLocker session failed with status', sessRes.status);
-            }
-          } catch (e) {
-            console.warn('LootLocker admin session error', e);
+        let url = `/api/geoip?ip=${encodeURIComponent(ip)}`;
+        if (currentMode !== 'server') {
+          url = `https://ipwho.is/${ip}`;
+        }
+        const res = await fetch(url);
+        if (res.ok) {
+          const d = await res.json();
+          let location = '';
+          let isp = '';
+          if (d.formatted) {
+            location = d.formatted;
+            isp = d.isp || '';
+          } else if (d.success) {
+            let flag = '🌐';
+            if (d.country_code === 'JP') flag = '🇯🇵';
+            else if (d.country_code === 'US') flag = '🇺🇸';
+            else if (d.country_code === 'KR') flag = '🇰🇷';
+            else if (d.country_code === 'TW') flag = '🇹🇼';
+            else if (d.country_code === 'GB') flag = '🇬🇧';
+            location = `${flag} ${d.country || ''} ${d.region || ''} (${d.city || ''})`.trim();
+            isp = d.connection ? (d.connection.isp || d.connection.org || '') : '';
+          }
+          if (location) {
+            geoIpCache.set(ip, { location, isp });
+            saveGeoIpCache();
+            updateGeoCellsInDOM(ip, location, isp);
           }
         }
-
-        const headers = sessionToken ? { 'x-session-token': sessionToken } : {};
-
-        // Fetch leaderboards
-        const [resCoins, resAlt, resTa] = await Promise.all([
-          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.coinBoard}/list?count=100`, { headers }).catch(() => null),
-          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.altBoard}/list?count=100`, { headers }).catch(() => null),
-          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.taBoard}/list?count=100`, { headers }).catch(() => null)
-        ]);
-
-        let totalPlayersCount = 0;
-        let totalLogsCount = 0;
-
-        if (resCoins && resCoins.ok) {
-          const d = await resCoins.json();
-          lootlockerData.coins = d.items || [];
-          if (d.pagination && d.pagination.total) {
-            totalPlayersCount = d.pagination.total;
-            totalLogsCount += d.pagination.total;
-          }
-        }
-        if (resAlt && resAlt.ok) {
-          const d = await resAlt.json();
-          lootlockerData.altitude = d.items || [];
-          if (d.pagination && d.pagination.total) {
-            totalLogsCount += d.pagination.total;
-          }
-        }
-        if (resTa && resTa.ok) {
-          const d = await resTa.json();
-          lootlockerData.timeAttack = d.items || [];
-          if (d.pagination && d.pagination.total) {
-            totalLogsCount += d.pagination.total;
-          }
-        }
-
-        // Count unique player IDs across leaderboards if pagination total was not present
-        if (!totalPlayersCount) {
-          const pids = new Set();
-          lootlockerData.coins.forEach(i => pids.add(i.member_id));
-          lootlockerData.altitude.forEach(i => pids.add(i.member_id));
-          lootlockerData.timeAttack.forEach(i => pids.add(i.member_id));
-          totalPlayersCount = pids.size;
-        }
-
-        document.getElementById('statUniquePlayers').innerText = totalPlayersCount.toLocaleString() + ' 名';
-        document.getElementById('statTotalLogs').innerText = (totalLogsCount || (lootlockerData.coins.length + lootlockerData.altitude.length)).toLocaleString();
-
-        if (lootlockerData.altitude.length > 0) {
-          const rawScore = lootlockerData.altitude[0].score;
-          const altM = Math.floor(rawScore / 1000);
-          document.getElementById('statMaxAlt').innerText = altM.toLocaleString() + ' m';
-        }
-        if (lootlockerData.timeAttack.length > 0) {
-          const rawScore = lootlockerData.timeAttack[0].score;
-          const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
-          const sec = (actualMs / 1000).toFixed(2);
-          document.getElementById('statFastestTA').innerText = sec + ' 秒';
-        }
-
-        renderTables();
-      } catch (e) {
-        console.error('LootLocker fetch failed', e);
+      } catch (e) {} finally {
+        pendingGeoLookups.delete(ip);
       }
     }
 
-    // ==========================================
-    // Table Rendering & Search
-    // ==========================================
-    function renderTables() {
-      const q = (document.getElementById('searchInput').value || '').toLowerCase();
+    function updateGeoCellsInDOM(ip, location, isp) {
+      const safeClass = 'ip-geo-val-' + ip.replace(/[^a-zA-Z0-9]/g, '_');
+      const els = document.querySelectorAll('.' + safeClass);
+      els.forEach(el => {
+        el.innerHTML = `
+          <div class="geo-row">${escapeHtml(location)}</div>
+          ${isp ? `<div class="isp-row">ISP: ${escapeHtml(isp)}</div>` : ''}
+        `;
+      });
+    }
 
-      if (currentMode === 'server') {
-        renderServerTables(q);
+    function renderIpCellMarkup(ip, location, isp, customClass) {
+      const safeIp = escapeHtml(ip);
+      return `
+        <div class="ip-cell">
+          <div class="ip-row">
+            <span class="ip-addr" title="IPアドレス">${safeIp}</span>
+            <button class="ip-copy-btn" onclick="copyIpText('${safeIp}', this)" title="IPアドレスをコピー">📋</button>
+          </div>
+          <div class="${customClass || ''}">
+            <div class="geo-row">${escapeHtml(location || '解析中...')}</div>
+            ${isp ? `<div class="isp-row">ISP: ${escapeHtml(isp)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function copyIpText(ip, btn) {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(ip).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = '✓';
+        btn.style.color = '#34d399';
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.style.color = '';
+        }, 1500);
+      });
+    }
+
+    // Resolves IP info strictly using IP address (never language or name)
+    function resolveIpGeo(ip, serverLoc, serverIsp) {
+      if (!ip || ip === 'Unknown' || ip === '-' || ip.trim() === '') {
+        return {
+          hasIp: false,
+          ip: '',
+          location: '',
+          isp: '',
+          displayHtml: '<span class="badge-no-ip">IP記録なし (旧データ)</span>'
+        };
+      }
+
+      if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.16.')) {
+        return {
+          hasIp: true,
+          ip: ip,
+          location: '💻 ローカル開発環境 (127.0.0.1)',
+          isp: 'Private',
+          displayHtml: renderIpCellMarkup(ip, '💻 ローカル開発環境 (127.0.0.1)', 'Private')
+        };
+      }
+
+      let location = serverLoc || '';
+      let isp = serverIsp || '';
+
+      if (geoIpCache.has(ip)) {
+        const c = geoIpCache.get(ip);
+        if (c.location) location = c.location;
+        if (c.isp) isp = c.isp;
+      } else if (serverLoc && !serverLoc.includes('Global') && !serverLoc.includes('GL') && serverLoc !== '-') {
+        geoIpCache.set(ip, { location: serverLoc, isp: serverIsp || '' });
+        saveGeoIpCache();
       } else {
-        renderLootLockerTables(q);
+        queueIpLookup(ip);
       }
+
+      const safeClass = 'ip-geo-val-' + ip.replace(/[^a-zA-Z0-9]/g, '_');
+      return {
+        hasIp: true,
+        ip: ip,
+        location: location || '地域解析中...',
+        isp: isp,
+        displayHtml: renderIpCellMarkup(ip, location || '地域解析中...', isp, safeClass)
+      };
     }
 
-    function renderServerTables(q) {
-      if (!serverData) return;
-
-      // Table 1: Server Logs
-      const lBody = document.getElementById('tablePrimaryBody');
-      lBody.innerHTML = '';
-      const logs = (serverData.logs || serverData.recentLogs || []);
-      const filteredLogs = logs.filter(l =>
-        (l.name && l.name.toLowerCase().includes(q)) ||
-        (l.pid && l.pid.toLowerCase().includes(q)) ||
-        (l.ip && l.ip.includes(q)) ||
-        (l.city && l.city.toLowerCase().includes(q)) ||
-        (l.country && l.country.toLowerCase().includes(q))
-      );
-
-      filteredLogs.forEach(l => {
-        const tr = document.createElement('tr');
-        let typeBadge = '<span class="badge badge-start">起動</span>';
-        if (l.type === 'score_submit') typeBadge = '<span class="badge badge-score">高度送信</span>';
-        else if (l.type === 'coin_submit') typeBadge = '<span class="badge badge-coin">コイン</span>';
-        else if (l.type === 'ta_submit') typeBadge = '<span class="badge badge-ta">TA送信</span>';
-
-        let content = '-';
-        if (l.alt) content = `高度: ${l.alt}m`;
-        if (l.coins) content = (content !== '-' ? content + ', ' : '') + `コイン: ${l.coins}`;
-        if (l.playTimeSec) content += ` (${l.playTimeSec}s)`;
-
-        tr.innerHTML = `
-          <td>${formatJST(l.time)}</td>
-          <td>${typeBadge}</td>
-          <td style="font-weight:600; color:#fff;">${escapeHtml(l.name || '名無し')}</td>
-          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(l.pid ? l.pid.substring(0, 8) : '-')}...</td>
-          <td>${escapeHtml(l.country || '-')}, ${escapeHtml(l.city || '-')} <span style="color:#64748b; font-size:10px;">(${escapeHtml(l.ip)})</span></td>
-          <td>${escapeHtml(l.device || '-')}</td>
-          <td>${escapeHtml(content)}</td>
-        `;
-        lBody.appendChild(tr);
-      });
-
-      // Table 2: Server Summaries
-      const pBody = document.getElementById('tableSecondaryBody');
-      pBody.innerHTML = '';
-      const filteredPlayers = (serverData.summaries || []).filter(s =>
-        (s.name && s.name.toLowerCase().includes(q)) ||
-        (s.pid && s.pid.toLowerCase().includes(q)) ||
-        (s.lastIp && s.lastIp.includes(q)) ||
-        (s.lastLocation && s.lastLocation.toLowerCase().includes(q))
-      );
-
-      filteredPlayers.forEach(s => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:600; color:#fff;">${escapeHtml(s.name)}</td>
-          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(s.pid.substring(0, 10))}...</td>
-          <td>${escapeHtml(s.lastLocation)} <span style="color:#64748b; font-size:10px;">(${escapeHtml(s.lastIp)})</span></td>
-          <td>${escapeHtml(s.device)}</td>
-          <td>${formatJST(s.firstSeen)} <br><span style="color:#94a3b8;">最終: ${formatJST(s.lastSeen)}</span></td>
-          <td style="font-weight:600; color:#38bdf8;">${s.playCount}回</td>
-          <td>${s.maxAlt > 0 ? s.maxAlt.toLocaleString() + 'm' : '-'} / ${s.maxCoins > 0 ? s.maxCoins + '枚' : '-'}</td>
-        `;
-        pBody.appendChild(tr);
-      });
+    function resolveDevice(meta, rawDevice) {
+      const d = (meta && meta.dev) || rawDevice || '';
+      if (!d || d === 'Unknown') return '🌐 Web (ブラウザ)';
+      let icon = '📱';
+      if (/Windows|Mac|Linux|PC/i.test(d)) icon = '💻';
+      else if (/iPad|Tablet/i.test(d)) icon = '📟';
+      return `${icon} ${d}`;
     }
 
     function parseMeta(metaStr) {
@@ -668,132 +478,745 @@
       }
     }
 
-    function renderLootLockerTables(q) {
-      // 1. Primary: Altitude Leaderboard (Top 100)
-      const pBody = document.getElementById('tablePrimaryBody');
-      if (pBody) {
-        pBody.innerHTML = '';
-        const filteredAlt = lootlockerData.altitude.filter(item => {
-          const name = (item.player && item.player.name) || '';
-          const id = String(item.member_id || '');
-          return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
-        });
-
-        filteredAlt.forEach(item => {
-          const name = (item.player && item.player.name) || '名無し';
-          const altM = Math.floor(item.score / 1000);
-          const coins = item.score % 1000;
-          const meta = parseMeta(item.metadata);
-          let extraInfo = '';
-          if (meta && meta.lang) {
-            extraInfo += `<span class="badge badge-score">${escapeHtml(meta.lang)}</span> `;
-          }
-          if (meta && meta.t) {
-            extraInfo += `<span style="color:#94a3b8; font-size:12px;">タイム: ${meta.t}s</span>`;
-          }
-          if (!extraInfo) {
-            extraInfo = item.created_at ? formatDate(item.created_at) : '<span style="color:#64748b;">-</span>';
-          }
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td style="font-weight:bold; color:#38bdf8;">#${item.rank}</td>
-            <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
-            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
-            <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
-            <td>${extraInfo}</td>
-          `;
-          pBody.appendChild(tr);
-        });
-      }
-
-      // 2. Secondary: Time Attack Records
-      const sBody = document.getElementById('tableSecondaryBody');
-      if (sBody) {
-        sBody.innerHTML = '';
-        const filteredTa = lootlockerData.timeAttack.filter(item => {
-          const name = (item.player && item.player.name) || '';
-          const id = String(item.member_id || '');
-          return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
-        });
-
-        filteredTa.forEach(item => {
-          const name = (item.player && item.player.name) || '名無し';
-          const rawScore = item.score;
-          const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
-          const sec = (actualMs / 1000).toFixed(2);
-          const meta = parseMeta(item.metadata);
-          let extraInfo = '';
-          if (meta && meta.lang) {
-            extraInfo += `<span class="badge badge-start">${escapeHtml(meta.lang)}</span> `;
-          }
-          if (meta && meta.coins !== undefined) {
-            extraInfo += `<span style="color:#f59e0b; font-size:12px;">コイン: ${meta.coins}枚</span>`;
-          }
-          if (!extraInfo) {
-            extraInfo = item.created_at ? formatDate(item.created_at) : '<span style="color:#64748b;">-</span>';
-          }
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td style="font-weight:bold; color:#c084fc;">#${item.rank}</td>
-            <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
-            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
-            <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
-            <td>${extraInfo}</td>
-          `;
-          sBody.appendChild(tr);
-        });
-      }
-
-      // 3. Coins: Total Coins Status
-      const cBody = document.getElementById('tableCoinsBody');
-      if (cBody) {
-        cBody.innerHTML = '';
-        const filteredCoins = lootlockerData.coins.filter(item => {
-          const name = (item.player && item.player.name) || '';
-          const id = String(item.member_id || '');
-          return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
-        });
-
-        filteredCoins.forEach(item => {
-          const name = (item.player && item.player.name) || '名無し';
-          const meta = parseMeta(item.metadata);
-          let extraInfo = '';
-          if (meta && meta.lang) {
-            extraInfo += `<span class="badge badge-coin">${escapeHtml(meta.lang)}</span>`;
-          } else {
-            extraInfo = item.created_at ? formatDate(item.created_at) : '<span style="color:#64748b;">-</span>';
-          }
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td style="font-weight:bold; color:#facc15;">#${item.rank}</td>
-            <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
-            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
-            <td style="font-weight:bold; color:#facc15;">${item.score.toLocaleString()} 枚</td>
-            <td>${extraInfo}</td>
-          `;
-          cBody.appendChild(tr);
-        });
-      }
+    function formatJST(dateInput) {
+      if (!dateInput) return '-';
+      const d = typeof dateInput === 'number' ? new Date(dateInput) : new Date(dateInput);
+      if (isNaN(d.getTime())) return '-';
+      return d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
-    function formatJST(iso) {
-      if (!iso) return '-';
-      const d = new Date(iso);
-      return d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-    }
-
-    function formatDate(str) {
-      if (!str) return '-';
-      const d = new Date(str);
-      return d.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    function formatTimeAgo(dateInput) {
+      if (!dateInput) return '';
+      const d = typeof dateInput === 'number' ? new Date(dateInput) : new Date(dateInput);
+      if (isNaN(d.getTime())) return '';
+      const diffSec = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+      if (diffSec < 60) return '<span class="badge badge-start">たった今</span>';
+      if (diffSec < 3600) return `<span class="badge badge-start">${Math.floor(diffSec / 60)}分前</span>`;
+      if (diffSec < 86400) return `<span class="badge badge-coin">${Math.floor(diffSec / 3600)}時間前</span>`;
+      if (diffSec < 86400 * 7) return `<span class="badge badge-region">${Math.floor(diffSec / 86400)}日前</span>`;
+      return '';
     }
 
     function escapeHtml(str) {
       if (!str) return '';
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    // ==========================================
+    // Unified Data Fetching & Consolidation
+    // ==========================================
+    async function fetchData() {
+      const pass = getSavedPass();
+      if (!pass) return false;
+
+      // 1. Try Backend Node.js API
+      const apiPath = resolveServerApiPath();
+      let connectedServer = false;
+      try {
+        const res = await fetch(apiPath, {
+          headers: { 'Authorization': 'Bearer ' + pass }
+        });
+        if (res.ok) {
+          serverRawData = await res.json();
+          currentMode = 'server';
+          connectedServer = true;
+        }
+      } catch (e) {}
+
+      // 2. If no server, check static password authentication
+      if (!connectedServer) {
+        const isAuth = await verifyAdminPassword(pass);
+        if (!isAuth) return false;
+        currentMode = 'static';
+      }
+
+      showDashboard();
+
+      // In Static mode, attempt to load static play_logs.json & players.json if available
+      let staticLogs = [];
+      let staticSummaries = [];
+      if (!connectedServer) {
+        try {
+          const [resLogs, resPlayers] = await Promise.all([
+            fetch('./play_logs.json').catch(() => null),
+            fetch('./players.json').catch(() => null)
+          ]);
+          if (resLogs && resLogs.ok) staticLogs = await resLogs.json();
+          if (resPlayers && resPlayers.ok) {
+            const pData = await resPlayers.json();
+            staticSummaries = Object.values(pData.playerSummaries || {});
+          }
+        } catch (e) {}
+      }
+
+      // Always fetch live LootLocker data for maximum coverage
+      await fetchLootLockerData();
+
+      // Consolidate both data sources
+      consolidateData(connectedServer ? serverRawData : { logs: staticLogs, summaries: staticSummaries });
+      
+      updateMetricsAndCharts();
+      renderTables();
+      return true;
+    }
+
+    async function fetchLootLockerData() {
+      const cfg = getLLConfig();
+      try {
+        let sessionToken = '';
+        if (cfg.apiKey) {
+          try {
+            const sessRes = await fetch(`https://${cfg.domain}.api.lootlocker.io/game/v2/session/guest`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                game_key: cfg.apiKey,
+                player_identifier: 'admin_dash_' + Math.random().toString(36).substring(2, 9),
+                game_version: '2.10.47'
+              })
+            });
+            if (sessRes.ok) {
+              const sessData = await sessRes.json();
+              sessionToken = sessData.session_token || '';
+            }
+          } catch (e) {}
+        }
+
+        const headers = sessionToken ? { 'x-session-token': sessionToken } : {};
+
+        const [resCoins, resAlt, resTa] = await Promise.all([
+          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.coinBoard}/list?count=100`, { headers }).catch(() => null),
+          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.altBoard}/list?count=100`, { headers }).catch(() => null),
+          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.taBoard}/list?count=100`, { headers }).catch(() => null)
+        ]);
+
+        if (resCoins && resCoins.ok) {
+          const d = await resCoins.json();
+          lootlockerRawData.coins = d.items || [];
+        }
+        if (resAlt && resAlt.ok) {
+          const d = await resAlt.json();
+          lootlockerRawData.altitude = d.items || [];
+        }
+        if (resTa && resTa.ok) {
+          const d = await resTa.json();
+          lootlockerRawData.timeAttack = d.items || [];
+        }
+      } catch (e) {
+        console.error('LootLocker fetch failed', e);
+      }
+    }
+
+    // Combine Server Logs + Static Logs + Live LootLocker records into unified User Activity
+    function consolidateData(serverSource) {
+      const playerMap = new Map();
+      const events = [];
+
+      // 1. Ingest Server / Static Logs
+      if (serverSource && serverSource.logs) {
+        serverSource.logs.forEach(l => {
+          const pid = String(l.pid || '');
+          const timeMs = new Date(l.time).getTime();
+          let actText = 'ゲーム起動';
+          if (l.type === 'score_submit') actText = (l.alt && l.alt >= 144000) ? 'クリア達成' : '高度更新';
+          else if (l.type === 'coin_submit') actText = 'コイン獲得';
+          else if (l.type === 'ta_submit') actText = 'クリア達成 (TA)';
+
+          let detailText = '';
+          if (l.alt) detailText += `高度: ${l.alt.toLocaleString()}m `;
+          if (l.coins !== undefined) detailText += `コイン: ${l.coins}枚 `;
+          if (l.playTimeSec) detailText += `(${l.playTimeSec}s)`;
+
+          const ip = l.ip || '';
+          const serverGeo = l.geoFormatted || (l.country ? `${l.country}${l.city && l.city !== '-' ? ' / ' + l.city : ''}` : '');
+          const isp = l.isp || '';
+          const ipGeo = resolveIpGeo(ip, serverGeo, isp);
+
+          events.push({
+            time: timeMs,
+            name: l.name || '名無し',
+            id: pid,
+            device: resolveDevice(null, l.device),
+            ip: ip,
+            ipLocation: ipGeo.location,
+            isp: ipGeo.isp,
+            ipDisplayHtml: ipGeo.displayHtml,
+            action: actText,
+            detail: detailText.trim() || '-'
+          });
+
+          if (!playerMap.has(pid)) {
+            playerMap.set(pid, {
+              id: pid,
+              name: l.name || '名無し',
+              device: resolveDevice(null, l.device),
+              ip: ip,
+              ipLocation: ipGeo.location,
+              isp: ipGeo.isp,
+              ipDisplayHtml: ipGeo.displayHtml,
+              lastSeen: timeMs,
+              firstSeen: timeMs,
+              maxAlt: l.alt || 0,
+              maxCoins: l.coins || 0,
+              bestTA: (l.type === 'ta_submit' && l.playTimeSec) ? l.playTimeSec : null,
+              latestAction: actText,
+              playCount: 1
+            });
+          } else {
+            const p = playerMap.get(pid);
+            if (l.name && l.name !== 'Anonymous') p.name = l.name;
+            if (timeMs > p.lastSeen) {
+              p.lastSeen = timeMs;
+              p.device = resolveDevice(null, l.device);
+              if (ip) {
+                p.ip = ip;
+                p.ipLocation = ipGeo.location;
+                p.isp = ipGeo.isp;
+                p.ipDisplayHtml = ipGeo.displayHtml;
+              }
+              p.latestAction = actText;
+            }
+            if (timeMs < p.firstSeen) p.firstSeen = timeMs;
+            if (l.alt && l.alt > p.maxAlt) p.maxAlt = l.alt;
+            if (l.coins && l.coins > p.maxCoins) p.maxCoins = l.coins;
+            if (l.type === 'ta_submit' && l.playTimeSec && (!p.bestTA || l.playTimeSec < p.bestTA)) {
+              p.bestTA = l.playTimeSec;
+            }
+            p.playCount = (p.playCount || 1) + 1;
+          }
+        });
+      }
+
+      // Also ingest server summaries if available
+      if (serverSource && serverSource.summaries) {
+        serverSource.summaries.forEach(s => {
+          const pid = String(s.pid || '');
+          const lastMs = new Date(s.lastSeen).getTime();
+          const firstMs = new Date(s.firstSeen).getTime();
+          const ip = s.lastIp || '';
+          const loc = s.lastLocation || '';
+          const isp = s.isp || '';
+          const ipGeo = resolveIpGeo(ip, loc, isp);
+
+          if (!playerMap.has(pid)) {
+            playerMap.set(pid, {
+              id: pid,
+              name: s.name || '名無し',
+              device: resolveDevice(null, s.device),
+              ip: ip,
+              ipLocation: ipGeo.location,
+              isp: ipGeo.isp,
+              ipDisplayHtml: ipGeo.displayHtml,
+              lastSeen: lastMs,
+              firstSeen: firstMs,
+              maxAlt: s.maxAlt || 0,
+              maxCoins: s.maxCoins || 0,
+              bestTA: null,
+              latestAction: '最終アクセス',
+              playCount: s.playCount || 1
+            });
+          } else {
+            const p = playerMap.get(pid);
+            if (s.name && s.name !== 'Anonymous') p.name = s.name;
+            if (s.playCount && s.playCount > p.playCount) p.playCount = s.playCount;
+            if (s.maxAlt && s.maxAlt > p.maxAlt) p.maxAlt = s.maxAlt;
+            if (s.maxCoins && s.maxCoins > p.maxCoins) p.maxCoins = s.maxCoins;
+            if (lastMs > p.lastSeen) {
+              p.lastSeen = lastMs;
+              if (ip) {
+                p.ip = ip;
+                p.ipLocation = ipGeo.location;
+                p.isp = ipGeo.isp;
+                p.ipDisplayHtml = ipGeo.displayHtml;
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Ingest Live LootLocker Leaderboards (Altitude, TA, Coins)
+      const ingestLootLockerItem = (item, boardType) => {
+        if (!item || !item.member_id) return;
+        const pid = String(item.member_id);
+        const name = (item.player && item.player.name) || '名無し';
+        const meta = parseMeta(item.metadata);
+
+        let timeMs = (meta && meta.ts) ? meta.ts : (item.created_at ? new Date(item.created_at).getTime() : 0);
+        let device = resolveDevice(meta);
+        let ip = (meta && meta.ip) || '';
+        let loc = (meta && meta.loc) || '';
+        let isp = (meta && meta.isp) || '';
+        let ipGeo = resolveIpGeo(ip, loc, isp);
+        let act = (meta && meta.act) || (boardType === 'ta' ? 'クリア達成 (TA)' : boardType === 'coins' ? 'コイン更新' : '高度記録');
+
+        let altM = 0;
+        let coinsVal = 0;
+        let taSec = null;
+
+        if (boardType === 'alt') {
+          altM = Math.floor(item.score / 1000);
+          coinsVal = item.score % 1000;
+        } else if (boardType === 'coins') {
+          coinsVal = item.score;
+        } else if (boardType === 'ta') {
+          const rawScore = item.score;
+          const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
+          taSec = (actualMs / 1000);
+        }
+
+        let detail = '';
+        if (altM > 0) detail += `高度: ${altM.toLocaleString()}m `;
+        if (coinsVal > 0) detail += `コイン: ${coinsVal}枚 `;
+        if (taSec !== null) detail += `タイム: ${taSec.toFixed(2)}s`;
+
+        if (timeMs > 0) {
+          events.push({
+            time: timeMs,
+            name: name,
+            id: pid,
+            device: device,
+            ip: ip,
+            ipLocation: ipGeo.location,
+            isp: ipGeo.isp,
+            ipDisplayHtml: ipGeo.displayHtml,
+            action: act,
+            detail: detail.trim() || '-'
+          });
+        }
+
+        if (!playerMap.has(pid)) {
+          playerMap.set(pid, {
+            id: pid,
+            name: name,
+            device: device,
+            ip: ip,
+            ipLocation: ipGeo.location,
+            isp: ipGeo.isp,
+            ipDisplayHtml: ipGeo.displayHtml,
+            lastSeen: timeMs || Date.now() - 86400000 * 3, // default recent estimate if legacy
+            firstSeen: timeMs || Date.now() - 86400000 * 3,
+            maxAlt: altM,
+            maxCoins: coinsVal,
+            bestTA: taSec,
+            latestAction: act,
+            playCount: 1
+          });
+        } else {
+          const p = playerMap.get(pid);
+          if (name && name !== '名無し') p.name = name;
+          if (timeMs > p.lastSeen) {
+            p.lastSeen = timeMs;
+            if (meta && meta.dev) p.device = device;
+            if (ip) {
+              p.ip = ip;
+              p.ipLocation = ipGeo.location;
+              p.isp = ipGeo.isp;
+              p.ipDisplayHtml = ipGeo.displayHtml;
+            }
+            p.latestAction = act;
+          }
+          if (altM > p.maxAlt) p.maxAlt = altM;
+          if (coinsVal > p.maxCoins) p.maxCoins = coinsVal;
+          if (taSec !== null && (!p.bestTA || taSec < p.bestTA)) p.bestTA = taSec;
+        }
+      };
+
+      (lootlockerRawData.coins || []).forEach(i => ingestLootLockerItem(i, 'coins'));
+      (lootlockerRawData.altitude || []).forEach(i => ingestLootLockerItem(i, 'alt'));
+      (lootlockerRawData.timeAttack || []).forEach(i => ingestLootLockerItem(i, 'ta'));
+
+      // Sort chronological events: newest first
+      events.sort((a, b) => b.time - a.time);
+      activityTimeline = events;
+
+      // Convert playerMap to array
+      playerActivityList = Array.from(playerMap.values());
+    }
+
+    function updateMetricsAndCharts() {
+      // 1. Unique Players
+      document.getElementById('statUniquePlayers').innerText = `${playerActivityList.length.toLocaleString()} 名`;
+
+      // 2. Device Breakdown
+      let mobileCount = 0;
+      let pcCount = 0;
+      playerActivityList.forEach(p => {
+        if (/iPhone|Android|iPad|Mobile/i.test(p.device)) mobileCount++;
+        else pcCount++;
+      });
+      const totalDev = Math.max(playerActivityList.length, 1);
+      const mPct = Math.round((mobileCount / totalDev) * 100);
+      const pcPct = 100 - mPct;
+      document.getElementById('statDeviceBreakdown').innerHTML = `
+        <span>📱 スマホ ${mPct}%</span> <br>
+        <span style="color:#94a3b8; font-size:12px; font-weight:normal;">💻 PC ${pcPct}%</span>
+      `;
+
+      // 3. Region Breakdown (Strictly from IP location)
+      const regionCounts = {};
+      let totalWithIp = 0;
+      playerActivityList.forEach(p => {
+        if (p.ip && p.ipLocation && !p.ipLocation.includes('解析中')) {
+          totalWithIp++;
+          let key = 'その他';
+          if (p.ipLocation.includes('ローカル')) key = 'ローカル (開発)';
+          else if (p.ipLocation.includes('東京都') || p.ipLocation.includes('Tokyo')) key = '🇯🇵 東京都';
+          else if (p.ipLocation.includes('大阪')) key = '🇯🇵 大阪府';
+          else if (p.ipLocation.includes('神奈川')) key = '🇯🇵 神奈川県';
+          else if (p.ipLocation.includes('愛知')) key = '🇯🇵 愛知県';
+          else if (p.ipLocation.includes('日本')) key = '🇯🇵 日本 (その他)';
+          else if (p.ipLocation.includes('アメリカ') || p.ipLocation.includes('United States')) key = '🇺🇸 アメリカ';
+          else {
+            const m = p.ipLocation.match(/^[^\s(]+/);
+            key = m ? m[0] : '🌐 その他';
+          }
+          regionCounts[key] = (regionCounts[key] || 0) + 1;
+        }
+      });
+
+      if (totalWithIp > 0) {
+        const sorted = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
+        const top1 = sorted[0];
+        const top1Pct = Math.round((top1[1] / totalWithIp) * 100);
+        const top2 = sorted[1];
+        document.getElementById('statRegionBreakdown').innerHTML = `
+          <span>${top1[0]} ${top1Pct}%</span> <br>
+          <span style="color:#94a3b8; font-size:12px; font-weight:normal;">${top2 ? `${top2[0]} ${Math.round((top2[1] / totalWithIp) * 100)}%` : `(IP記録数: ${totalWithIp}件)`}</span>
+        `;
+      } else {
+        document.getElementById('statRegionBreakdown').innerHTML = `
+          <span style="color:#94a3b8; font-size:13px;">IPログ記録待ち</span>
+        `;
+      }
+
+      // 4. Latest Activity
+      if (activityTimeline.length > 0) {
+        const latest = activityTimeline[0];
+        document.getElementById('statLatestActivity').innerHTML = `
+          <span style="color:#34d399;">${escapeHtml(latest.name)}</span> <br>
+          <span style="color:#94a3b8; font-size:12px; font-weight:normal;">${formatJST(latest.time)}</span>
+        `;
+      } else {
+        document.getElementById('statLatestActivity').innerText = '-';
+      }
+
+      // 5. Hourly Distribution Chart
+      if (activityTimeline.length > 0) {
+        document.getElementById('chartSection').classList.remove('hidden');
+        const hourly = Array(24).fill(0);
+        activityTimeline.forEach(ev => {
+          if (ev.time) {
+            const h = new Date(ev.time).getHours();
+            if (h >= 0 && h < 24) hourly[h]++;
+          }
+        });
+        const maxH = Math.max(...hourly, 1);
+        const chartEl = document.getElementById('barChart');
+        chartEl.innerHTML = '';
+        for (let h = 0; h < 24; h++) {
+          const col = document.createElement('div');
+          col.className = 'bar-col';
+          const pct = (hourly[h] / maxH) * 100;
+          col.innerHTML = `
+            <div class="bar-count">${hourly[h] > 0 ? hourly[h] : ''}</div>
+            <div class="bar-fill" style="height: ${Math.max(pct, 3)}%;"></div>
+            <div class="bar-label">${h}h</div>
+          `;
+          chartEl.appendChild(col);
+        }
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('dashView').classList.remove('hidden');
+      
+      const badge = document.getElementById('modeBadge');
+      const notice = document.getElementById('noticeMsg');
+
+      if (currentMode === 'server') {
+        badge.className = 'mode-badge server';
+        badge.innerText = 'Node.js サーバー同期中 (リアルタイムログ & 時間帯分析)';
+        notice.classList.add('hidden');
+      } else {
+        badge.className = 'mode-badge static';
+        badge.innerText = 'GitHub Pages / LootLocker 動向分析モード';
+        notice.classList.remove('hidden');
+        notice.innerHTML = `
+          <div style="font-weight:600; color:#38bdf8; margin-bottom:4px;">👥 ユーザー利用状況・プレイ動向一覧を表示中</div>
+          <div>LootLockerおよび記録済みログをリアルタイム集計し、どのユーザーが、どんな端末で、どの区域で、いつ遊んでいるかを一覧化しています。</div>
+        `;
+      }
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabPrimary').classList.toggle('active', tab === 'primary');
+      document.getElementById('tabSecondary').classList.toggle('active', tab === 'secondary');
+      document.getElementById('tabLeaderboards').classList.toggle('active', tab === 'leaderboards');
+
+      document.getElementById('tablePrimaryView').classList.toggle('hidden', tab !== 'primary');
+      document.getElementById('tableSecondaryView').classList.toggle('hidden', tab !== 'secondary');
+      document.getElementById('tableLeaderboardsView').classList.toggle('hidden', tab !== 'leaderboards');
+
+      renderTables();
+    }
+
+    function switchLeaderboardSubTab(sub) {
+      currentLbSubTab = sub;
+      document.getElementById('subTabAlt').classList.toggle('active', sub === 'alt');
+      document.getElementById('subTabTa').classList.toggle('active', sub === 'ta');
+      document.getElementById('subTabCoins').classList.toggle('active', sub === 'coins');
+      renderLeaderboardsTable();
+    }
+
+    // ==========================================
+    // Table Rendering Functions
+    // ==========================================
+    function renderTables() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase();
+      const sort = document.getElementById('sortSelect').value;
+
+      if (currentTab === 'primary') {
+        renderUserActivityTable(q, sort);
+      } else if (currentTab === 'secondary') {
+        renderTimelineTable(q);
+      } else if (currentTab === 'leaderboards') {
+        renderLeaderboardsTable(q);
+      }
+    }
+
+    // Tab 1: 👥 ユーザー利用状況 (どのユーザーが・どんな端末で・どの区域で・いつ遊んでいるか)
+    function renderUserActivityTable(q, sort) {
+      const tbody = document.getElementById('tablePrimaryBody');
+      tbody.innerHTML = '';
+
+      let list = [...playerActivityList];
+
+      // Filtering
+      if (q) {
+        list = list.filter(p =>
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.id && p.id.toLowerCase().includes(q)) ||
+          (p.device && p.device.toLowerCase().includes(q)) ||
+          (p.ip && p.ip.toLowerCase().includes(q)) ||
+          (p.ipLocation && p.ipLocation.toLowerCase().includes(q)) ||
+          (p.isp && p.isp.toLowerCase().includes(q)) ||
+          (p.latestAction && p.latestAction.toLowerCase().includes(q))
+        );
+      }
+
+      // Sorting
+      if (sort === 'recent') {
+        list.sort((a, b) => b.lastSeen - a.lastSeen);
+      } else if (sort === 'alt') {
+        list.sort((a, b) => (b.maxAlt || 0) - (a.maxAlt || 0));
+      } else if (sort === 'coins') {
+        list.sort((a, b) => (b.maxCoins || 0) - (a.maxCoins || 0));
+      } else if (sort === 'name') {
+        list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      }
+
+      list.forEach(p => {
+        const tr = document.createElement('tr');
+        const isRecentlyActive = (Date.now() - p.lastSeen) < (15 * 60 * 1000);
+        const onlineDot = isRecentlyActive ? '<span class="dot-online" title="直近15分以内にアクティブ"></span>' : '';
+        const timeAgo = formatTimeAgo(p.lastSeen);
+
+        let recordStr = '';
+        if (p.maxAlt > 0) recordStr += `<span style="color:#34d399; font-weight:bold;">${p.maxAlt.toLocaleString()}m</span> `;
+        if (p.maxCoins > 0) recordStr += `<span style="color:#facc15;">(${p.maxCoins.toLocaleString()}枚)</span> `;
+        if (p.bestTA) recordStr += `<br><span style="color:#c084fc; font-size:11px;">TA: ${p.bestTA.toFixed(2)}秒</span>`;
+        if (!recordStr) recordStr = '<span style="color:#64748b;">-</span>';
+
+        let statusBadge = '<span class="badge badge-coin">プレイ中</span>';
+        if (p.maxAlt >= 144000 || (p.latestAction && p.latestAction.includes('クリア'))) {
+          statusBadge = '<span class="badge badge-score">クリア達成</span>';
+        } else if (p.latestAction && p.latestAction.includes('コイン')) {
+          statusBadge = '<span class="badge badge-coin">コイン更新</span>';
+        }
+
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:700; color:#fff; font-size:13px;">${onlineDot}${escapeHtml(p.name)}</div>
+          </td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(p.id)}</td>
+          <td>
+            <span class="badge badge-device">${escapeHtml(p.device)}</span>
+          </td>
+          <td>
+            ${p.ipDisplayHtml || renderIpCellMarkup(p.ip, p.ipLocation, p.isp)}
+          </td>
+          <td>
+            <div style="font-weight:600; color:#e2e8f0;">${formatJST(p.lastSeen)}</div>
+            <div style="margin-top:2px;">${timeAgo}</div>
+          </td>
+          <td>${recordStr}</td>
+          <td>${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">該当するユーザーデータがありません</td></tr>`;
+      }
+    }
+
+    // Tab 2: 🕒 プレイ履歴タイムライン (最新順)
+    function renderTimelineTable(q) {
+      const tbody = document.getElementById('tableSecondaryBody');
+      tbody.innerHTML = '';
+
+      let list = [...activityTimeline];
+      if (q) {
+        list = list.filter(ev =>
+          (ev.name && ev.name.toLowerCase().includes(q)) ||
+          (ev.id && ev.id.toLowerCase().includes(q)) ||
+          (ev.device && ev.device.toLowerCase().includes(q)) ||
+          (ev.ip && ev.ip.toLowerCase().includes(q)) ||
+          (ev.ipLocation && ev.ipLocation.toLowerCase().includes(q)) ||
+          (ev.isp && ev.isp.toLowerCase().includes(q)) ||
+          (ev.action && ev.action.toLowerCase().includes(q)) ||
+          (ev.detail && ev.detail.toLowerCase().includes(q))
+        );
+      }
+
+      list.forEach(ev => {
+        const tr = document.createElement('tr');
+        let actionBadge = '<span class="badge badge-start">起動</span>';
+        if (ev.action.includes('クリア')) actionBadge = '<span class="badge badge-score">クリア達成</span>';
+        else if (ev.action.includes('高度')) actionBadge = '<span class="badge badge-score">高度更新</span>';
+        else if (ev.action.includes('コイン')) actionBadge = '<span class="badge badge-coin">コイン獲得</span>';
+        else if (ev.action.includes('TA')) actionBadge = '<span class="badge badge-ta">TA送信</span>';
+
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:600; color:#e2e8f0;">${formatJST(ev.time)}</div>
+            <div style="margin-top:2px;">${formatTimeAgo(ev.time)}</div>
+          </td>
+          <td>${actionBadge}</td>
+          <td style="font-weight:700; color:#fff;">${escapeHtml(ev.name)}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(ev.id)}</td>
+          <td><span class="badge badge-device">${escapeHtml(ev.device)}</span></td>
+          <td>${ev.ipDisplayHtml || renderIpCellMarkup(ev.ip, ev.ipLocation, ev.isp)}</td>
+          <td style="color:#cbd5e1; font-weight:500;">${escapeHtml(ev.detail)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">該当する履歴がありません</td></tr>`;
+      }
+    }
+
+    // Tab 3: 🏆 参考リーダーボード
+    function renderLeaderboardsTable(q = '') {
+      const thead = document.getElementById('tableLeaderboardHead');
+      const tbody = document.getElementById('tableLeaderboardBody');
+      tbody.innerHTML = '';
+
+      if (currentLbSubTab === 'alt') {
+        thead.innerHTML = `
+          <tr>
+            <th>順位</th>
+            <th>プレイヤー名</th>
+            <th>メンバーID</th>
+            <th>最高到達高度</th>
+            <th>付加情報</th>
+          </tr>
+        `;
+        const items = lootlockerRawData.altitude.filter(i => {
+          const n = (i.player && i.player.name) || '';
+          return !q || n.toLowerCase().includes(q) || String(i.member_id).includes(q);
+        });
+        items.forEach(i => {
+          const tr = document.createElement('tr');
+          const altM = Math.floor(i.score / 1000);
+          const coins = i.score % 1000;
+          const meta = parseMeta(i.metadata);
+          const p = playerActivityList.find(pl => pl.id === String(i.member_id));
+          const ip = (meta && meta.ip) || (p && p.ip) || '';
+          const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
+          const isp = (meta && meta.isp) || (p && p.isp) || '';
+          const ipGeo = resolveIpGeo(ip, loc, isp);
+          const device = (p && p.device && p.device !== 'Unknown') ? p.device : resolveDevice(meta);
+          tr.innerHTML = `
+            <td style="font-weight:bold; color:#38bdf8;">#${i.rank}</td>
+            <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
+            <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
+            <td><span class="badge badge-device">${escapeHtml(device)}</span> ${ipGeo.displayHtml}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else if (currentLbSubTab === 'ta') {
+        thead.innerHTML = `
+          <tr>
+            <th>順位</th>
+            <th>プレイヤー名</th>
+            <th>メンバーID</th>
+            <th>クリアタイム</th>
+            <th>付加情報</th>
+          </tr>
+        `;
+        const items = lootlockerRawData.timeAttack.filter(i => {
+          const n = (i.player && i.player.name) || '';
+          return !q || n.toLowerCase().includes(q) || String(i.member_id).includes(q);
+        });
+        items.forEach(i => {
+          const tr = document.createElement('tr');
+          const rawScore = i.score;
+          const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
+          const sec = (actualMs / 1000).toFixed(2);
+          const meta = parseMeta(i.metadata);
+          const p = playerActivityList.find(pl => pl.id === String(i.member_id));
+          const ip = (meta && meta.ip) || (p && p.ip) || '';
+          const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
+          const isp = (meta && meta.isp) || (p && p.isp) || '';
+          const ipGeo = resolveIpGeo(ip, loc, isp);
+          const device = (p && p.device && p.device !== 'Unknown') ? p.device : resolveDevice(meta);
+          tr.innerHTML = `
+            <td style="font-weight:bold; color:#c084fc;">#${i.rank}</td>
+            <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
+            <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
+            <td><span class="badge badge-device">${escapeHtml(device)}</span> ${ipGeo.displayHtml}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else if (currentLbSubTab === 'coins') {
+        thead.innerHTML = `
+          <tr>
+            <th>順位</th>
+            <th>プレイヤー名</th>
+            <th>メンバーID</th>
+            <th>累計コイン数</th>
+            <th>付加情報</th>
+          </tr>
+        `;
+        const items = lootlockerRawData.coins.filter(i => {
+          const n = (i.player && i.player.name) || '';
+          return !q || n.toLowerCase().includes(q) || String(i.member_id).includes(q);
+        });
+        items.forEach(i => {
+          const tr = document.createElement('tr');
+          const meta = parseMeta(i.metadata);
+          const p = playerActivityList.find(pl => pl.id === String(i.member_id));
+          const ip = (meta && meta.ip) || (p && p.ip) || '';
+          const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
+          const isp = (meta && meta.isp) || (p && p.isp) || '';
+          const ipGeo = resolveIpGeo(ip, loc, isp);
+          const device = (p && p.device && p.device !== 'Unknown') ? p.device : resolveDevice(meta);
+          tr.innerHTML = `
+            <td style="font-weight:bold; color:#facc15;">#${i.rank}</td>
+            <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
+            <td style="font-weight:bold; color:#facc15;">${i.score.toLocaleString()} 枚</td>
+            <td><span class="badge badge-device">${escapeHtml(device)}</span> ${ipGeo.displayHtml}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
     }
 
     // Auto login check & saved server URL

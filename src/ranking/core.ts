@@ -409,6 +409,8 @@ import { validatePhysicalScore } from '../security.js';
               if (res) safeStorage.setItem('LL_LAST_TA_FETCH', '0');
             }));
           }
+          // Always submit latest coin total to register active play timestamp, device & region
+          submitTasks.push(LootLockerAPI.submitCoinScore(game.totalCoins || 0, l));
 
           // When network submission completes, refresh cache from server
           if (submitTasks.length > 0) {
