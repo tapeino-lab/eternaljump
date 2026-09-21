@@ -101,21 +101,9 @@
     <!-- Main Dashboard -->
     <div id="dashView" class="hidden">
       <header>
-        <div>
-          <h1>
-            FOLLOW ME! 利用者アクティビティ
-            <span id="modeBadge" class="mode-badge">検出中...</span>
-          </h1>
-          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">ユーザー・プレイ日時・到達記録の動向分析</div>
-        </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <a href="./" class="return-link" style="margin-right:8px;">← ゲームに戻る</a>
-          <button class="btn btn-secondary" onclick="fetchData()">🔄 最新に更新</button>
-          <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
-        </div>
+        <h1>FOLLOW ME! 管理画面</h1>
+        <button class="btn btn-secondary" onclick="fetchData()">🔄 更新</button>
       </header>
-
-      <div id="noticeMsg" class="notice-card hidden"></div>
 
       <!-- Quick Metrics -->
       <div class="stats-row">
@@ -693,23 +681,6 @@
     function showDashboard() {
       document.getElementById('loginView').classList.add('hidden');
       document.getElementById('dashView').classList.remove('hidden');
-      
-      const badge = document.getElementById('modeBadge');
-      const notice = document.getElementById('noticeMsg');
-
-      if (currentMode === 'server') {
-        badge.className = 'mode-badge server';
-        badge.innerText = 'Node.js サーバー同期中 (リアルタイムログ & 時間帯分析)';
-        notice.classList.add('hidden');
-      } else {
-        badge.className = 'mode-badge static';
-        badge.innerText = 'GitHub Pages / LootLocker 動向分析モード';
-        notice.classList.remove('hidden');
-        notice.innerHTML = `
-          <div style="font-weight:600; color:#38bdf8; margin-bottom:4px;">👥 ユーザー利用状況・プレイ動向一覧を表示中</div>
-          <div>LootLockerのリアルタイムプレイデータを集計し、プレイヤー毎の到達記録や最終プレイ日時を一覧化しています。</div>
-        `;
-      }
     }
 
     function switchTab(tab) {
