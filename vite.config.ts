@@ -36,7 +36,7 @@ function adminHtmlPlugin() {
   const defaultHash = '05e9824f196ce156b8dc7c618f989a87d58ebf32881de8eda2e5fb9ce123a91d'; // hash of zxcv0987
   const adminHash = currentPass ? crypto.createHash('sha256').update(currentPass.trim()).digest('hex') : defaultHash;
 
-  const apiKey = process.env.VITE_LOOTLOCKER_API_KEY || process.env.LOOTLOCKER_API_KEY || '';
+  const apiKey = process.env.VITE_LOOTLOCKER_API_KEY || process.env.LOOTLOCKER_API_KEY || 'dev_a30dce847162445799eac173326a4f9d';
   const domainKey = process.env.VITE_LOOTLOCKER_DOMAIN_KEY || process.env.LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
   const lbId = process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || process.env.LOOTLOCKER_LEADERBOARD_ID || 'hct2';
   const taId = process.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || 'tatk';

@@ -33,12 +33,12 @@ jobs:
       - name: Build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
-          VITE_LOOTLOCKER_API_KEY: ${{ secrets.VITE_LOOTLOCKER_API_KEY }}
-          VITE_LOOTLOCKER_DOMAIN_KEY: ${{ secrets.VITE_LOOTLOCKER_DOMAIN_KEY }}
-          VITE_LOOTLOCKER_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_LEADERBOARD_ID }}
-          VITE_LOOTLOCKER_TA_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_TA_LEADERBOARD_ID }}
-          VITE_LOOTLOCKER_COIN_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          VITE_LOOTLOCKER_API_KEY: ${{ secrets.VITE_LOOTLOCKER_API_KEY || 'dev_a30dce847162445799eac173326a4f9d' }}
+          VITE_LOOTLOCKER_DOMAIN_KEY: ${{ secrets.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok' }}
+          VITE_LOOTLOCKER_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2' }}
+          VITE_LOOTLOCKER_TA_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || 'tatk' }}
+          VITE_LOOTLOCKER_COIN_LEADERBOARD_ID: ${{ secrets.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || 'cointtl' }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'zxcv0987' }}
         run: npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4

@@ -102,8 +102,9 @@
           </h1>
           <div style="font-size:12px; color:#94a3b8; margin-top:2px;">プレイヤー動向・アクセス時間帯・リーダーボード分析</div>
         </div>
-        <div style="display:flex; gap:8px; align-items:center;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <a href="./" class="return-link" style="margin-right:8px;">← ゲームに戻る</a>
+          <button id="modeSwitchBtn" class="btn btn-secondary" onclick="toggleDashboardMode()" style="font-size:12px; display:none;"></button>
           <button class="btn btn-secondary" onclick="fetchData()">最新に更新</button>
           <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
         </div>
@@ -169,13 +170,13 @@
       <!-- Table 3 (Coins) -->
       <div id="tableCoinsView" class="table-container hidden">
         <table>
-          <thead>
+          <thead id="tableCoinsHead">
             <tr>
               <th>順位</th>
               <th>プレイヤー名</th>
               <th>ID</th>
               <th>累計コイン数</th>
-              <th>更新日</th>
+              <th>付加情報</th>
             </tr>
           </thead>
           <tbody id="tableCoinsBody"></tbody>
@@ -201,7 +202,7 @@
 
     function getLLConfig() {
       return {
-        apiKey: (typeof LL_API_KEY !== 'undefined' && LL_API_KEY && !LL_API_KEY.startsWith('__')) ? LL_API_KEY : '',
+        apiKey: (typeof LL_API_KEY !== 'undefined' && LL_API_KEY && !LL_API_KEY.startsWith('__')) ? LL_API_KEY : 'dev_a30dce847162445799eac173326a4f9d',
         domain: (typeof LL_DOMAIN !== 'undefined' && LL_DOMAIN && !LL_DOMAIN.startsWith('__')) ? LL_DOMAIN : '83ib54ok',
         altBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.alt && !LL_BOARDS.alt.startsWith('__')) ? LL_BOARDS.alt : 'hct2',
         taBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.ta && !LL_BOARDS.ta.startsWith('__')) ? LL_BOARDS.ta : 'tatk',
@@ -306,23 +307,57 @@
       document.getElementById('dashView').classList.remove('hidden');
       
       const badge = document.getElementById('modeBadge');
+      const switchBtn = document.getElementById('modeSwitchBtn');
+      const notice = document.getElementById('noticeMsg');
+
       if (currentMode === 'server') {
         badge.className = 'mode-badge server';
         badge.innerText = 'Node.js サーバー同期中 (リアルタイムログ & 時間帯分析)';
         document.getElementById('chartSection').classList.remove('hidden');
+        notice.classList.add('hidden');
+        if (switchBtn) {
+          switchBtn.style.display = 'inline-block';
+          switchBtn.innerText = '📊 LootLocker 全ランキング表示';
+        }
       } else {
         badge.className = 'mode-badge static';
         badge.innerText = 'GitHub Pages モード (LootLocker リーダーボード直結)';
         document.getElementById('chartSection').classList.add('hidden');
+        if (switchBtn) {
+          switchBtn.style.display = 'inline-block';
+          switchBtn.innerText = '⚡ Cloud Run サーバー同期';
+        }
         
-        const notice = document.getElementById('noticeMsg');
         notice.classList.remove('hidden');
         notice.innerHTML = `
-          <strong>GitHub Pages（静的ホスティング）上で動作中</strong><br>
-          GitHub Pages は静的ホスティングのため、Node.js サーバー経由のリアルタイムIP/時間帯ログは、外部サーバー稼働時のみ記録されます。<br>
-          現在は <strong>LootLocker オンラインリーダーボード</strong> に直接接続し、全登録プレイヤーの最高記録・タイムアタック・コイン獲得状況を一覧表示しています。
+          <div style="font-weight:600; color:#38bdf8; margin-bottom:4px;">🌐 GitHub Pages（静的ホスティング）上で動作中</div>
+          <div>LootLocker オンラインリーダーボードに直接接続し、全登録プレイヤーの最高到達高度（Top 100）、タイムアタック、コイン獲得記録を表示しています。</div>
+          <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size:12px; color:#94a3b8;">詳細なNode.jsアクセスログ（IP/地域/時間帯グラフ）を閲覧:</span>
+            <button onclick="connectToCloudRunServer()" style="font-size: 12px; padding: 5px 12px; background: #0284c7; color: #fff; border: 1px solid #38bdf8; border-radius: 6px; cursor: pointer;">
+              ⚡ Cloud Run サーバー同期に接続
+            </button>
+          </div>
         `;
       }
+    }
+
+    function toggleDashboardMode() {
+      if (currentMode === 'server') {
+        currentMode = 'static';
+        showDashboard();
+        fetchLootLockerDashboard();
+      } else {
+        connectToCloudRunServer();
+      }
+    }
+
+    function connectToCloudRunServer() {
+      const cloudRunUrl = 'https://ais-pre-5zlayvdywpzqlzdvjlowwx-619792866394.asia-northeast1.run.app';
+      localStorage.setItem('ADMIN_CUSTOM_SERVER', cloudRunUrl);
+      const input = document.getElementById('customServerInput');
+      if (input) input.value = cloudRunUrl;
+      fetchData();
     }
 
     function switchTab(tab) {
@@ -419,35 +454,44 @@
       document.getElementById('tabCoins').classList.remove('hidden');
       document.getElementById('tabCoins').innerText = '累計コイン獲得状況';
 
-      document.getElementById('tablePrimaryHead').innerHTML = `
-        <tr>
-          <th>順位</th>
-          <th>プレイヤー名</th>
-          <th>メンバーID</th>
-          <th>最高到達高度</th>
-          <th>登録日時</th>
-        </tr>
-      `;
+      const pHead = document.getElementById('tablePrimaryHead');
+      if (pHead) {
+        pHead.innerHTML = `
+          <tr>
+            <th>順位</th>
+            <th>プレイヤー名</th>
+            <th>メンバーID</th>
+            <th>最高到達高度</th>
+            <th>付加情報</th>
+          </tr>
+        `;
+      }
 
-      document.getElementById('tableSecondaryHead').innerHTML = `
-        <tr>
-          <th>順位</th>
-          <th>プレイヤー名</th>
-          <th>メンバーID</th>
-          <th>クリアタイム</th>
-          <th>登録日時</th>
-        </tr>
-      `;
+      const sHead = document.getElementById('tableSecondaryHead');
+      if (sHead) {
+        sHead.innerHTML = `
+          <tr>
+            <th>順位</th>
+            <th>プレイヤー名</th>
+            <th>メンバーID</th>
+            <th>クリアタイム</th>
+            <th>付加情報</th>
+          </tr>
+        `;
+      }
 
-      document.getElementById('tableCoinsHead').innerHTML = `
-        <tr>
-          <th>順位</th>
-          <th>プレイヤー名</th>
-          <th>メンバーID</th>
-          <th>累計コイン</th>
-          <th>最終記録日時</th>
-        </tr>
-      `;
+      const cHead = document.getElementById('tableCoinsHead');
+      if (cHead) {
+        cHead.innerHTML = `
+          <tr>
+            <th>順位</th>
+            <th>プレイヤー名</th>
+            <th>メンバーID</th>
+            <th>累計コイン</th>
+            <th>付加情報</th>
+          </tr>
+        `;
+      }
 
       try {
         let sessionToken = '';
@@ -459,12 +503,14 @@
               body: JSON.stringify({
                 game_key: cfg.apiKey,
                 player_identifier: 'admin_dash_' + Math.random().toString(36).substring(2, 9),
-                game_version: '2.10.45'
+                game_version: '2.10.46'
               })
             });
             if (sessRes.ok) {
               const sessData = await sessRes.json();
               sessionToken = sessData.session_token || '';
+            } else {
+              console.warn('LootLocker session failed with status', sessRes.status);
             }
           } catch (e) {
             console.warn('LootLocker admin session error', e);
@@ -613,77 +659,124 @@
       });
     }
 
+    function parseMeta(metaStr) {
+      if (!metaStr) return null;
+      try {
+        return JSON.parse(metaStr);
+      } catch (e) {
+        return null;
+      }
+    }
+
     function renderLootLockerTables(q) {
       // 1. Primary: Altitude Leaderboard (Top 100)
       const pBody = document.getElementById('tablePrimaryBody');
-      pBody.innerHTML = '';
-      const filteredAlt = lootlockerData.altitude.filter(item => {
-        const name = (item.player && item.player.name) || '';
-        const id = String(item.member_id || '');
-        return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
-      });
+      if (pBody) {
+        pBody.innerHTML = '';
+        const filteredAlt = lootlockerData.altitude.filter(item => {
+          const name = (item.player && item.player.name) || '';
+          const id = String(item.member_id || '');
+          return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+        });
 
-      filteredAlt.forEach(item => {
-        const name = (item.player && item.player.name) || '名無し';
-        const altM = Math.floor(item.score / 1000);
-        const coins = item.score % 1000;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:bold; color:#38bdf8;">#${item.rank}</td>
-          <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
-          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
-          <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
-          <td>${formatDate(item.created_at)}</td>
-        `;
-        pBody.appendChild(tr);
-      });
+        filteredAlt.forEach(item => {
+          const name = (item.player && item.player.name) || '名無し';
+          const altM = Math.floor(item.score / 1000);
+          const coins = item.score % 1000;
+          const meta = parseMeta(item.metadata);
+          let extraInfo = '';
+          if (meta && meta.lang) {
+            extraInfo += `<span class="badge badge-score">${escapeHtml(meta.lang)}</span> `;
+          }
+          if (meta && meta.t) {
+            extraInfo += `<span style="color:#94a3b8; font-size:12px;">タイム: ${meta.t}s</span>`;
+          }
+          if (!extraInfo) {
+            extraInfo = item.created_at ? formatDate(item.created_at) : '<span style="color:#64748b;">-</span>';
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:bold; color:#38bdf8;">#${item.rank}</td>
+            <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
+            <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
+            <td>${extraInfo}</td>
+          `;
+          pBody.appendChild(tr);
+        });
+      }
 
       // 2. Secondary: Time Attack Records
       const sBody = document.getElementById('tableSecondaryBody');
-      sBody.innerHTML = '';
-      const filteredTa = lootlockerData.timeAttack.filter(item => {
-        const name = (item.player && item.player.name) || '';
-        const id = String(item.member_id || '');
-        return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
-      });
+      if (sBody) {
+        sBody.innerHTML = '';
+        const filteredTa = lootlockerData.timeAttack.filter(item => {
+          const name = (item.player && item.player.name) || '';
+          const id = String(item.member_id || '');
+          return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+        });
 
-      filteredTa.forEach(item => {
-        const name = (item.player && item.player.name) || '名無し';
-        const rawScore = item.score;
-        const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
-        const sec = (actualMs / 1000).toFixed(2);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:bold; color:#c084fc;">#${item.rank}</td>
-          <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
-          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
-          <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
-          <td>${formatDate(item.created_at)}</td>
-        `;
-        sBody.appendChild(tr);
-      });
+        filteredTa.forEach(item => {
+          const name = (item.player && item.player.name) || '名無し';
+          const rawScore = item.score;
+          const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
+          const sec = (actualMs / 1000).toFixed(2);
+          const meta = parseMeta(item.metadata);
+          let extraInfo = '';
+          if (meta && meta.lang) {
+            extraInfo += `<span class="badge badge-start">${escapeHtml(meta.lang)}</span> `;
+          }
+          if (meta && meta.coins !== undefined) {
+            extraInfo += `<span style="color:#f59e0b; font-size:12px;">コイン: ${meta.coins}枚</span>`;
+          }
+          if (!extraInfo) {
+            extraInfo = item.created_at ? formatDate(item.created_at) : '<span style="color:#64748b;">-</span>';
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:bold; color:#c084fc;">#${item.rank}</td>
+            <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
+            <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
+            <td>${extraInfo}</td>
+          `;
+          sBody.appendChild(tr);
+        });
+      }
 
       // 3. Coins: Total Coins Status
       const cBody = document.getElementById('tableCoinsBody');
-      cBody.innerHTML = '';
-      const filteredCoins = lootlockerData.coins.filter(item => {
-        const name = (item.player && item.player.name) || '';
-        const id = String(item.member_id || '');
-        return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
-      });
+      if (cBody) {
+        cBody.innerHTML = '';
+        const filteredCoins = lootlockerData.coins.filter(item => {
+          const name = (item.player && item.player.name) || '';
+          const id = String(item.member_id || '');
+          return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+        });
 
-      filteredCoins.forEach(item => {
-        const name = (item.player && item.player.name) || '名無し';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:bold; color:#facc15;">#${item.rank}</td>
-          <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
-          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
-          <td style="font-weight:bold; color:#facc15;">${item.score.toLocaleString()} 枚</td>
-          <td>${formatDate(item.created_at)}</td>
-        `;
-        cBody.appendChild(tr);
-      });
+        filteredCoins.forEach(item => {
+          const name = (item.player && item.player.name) || '名無し';
+          const meta = parseMeta(item.metadata);
+          let extraInfo = '';
+          if (meta && meta.lang) {
+            extraInfo += `<span class="badge badge-coin">${escapeHtml(meta.lang)}</span>`;
+          } else {
+            extraInfo = item.created_at ? formatDate(item.created_at) : '<span style="color:#64748b;">-</span>';
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight:bold; color:#facc15;">#${item.rank}</td>
+            <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
+            <td style="font-weight:bold; color:#facc15;">${item.score.toLocaleString()} 枚</td>
+            <td>${extraInfo}</td>
+          `;
+          cBody.appendChild(tr);
+        });
+      }
     }
 
     function formatJST(iso) {
