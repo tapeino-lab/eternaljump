@@ -540,7 +540,7 @@ async function startServer() {
   });
 
   // Single-Page Admin HTML Dashboard (Styled cleanly without external dependencies)
-  app.get("/admin", (req, res) => {
+  app.get(["/admin", "/admin/", "/admin.html"], (req, res) => {
     const adminHtml = `<!DOCTYPE html>
 <html lang="ja">
 <head>

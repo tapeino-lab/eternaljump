@@ -62,6 +62,7 @@ export default defineConfig(() => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf,cjs}'],
+          navigateFallbackDenylist: [/^\/admin/, /^\/api/],
           runtimeCaching: [
             {
               urlPattern: /.*version\.json/i,
