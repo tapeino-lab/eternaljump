@@ -229,6 +229,9 @@ export const LootLockerAPI = {
             this.setPlayerName(localName);
           } catch(e) {}
 
+          // Record activity telemetry ping for admin analytics
+          this.sendTelemetry('session_start');
+
           return d;
         }
         this.log('No session token in response data.', 'error');
@@ -244,6 +247,34 @@ export const LootLockerAPI = {
     return this._initPromise;
   },
 
+  sendTelemetry: function(type: 'session_start' | 'score_submit' | 'coin_submit' | 'ta_submit', extra?: any) {
+    try {
+      const pid = this.playerId || this.playerIdentifier || 'Unknown';
+      const name = getPlayerName() || 'Anonymous';
+      const payload = JSON.stringify({ type, pid: String(pid), name, extra });
+
+      // If running with local Express backend
+      if (!this.isDirectMode) {
+        fetch('/api/activity/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        }).catch(() => {});
+        return;
+      }
+
+      // If in static mode (GitHub Pages), send to external server if configured
+      const serverUrl = import.meta.env.VITE_SERVER_URL || localStorage.getItem('ADMIN_CUSTOM_SERVER');
+      if (serverUrl && serverUrl.trim() !== '') {
+        const endpoint = serverUrl.trim().replace(/\/+$/, '') + '/api/activity/log';
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        }).catch(() => {});
+      }
+    } catch(e) {}
+  },
 
   getTimeAttackScores: async function(lm = 2000) {
     if (!this.taLeaderboardId) return null;
@@ -518,6 +549,9 @@ export const LootLockerAPI = {
         return false;
       }
       this.log('Score successfully registered on LootLocker!', 'success');
+      if (this.isDirectMode) {
+        this.sendTelemetry('score_submit', { alt: a, coins: c, playTimeSec: t });
+      }
       return d;
     } catch (e) {
       this.log(`Score submission failed (offline?): ${e.message}`, 'error');
@@ -586,6 +620,9 @@ export const LootLockerAPI = {
         return false;
       }
       this.log('Coin Score successfully submitted.', 'success');
+      if (this.isDirectMode) {
+        this.sendTelemetry('coin_submit', { coins });
+      }
       return await r.json();
     } catch (e) {
       this.log(`Coin Score submission failed: ${e.message}`, 'error');
@@ -653,6 +690,9 @@ export const LootLockerAPI = {
         return false;
       }
       this.log('TA Score successfully submitted.', 'success');
+      if (this.isDirectMode) {
+        this.sendTelemetry('ta_submit', { alt: a, coins: c, playTimeSec: Math.floor(t / 1000) });
+      }
       return await r.json();
     } catch (e) {
       this.log(`TA Score submission failed: ${e.message}`, 'error');

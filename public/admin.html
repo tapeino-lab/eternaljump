@@ -481,7 +481,7 @@
       // Table 1: Server Logs
       const lBody = document.getElementById('tablePrimaryBody');
       lBody.innerHTML = '';
-      const logs = (serverData.logs || []).slice().reverse();
+      const logs = (serverData.logs || serverData.recentLogs || []);
       const filteredLogs = logs.filter(l =>
         (l.name && l.name.toLowerCase().includes(q)) ||
         (l.pid && l.pid.toLowerCase().includes(q)) ||

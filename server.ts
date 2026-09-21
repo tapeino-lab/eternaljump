@@ -504,6 +504,17 @@ async function startServer() {
     res.json({ hasLootLocker: hasKey });
   });
 
+  // Lightweight activity telemetry endpoint (callable from both server and static hosts like GitHub Pages)
+  app.post("/api/activity/log", (req, res) => {
+    try {
+      const { type, pid, name, extra } = req.body || {};
+      recordPlayAction(req, type || 'session_start', pid || 'Unknown', name || 'Anonymous', extra);
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to record activity' });
+    }
+  });
+
   // ==========================================
   // ADMIN DASHBOARD & ACTIVITY AUDIT ENDPOINTS
   // ==========================================
@@ -542,11 +553,13 @@ async function startServer() {
       }
     });
 
+    const reversedLogs = playLogs.slice(-200).reverse();
     res.json({
       totalLogs: playLogs.length,
       hourlyCounts,
       summaries: Object.values(playerSummaries).sort((a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime()),
-      recentLogs: playLogs.slice(-200).reverse() // Latest 200 items for table display
+      logs: reversedLogs,
+      recentLogs: reversedLogs
     });
   });
 
