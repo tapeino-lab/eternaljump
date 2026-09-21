@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FOLLOW ME! - Admin Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; padding: 16px; min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #334155; flex-wrap: wrap; gap: 12px; }
+    h1 { font-size: 20px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .mode-badge { font-size: 11px; padding: 3px 8px; border-radius: 9999px; background: #1e293b; border: 1px solid #475569; color: #94a3b8; font-weight: normal; }
+    .mode-badge.server { background: #064e3b; color: #34d399; border-color: #059669; }
+    .mode-badge.static { background: #1e3a8a; color: #60a5fa; border-color: #2563eb; }
+
+    .btn { padding: 8px 14px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: #0369a1; }
+    .btn-secondary { background: #334155; color: #cbd5e1; }
+    .btn-secondary:hover { background: #475569; }
+    
+    .login-box { max-width: 420px; margin: 60px auto; background: #1e293b; padding: 28px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .login-box h2 { font-size: 18px; margin-bottom: 6px; color: #38bdf8; }
+    .login-box p { font-size: 13px; color: #94a3b8; margin-bottom: 16px; line-height: 1.4; }
+    .login-box input { width: 100%; padding: 12px; margin-bottom: 12px; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #fff; font-size: 14px; outline: none; }
+    .login-box input:focus { border-color: #38bdf8; }
+    .server-url-field { font-size: 12px; color: #94a3b8; margin-top: 12px; border-top: 1px solid #334155; padding-top: 12px; }
+    .server-url-field input { padding: 8px 10px; font-size: 12px; margin-top: 6px; margin-bottom: 4px; }
+    
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px; }
+    .stat-label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
+    .stat-val { font-size: 22px; font-weight: 700; color: #38bdf8; }
+    
+    .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+    .chart-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; justify-content: space-between; }
+    .bar-chart { display: flex; align-items: flex-end; height: 110px; gap: 3px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+    .bar-fill { width: 100%; background: #38bdf8; border-radius: 2px 2px 0 0; min-height: 2px; transition: height 0.3s; }
+    .bar-label { font-size: 8px; color: #64748b; margin-top: 4px; }
+    .bar-count { font-size: 8px; color: #94a3b8; margin-bottom: 2px; }
+
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+    .nav-tabs { display: flex; gap: 6px; }
+    .tab-btn { background: none; border: none; color: #94a3b8; font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; border-radius: 6px; }
+    .tab-btn.active { background: #334155; color: #38bdf8; }
+    .search-input { padding: 8px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 13px; min-width: 220px; }
+
+    .table-container { background: #1e293b; border: 1px solid #334155; border-radius: 8px; overflow-x: auto; margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+    th { background: #0f172a; color: #94a3b8; padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #334155; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #243248; color: #cbd5e1; }
+    tr:hover td { background: #243347; }
+    
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .badge-start { background: #1e3a5f; color: #60a5fa; }
+    .badge-score { background: #064e3b; color: #34d399; }
+    .badge-coin { background: #713f12; color: #facc15; }
+    .badge-ta { background: #581c87; color: #c084fc; }
+    
+    .hidden { display: none !important; }
+    .notice-card { background: #1e293b; border-left: 4px solid #38bdf8; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 20px; font-size: 13px; line-height: 1.5; color: #cbd5e1; }
+    .return-link { color: #38bdf8; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+    .return-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Screen -->
+    <div id="loginView" class="login-box">
+      <h2>FOLLOW ME! 管理者</h2>
+      <p>アクセスパスワードを入力してください。<br><span style="font-size:11px;color:#64748b;">(初期パスワード: admin)</span></p>
+      <input type="password" id="passInput" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')login()">
+      <button class="btn" style="width:100%;" onclick="login()">ダッシュボードを開く</button>
+      <div id="loginErr" style="color:#f87171; font-size:12px; margin-top:8px;" class="hidden">パスワードが正しくありません</div>
+      
+      <div class="server-url-field">
+        <label style="cursor:pointer; display:flex; align-items:center; justify-content:space-between;" onclick="toggleCustomServer()">
+          <span>⚙ 外部サーバー同期設定 (任意)</span>
+          <span id="customServerToggleIcon" style="font-size:10px; color:#38bdf8;">▼ 表示</span>
+        </label>
+        <div id="customServerBox" class="hidden" style="margin-top:8px;">
+          <input type="text" id="customServerInput" placeholder="https://...run.app (空欄で自動検出)" style="width:100%;">
+          <div style="font-size:11px; color:#64748b; line-height:1.4;">GitHub PagesからCloud Run / AI Studio等の外部サーバーログを読み込む場合に指定します。通常は空欄で構いません。</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px; text-align:center;">
+        <a href="./" class="return-link">← ゲーム画面に戻る</a>
+      </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashView" class="hidden">
+      <header>
+        <div>
+          <h1>
+            FOLLOW ME! ダッシュボード
+            <span id="modeBadge" class="mode-badge">検出中...</span>
+          </h1>
+          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">プレイヤー動向・アクセス時間帯・リーダーボード分析</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <a href="./" class="return-link" style="margin-right:8px;">← ゲームに戻る</a>
+          <button class="btn btn-secondary" onclick="fetchData()">最新に更新</button>
+          <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
+        </div>
+      </header>
+
+      <div id="noticeMsg" class="notice-card hidden"></div>
+
+      <!-- Quick Metrics -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">総レコード数</div>
+          <div class="stat-val" id="statTotalLogs">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">プレイヤー数</div>
+          <div class="stat-val" id="statUniquePlayers">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">最高到達高度</div>
+          <div class="stat-val" id="statMaxAlt">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">最速TAクリア</div>
+          <div class="stat-val" id="statFastestTA">-</div>
+        </div>
+      </div>
+
+      <!-- Hourly Chart (Only available when server logs exist) -->
+      <div id="chartSection" class="chart-card hidden">
+        <div class="chart-title">
+          <span>時間帯別アクセス分布 (JST 日本時間 0時〜23時)</span>
+          <span style="font-size:11px; color:#94a3b8;">ピーク時間帯の把握</span>
+        </div>
+        <div id="barChart" class="bar-chart"></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="nav-tabs" id="tabContainer">
+          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">最新履歴 / 高度ランキング</button>
+          <button id="tabSecondary" class="tab-btn" onclick="switchTab('secondary')">プレイヤー一覧 / TA記録</button>
+          <button id="tabCoins" class="tab-btn" onclick="switchTab('coins')">コイン獲得記録</button>
+        </div>
+        <input type="text" id="searchInput" class="search-input" placeholder="名前 / ID / 地域で検索..." oninput="renderTables()">
+      </div>
+
+      <!-- Table 1 -->
+      <div id="tablePrimaryView" class="table-container">
+        <table>
+          <thead id="tablePrimaryHead"></thead>
+          <tbody id="tablePrimaryBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Table 2 -->
+      <div id="tableSecondaryView" class="table-container hidden">
+        <table>
+          <thead id="tableSecondaryHead"></thead>
+          <tbody id="tableSecondaryBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Table 3 (Coins) -->
+      <div id="tableCoinsView" class="table-container hidden">
+        <table>
+          <thead>
+            <tr>
+              <th>順位</th>
+              <th>プレイヤー名</th>
+              <th>ID</th>
+              <th>累計コイン数</th>
+              <th>更新日</th>
+            </tr>
+          </thead>
+          <tbody id="tableCoinsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentMode = 'detecting'; // 'server' or 'static'
+    let serverData = null;
+    let lootlockerData = { altitude: [], timeAttack: [], coins: [] };
+    let currentTab = 'primary';
+
+    // LootLocker Config compiled into client
+    const LL_DOMAIN = '9j3o3mso';
+    const LL_BOARDS = {
+      alt: '26477',
+      ta: '26478',
+      coins: '26479'
+    };
+
+    function getSavedPass() {
+      return sessionStorage.getItem('ADMIN_KEY') || '';
+    }
+
+    function toggleCustomServer() {
+      const box = document.getElementById('customServerBox');
+      const icon = document.getElementById('customServerToggleIcon');
+      const isHidden = box.classList.contains('hidden');
+      box.classList.toggle('hidden', !isHidden);
+      icon.innerText = isHidden ? '▲ 閉じる' : '▼ 表示';
+    }
+
+    async function login() {
+      const p = document.getElementById('passInput').value.trim();
+      const customUrl = (document.getElementById('customServerInput').value || '').trim();
+      sessionStorage.setItem('ADMIN_KEY', p);
+      if (customUrl) {
+        localStorage.setItem('ADMIN_CUSTOM_SERVER', customUrl);
+      }
+      const ok = await fetchData();
+      if (!ok) {
+        document.getElementById('loginErr').classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('ADMIN_KEY');
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('dashView').classList.add('hidden');
+      document.getElementById('passInput').value = '';
+    }
+
+    async function fetchData() {
+      const pass = getSavedPass();
+      if (!pass) return false;
+
+      // 1. First, check if backend server API is available
+      const apiPath = resolveServerApiPath();
+      try {
+        const res = await fetch(apiPath, {
+          headers: { 'Authorization': 'Bearer ' + pass }
+        });
+
+        if (res.ok) {
+          serverData = await res.json();
+          currentMode = 'server';
+          showDashboard();
+          renderServerDashboard();
+          return true;
+        }
+      } catch (e) {
+        // Not a server environment or unreachable
+      }
+
+      // 2. If server API returns 404 or fails, we are in GitHub Pages (Static Mode)
+      // Password check for static mode: accepts default 'admin' or 'eternaljump'
+      if (pass !== 'admin' && pass !== 'eternaljump') {
+        return false;
+      }
+
+      currentMode = 'static';
+      showDashboard();
+      await fetchLootLockerDashboard();
+      return true;
+    }
+
+    function resolveServerApiPath() {
+      const customServer = localStorage.getItem('ADMIN_CUSTOM_SERVER') || (document.getElementById('customServerInput') ? document.getElementById('customServerInput').value : '');
+      if (customServer && customServer.trim() !== '') {
+        return customServer.trim().replace(/\/+$/, '') + '/admin/api/data';
+      }
+      // Handles both /admin and /eternaljump/admin paths
+      const p = window.location.pathname;
+      const base = p.substring(0, p.lastIndexOf('/') + 1) || './';
+      return base + 'admin/api/data';
+    }
+
+    function showDashboard() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('dashView').classList.remove('hidden');
+      
+      const badge = document.getElementById('modeBadge');
+      if (currentMode === 'server') {
+        badge.className = 'mode-badge server';
+        badge.innerText = 'Node.js サーバー同期中 (リアルタイムログ & 時間帯分析)';
+        document.getElementById('chartSection').classList.remove('hidden');
+      } else {
+        badge.className = 'mode-badge static';
+        badge.innerText = 'GitHub Pages モード (LootLocker リーダーボード直結)';
+        document.getElementById('chartSection').classList.add('hidden');
+        
+        const notice = document.getElementById('noticeMsg');
+        notice.classList.remove('hidden');
+        notice.innerHTML = `
+          <strong>GitHub Pages（静的ホスティング）上で動作中</strong><br>
+          GitHub Pages は静的ホスティングのため、Node.js サーバー経由のリアルタイムIP/時間帯ログは、外部サーバー稼働時のみ記録されます。<br>
+          現在は <strong>LootLocker オンラインリーダーボード</strong> に直接接続し、全登録プレイヤーの最高記録・タイムアタック・コイン獲得状況を一覧表示しています。
+        `;
+      }
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabPrimary').classList.toggle('active', tab === 'primary');
+      document.getElementById('tabSecondary').classList.toggle('active', tab === 'secondary');
+      document.getElementById('tabCoins').classList.toggle('active', tab === 'coins');
+
+      document.getElementById('tablePrimaryView').classList.toggle('hidden', tab !== 'primary');
+      document.getElementById('tableSecondaryView').classList.toggle('hidden', tab !== 'secondary');
+      document.getElementById('tableCoinsView').classList.toggle('hidden', tab !== 'coins');
+
+      renderTables();
+    }
+
+    // ==========================================
+    // Mode 1: Server Side Dashboard Render
+    // ==========================================
+    function renderServerDashboard() {
+      if (!serverData) return;
+      document.getElementById('statTotalLogs').innerText = serverData.totalLogs.toLocaleString();
+      document.getElementById('statUniquePlayers').innerText = serverData.summaries.length.toLocaleString();
+
+      let maxAlt = 0;
+      serverData.summaries.forEach(s => { if (s.maxAlt > maxAlt) maxAlt = s.maxAlt; });
+      document.getElementById('statMaxAlt').innerText = maxAlt > 0 ? (maxAlt.toLocaleString() + ' m') : '-';
+      document.getElementById('statFastestTA').innerText = '-';
+
+      // Hourly Bar Chart
+      const chartEl = document.getElementById('barChart');
+      chartEl.innerHTML = '';
+      const counts = serverData.hourlyCounts || Array(24).fill(0);
+      const maxCount = Math.max(...counts, 1);
+
+      for (let h = 0; h < 24; h++) {
+        const col = document.createElement('div');
+        col.className = 'bar-col';
+        const pct = (counts[h] / maxCount) * 100;
+        col.innerHTML = `
+          <div class="bar-count">${counts[h] > 0 ? counts[h] : ''}</div>
+          <div class="bar-fill" style="height: ${Math.max(pct, 2)}%;"></div>
+          <div class="bar-label">${h}h</div>
+        `;
+        chartEl.appendChild(col);
+      }
+
+      // Tab Headers
+      document.getElementById('tabPrimary').innerText = '最新のプレイ履歴';
+      document.getElementById('tabSecondary').innerText = 'プレイヤー別集約一覧';
+      document.getElementById('tabCoins').classList.add('hidden');
+
+      document.getElementById('tablePrimaryHead').innerHTML = `
+        <tr>
+          <th>日時 (JST)</th>
+          <th>アクション</th>
+          <th>プレイヤー名</th>
+          <th>ID</th>
+          <th>地域 (IP)</th>
+          <th>端末</th>
+          <th>プレイ内容</th>
+        </tr>
+      `;
+
+      document.getElementById('tableSecondaryHead').innerHTML = `
+        <tr>
+          <th>プレイヤー名</th>
+          <th>ID</th>
+          <th>最新地域 (IP)</th>
+          <th>端末</th>
+          <th>初回 / 最終アクセス</th>
+          <th>プレイ回数</th>
+          <th>最高高度 / コイン</th>
+        </tr>
+      `;
+
+      renderTables();
+    }
+
+    // ==========================================
+    // Mode 2: Static LootLocker Dashboard
+    // ==========================================
+    async function fetchLootLockerDashboard() {
+      document.getElementById('tabPrimary').innerText = '高度リーダーボード (Top 100)';
+      document.getElementById('tabSecondary').innerText = 'タイムアタック記録';
+      document.getElementById('tabCoins').classList.remove('hidden');
+
+      document.getElementById('tablePrimaryHead').innerHTML = `
+        <tr>
+          <th>順位</th>
+          <th>プレイヤー名</th>
+          <th>メンバーID</th>
+          <th>最高到達高度</th>
+          <th>登録日</th>
+        </tr>
+      `;
+
+      document.getElementById('tableSecondaryHead').innerHTML = `
+        <tr>
+          <th>順位</th>
+          <th>プレイヤー名</th>
+          <th>メンバーID</th>
+          <th>クリアタイム</th>
+          <th>登録日</th>
+        </tr>
+      `;
+
+      try {
+        // Fetch leaderboards
+        const [resAlt, resTa, resCoins] = await Promise.all([
+          fetch(`https://${LL_DOMAIN}.api.lootlocker.io/game/leaderboards/${LL_BOARDS.alt}/list?count=100`),
+          fetch(`https://${LL_DOMAIN}.api.lootlocker.io/game/leaderboards/${LL_BOARDS.ta}/list?count=100`),
+          fetch(`https://${LL_DOMAIN}.api.lootlocker.io/game/leaderboards/${LL_BOARDS.coins}/list?count=100`)
+        ]);
+
+        if (resAlt.ok) {
+          const d = await resAlt.json();
+          lootlockerData.altitude = d.items || [];
+        }
+        if (resTa.ok) {
+          const d = await resTa.json();
+          lootlockerData.timeAttack = d.items || [];
+        }
+        if (resCoins.ok) {
+          const d = await resCoins.json();
+          lootlockerData.coins = d.items || [];
+        }
+
+        // Stats summary
+        document.getElementById('statTotalLogs').innerText = lootlockerData.altitude.length.toString();
+        
+        // Count unique player IDs across leaderboards
+        const pids = new Set();
+        lootlockerData.altitude.forEach(i => pids.add(i.member_id));
+        lootlockerData.timeAttack.forEach(i => pids.add(i.member_id));
+        lootlockerData.coins.forEach(i => pids.add(i.member_id));
+        document.getElementById('statUniquePlayers').innerText = pids.size.toString();
+
+        if (lootlockerData.altitude.length > 0) {
+          document.getElementById('statMaxAlt').innerText = lootlockerData.altitude[0].score.toLocaleString() + ' m';
+        }
+        if (lootlockerData.timeAttack.length > 0) {
+          const sec = (lootlockerData.timeAttack[0].score / 1000).toFixed(2);
+          document.getElementById('statFastestTA').innerText = sec + ' 秒';
+        }
+
+        renderTables();
+      } catch (e) {
+        console.error('LootLocker fetch failed', e);
+      }
+    }
+
+    // ==========================================
+    // Table Rendering & Search
+    // ==========================================
+    function renderTables() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase();
+
+      if (currentMode === 'server') {
+        renderServerTables(q);
+      } else {
+        renderLootLockerTables(q);
+      }
+    }
+
+    function renderServerTables(q) {
+      if (!serverData) return;
+
+      // Table 1: Server Logs
+      const lBody = document.getElementById('tablePrimaryBody');
+      lBody.innerHTML = '';
+      const logs = (serverData.logs || []).slice().reverse();
+      const filteredLogs = logs.filter(l =>
+        (l.name && l.name.toLowerCase().includes(q)) ||
+        (l.pid && l.pid.toLowerCase().includes(q)) ||
+        (l.ip && l.ip.includes(q)) ||
+        (l.city && l.city.toLowerCase().includes(q)) ||
+        (l.country && l.country.toLowerCase().includes(q))
+      );
+
+      filteredLogs.forEach(l => {
+        const tr = document.createElement('tr');
+        let typeBadge = '<span class="badge badge-start">起動</span>';
+        if (l.type === 'score_submit') typeBadge = '<span class="badge badge-score">高度送信</span>';
+        else if (l.type === 'coin_submit') typeBadge = '<span class="badge badge-coin">コイン</span>';
+        else if (l.type === 'ta_submit') typeBadge = '<span class="badge badge-ta">TA送信</span>';
+
+        let content = '-';
+        if (l.alt) content = `高度: ${l.alt}m`;
+        if (l.coins) content = (content !== '-' ? content + ', ' : '') + `コイン: ${l.coins}`;
+        if (l.playTimeSec) content += ` (${l.playTimeSec}s)`;
+
+        tr.innerHTML = `
+          <td>${formatJST(l.time)}</td>
+          <td>${typeBadge}</td>
+          <td style="font-weight:600; color:#fff;">${escapeHtml(l.name || '名無し')}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(l.pid ? l.pid.substring(0, 8) : '-')}...</td>
+          <td>${escapeHtml(l.country || '-')}, ${escapeHtml(l.city || '-')} <span style="color:#64748b; font-size:10px;">(${escapeHtml(l.ip)})</span></td>
+          <td>${escapeHtml(l.device || '-')}</td>
+          <td>${escapeHtml(content)}</td>
+        `;
+        lBody.appendChild(tr);
+      });
+
+      // Table 2: Server Summaries
+      const pBody = document.getElementById('tableSecondaryBody');
+      pBody.innerHTML = '';
+      const filteredPlayers = (serverData.summaries || []).filter(s =>
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.pid && s.pid.toLowerCase().includes(q)) ||
+        (s.lastIp && s.lastIp.includes(q)) ||
+        (s.lastLocation && s.lastLocation.toLowerCase().includes(q))
+      );
+
+      filteredPlayers.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:600; color:#fff;">${escapeHtml(s.name)}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(s.pid.substring(0, 10))}...</td>
+          <td>${escapeHtml(s.lastLocation)} <span style="color:#64748b; font-size:10px;">(${escapeHtml(s.lastIp)})</span></td>
+          <td>${escapeHtml(s.device)}</td>
+          <td>${formatJST(s.firstSeen)} <br><span style="color:#94a3b8;">最終: ${formatJST(s.lastSeen)}</span></td>
+          <td style="font-weight:600; color:#38bdf8;">${s.playCount}回</td>
+          <td>${s.maxAlt > 0 ? s.maxAlt.toLocaleString() + 'm' : '-'} / ${s.maxCoins > 0 ? s.maxCoins + '枚' : '-'}</td>
+        `;
+        pBody.appendChild(tr);
+      });
+    }
+
+    function renderLootLockerTables(q) {
+      // 1. Altitude
+      const pBody = document.getElementById('tablePrimaryBody');
+      pBody.innerHTML = '';
+      const filteredAlt = lootlockerData.altitude.filter(item => {
+        const name = (item.player && item.player.name) || '';
+        const id = String(item.member_id || '');
+        return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+      });
+
+      filteredAlt.forEach(item => {
+        const name = (item.player && item.player.name) || '名無し';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:bold; color:#38bdf8;">#${item.rank}</td>
+          <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
+          <td style="font-weight:bold; color:#34d399;">${item.score.toLocaleString()} m</td>
+          <td>${formatDate(item.created_at)}</td>
+        `;
+        pBody.appendChild(tr);
+      });
+
+      // 2. Time Attack
+      const sBody = document.getElementById('tableSecondaryBody');
+      sBody.innerHTML = '';
+      const filteredTa = lootlockerData.timeAttack.filter(item => {
+        const name = (item.player && item.player.name) || '';
+        const id = String(item.member_id || '');
+        return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+      });
+
+      filteredTa.forEach(item => {
+        const name = (item.player && item.player.name) || '名無し';
+        const sec = (item.score / 1000).toFixed(2);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:bold; color:#c084fc;">#${item.rank}</td>
+          <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
+          <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
+          <td>${formatDate(item.created_at)}</td>
+        `;
+        sBody.appendChild(tr);
+      });
+
+      // 3. Coins
+      const cBody = document.getElementById('tableCoinsBody');
+      cBody.innerHTML = '';
+      const filteredCoins = lootlockerData.coins.filter(item => {
+        const name = (item.player && item.player.name) || '';
+        const id = String(item.member_id || '');
+        return name.toLowerCase().includes(q) || id.toLowerCase().includes(q);
+      });
+
+      filteredCoins.forEach(item => {
+        const name = (item.player && item.player.name) || '名無し';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:bold; color:#facc15;">#${item.rank}</td>
+          <td style="font-weight:600; color:#fff;">${escapeHtml(name)}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(item.member_id))}</td>
+          <td style="font-weight:bold; color:#facc15;">${item.score.toLocaleString()} 枚</td>
+          <td>${formatDate(item.created_at)}</td>
+        `;
+        cBody.appendChild(tr);
+      });
+    }
+
+    function formatJST(iso) {
+      if (!iso) return '-';
+      const d = new Date(iso);
+      return d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDate(str) {
+      if (!str) return '-';
+      const d = new Date(str);
+      return d.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    // Auto login check & saved server URL
+    const savedServer = localStorage.getItem('ADMIN_CUSTOM_SERVER');
+    if (savedServer && document.getElementById('customServerInput')) {
+      document.getElementById('customServerInput').value = savedServer;
+      toggleCustomServer();
+    }
+
+    if (getSavedPass()) {
+      fetchData();
+    }
+  </script>
+</body>
+</html>
