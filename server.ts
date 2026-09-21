@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fsSync from "fs";
+import crypto from "crypto";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 dotenv.config();
@@ -553,8 +554,13 @@ async function startServer() {
   app.get(["/admin", "/admin/", "/admin.html"], (req, res) => {
     const adminPath = path.join(process.cwd(), "public", "admin.html");
     if (fsSync.existsSync(adminPath)) {
+      let content = fsSync.readFileSync(adminPath, "utf-8");
+      const currentPass = process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD || '';
+      const defaultHash = '05e9824f196ce156b8dc7c618f989a87d58ebf32881de8eda2e5fb9ce123a91d'; // hash of zxcv0987
+      const adminHash = currentPass ? crypto.createHash('sha256').update(currentPass.trim()).digest('hex') : defaultHash;
+      content = content.replace(/__ADMIN_PASSWORD_HASH__/g, adminHash);
       res.setHeader("Content-Type", "text/html; charset=utf-8");
-      return res.sendFile(adminPath);
+      return res.send(content);
     }
     res.status(404).send("admin.html not found");
   });

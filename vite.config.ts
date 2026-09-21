@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -30,6 +31,29 @@ function versionJsonPlugin() {
   };
 }
 
+function adminHtmlPlugin() {
+  const currentPass = process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD || '';
+  const defaultHash = '05e9824f196ce156b8dc7c618f989a87d58ebf32881de8eda2e5fb9ce123a91d'; // hash of zxcv0987
+  const adminHash = currentPass ? crypto.createHash('sha256').update(currentPass.trim()).digest('hex') : defaultHash;
+
+  return {
+    name: 'admin-html-password-hash',
+    transformIndexHtml(html: string) {
+      return html.replace(/__ADMIN_PASSWORD_HASH__/g, adminHash);
+    },
+    closeBundle() {
+      const distAdmin = path.join(process.cwd(), 'dist', 'admin.html');
+      if (fs.existsSync(distAdmin)) {
+        let content = fs.readFileSync(distAdmin, 'utf-8');
+        if (content.includes('__ADMIN_PASSWORD_HASH__')) {
+          content = content.replace(/__ADMIN_PASSWORD_HASH__/g, adminHash);
+          fs.writeFileSync(distAdmin, content, 'utf-8');
+        }
+      }
+    }
+  };
+}
+
 export default defineConfig(() => {
   return {
     define: {
@@ -39,6 +63,7 @@ export default defineConfig(() => {
     plugins: [
       tailwindcss(),
       versionJsonPlugin(),
+      adminHtmlPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',

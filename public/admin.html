@@ -71,7 +71,7 @@
     <!-- Login Screen -->
     <div id="loginView" class="login-box">
       <h2>FOLLOW ME! 管理者</h2>
-      <p>アクセスパスワードを入力してください。<br><span style="font-size:11px;color:#64748b;">(初期パスワード: admin)</span></p>
+      <p>アクセスパスワードを入力してください。</p>
       <input type="password" id="passInput" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')login()">
       <button class="btn" style="width:100%;" onclick="login()">ダッシュボードを開く</button>
       <div id="loginErr" style="color:#f87171; font-size:12px; margin-top:8px;" class="hidden">パスワードが正しくありません</div>
@@ -230,6 +230,19 @@
       document.getElementById('passInput').value = '';
     }
 
+    async function verifyAdminPassword(inputPass) {
+      if (!inputPass) return false;
+      try {
+        const enc = new TextEncoder();
+        const buf = await crypto.subtle.digest('SHA-256', enc.encode(inputPass.trim()));
+        const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const expectedHash = '__ADMIN_PASSWORD_HASH__';
+        return hash === expectedHash;
+      } catch (e) {
+        return false;
+      }
+    }
+
     async function fetchData() {
       const pass = getSavedPass();
       if (!pass) return false;
@@ -253,8 +266,9 @@
       }
 
       // 2. If server API returns 404 or fails, we are in GitHub Pages (Static Mode)
-      // Password check for static mode: accepts default 'admin' or 'eternaljump'
-      if (pass !== 'admin' && pass !== 'eternaljump') {
+      // Verify password via cryptographic SHA-256 hash matching the configured ADMIN_PASSWORD
+      const isAuth = await verifyAdminPassword(pass);
+      if (!isAuth) {
         return false;
       }
 
