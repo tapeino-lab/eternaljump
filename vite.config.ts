@@ -36,19 +36,33 @@ function adminHtmlPlugin() {
   const defaultHash = '05e9824f196ce156b8dc7c618f989a87d58ebf32881de8eda2e5fb9ce123a91d'; // hash of zxcv0987
   const adminHash = currentPass ? crypto.createHash('sha256').update(currentPass.trim()).digest('hex') : defaultHash;
 
+  const apiKey = process.env.VITE_LOOTLOCKER_API_KEY || process.env.LOOTLOCKER_API_KEY || '';
+  const domainKey = process.env.VITE_LOOTLOCKER_DOMAIN_KEY || process.env.LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
+  const lbId = process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || process.env.LOOTLOCKER_LEADERBOARD_ID || 'hct2';
+  const taId = process.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || 'tatk';
+  const coinId = process.env.VITE_LOOTLOCKER_COIN_LEADERBOARD_ID || 'cointtl';
+
+  const replacePlaceholders = (content: string) => {
+    return content
+      .replace(/__ADMIN_PASSWORD_HASH__/g, adminHash)
+      .replace(/__LL_API_KEY__/g, apiKey)
+      .replace(/__LL_DOMAIN__/g, domainKey)
+      .replace(/__LL_ALT_ID__/g, lbId)
+      .replace(/__LL_TA_ID__/g, taId)
+      .replace(/__LL_COIN_ID__/g, coinId);
+  };
+
   return {
-    name: 'admin-html-password-hash',
+    name: 'admin-html-transform',
     transformIndexHtml(html: string) {
-      return html.replace(/__ADMIN_PASSWORD_HASH__/g, adminHash);
+      return replacePlaceholders(html);
     },
     closeBundle() {
       const distAdmin = path.join(process.cwd(), 'dist', 'admin.html');
       if (fs.existsSync(distAdmin)) {
         let content = fs.readFileSync(distAdmin, 'utf-8');
-        if (content.includes('__ADMIN_PASSWORD_HASH__')) {
-          content = content.replace(/__ADMIN_PASSWORD_HASH__/g, adminHash);
-          fs.writeFileSync(distAdmin, content, 'utf-8');
-        }
+        content = replacePlaceholders(content);
+        fs.writeFileSync(distAdmin, content, 'utf-8');
       }
     }
   };

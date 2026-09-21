@@ -190,13 +190,24 @@
     let lootlockerData = { altitude: [], timeAttack: [], coins: [] };
     let currentTab = 'primary';
 
-    // LootLocker Config compiled into client
-    const LL_DOMAIN = '9j3o3mso';
+    // LootLocker Config injected at build/server time
+    const LL_API_KEY = '__LL_API_KEY__';
+    const LL_DOMAIN = '__LL_DOMAIN__';
     const LL_BOARDS = {
-      alt: '26477',
-      ta: '26478',
-      coins: '26479'
+      alt: '__LL_ALT_ID__',
+      ta: '__LL_TA_ID__',
+      coins: '__LL_COIN_ID__'
     };
+
+    function getLLConfig() {
+      return {
+        apiKey: (typeof LL_API_KEY !== 'undefined' && LL_API_KEY && !LL_API_KEY.startsWith('__')) ? LL_API_KEY : '',
+        domain: (typeof LL_DOMAIN !== 'undefined' && LL_DOMAIN && !LL_DOMAIN.startsWith('__')) ? LL_DOMAIN : '83ib54ok',
+        altBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.alt && !LL_BOARDS.alt.startsWith('__')) ? LL_BOARDS.alt : 'hct2',
+        taBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.ta && !LL_BOARDS.ta.startsWith('__')) ? LL_BOARDS.ta : 'tatk',
+        coinBoard: (typeof LL_BOARDS !== 'undefined' && LL_BOARDS.coins && !LL_BOARDS.coins.startsWith('__')) ? LL_BOARDS.coins : 'cointtl'
+      };
+    }
 
     function getSavedPass() {
       return sessionStorage.getItem('ADMIN_KEY') || '';
@@ -393,9 +404,12 @@
     // Mode 2: Static LootLocker Dashboard
     // ==========================================
     async function fetchLootLockerDashboard() {
+      const cfg = getLLConfig();
+
       document.getElementById('tabPrimary').innerText = '高度リーダーボード (Top 100)';
       document.getElementById('tabSecondary').innerText = 'タイムアタック記録';
       document.getElementById('tabCoins').classList.remove('hidden');
+      document.getElementById('tabCoins').innerText = '累計コイン獲得状況';
 
       document.getElementById('tablePrimaryHead').innerHTML = `
         <tr>
@@ -403,7 +417,7 @@
           <th>プレイヤー名</th>
           <th>メンバーID</th>
           <th>最高到達高度</th>
-          <th>登録日</th>
+          <th>登録日時</th>
         </tr>
       `;
 
@@ -413,40 +427,88 @@
           <th>プレイヤー名</th>
           <th>メンバーID</th>
           <th>クリアタイム</th>
-          <th>登録日</th>
+          <th>登録日時</th>
+        </tr>
+      `;
+
+      document.getElementById('tableCoinsHead').innerHTML = `
+        <tr>
+          <th>順位</th>
+          <th>プレイヤー名</th>
+          <th>メンバーID</th>
+          <th>累計コイン</th>
+          <th>最終記録日時</th>
         </tr>
       `;
 
       try {
+        let sessionToken = '';
+        if (cfg.apiKey) {
+          try {
+            const sessRes = await fetch(`https://${cfg.domain}.api.lootlocker.io/game/v2/session/guest`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                game_key: cfg.apiKey,
+                player_identifier: 'admin_dash_' + Math.random().toString(36).substring(2, 9),
+                game_version: '2.10.43'
+              })
+            });
+            if (sessRes.ok) {
+              const sessData = await sessRes.json();
+              sessionToken = sessData.session_token || '';
+            }
+          } catch (e) {
+            console.warn('LootLocker admin session error', e);
+          }
+        }
+
+        const headers = sessionToken ? { 'x-session-token': sessionToken } : {};
+
         // Fetch leaderboards
-        const [resAlt, resTa, resCoins] = await Promise.all([
-          fetch(`https://${LL_DOMAIN}.api.lootlocker.io/game/leaderboards/${LL_BOARDS.alt}/list?count=100`),
-          fetch(`https://${LL_DOMAIN}.api.lootlocker.io/game/leaderboards/${LL_BOARDS.ta}/list?count=100`),
-          fetch(`https://${LL_DOMAIN}.api.lootlocker.io/game/leaderboards/${LL_BOARDS.coins}/list?count=100`)
+        const [resCoins, resAlt, resTa] = await Promise.all([
+          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.coinBoard}/list?count=100`, { headers }).catch(() => null),
+          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.altBoard}/list?count=100`, { headers }).catch(() => null),
+          fetch(`https://${cfg.domain}.api.lootlocker.io/game/leaderboards/${cfg.taBoard}/list?count=100`, { headers }).catch(() => null)
         ]);
 
-        if (resAlt.ok) {
-          const d = await resAlt.json();
-          lootlockerData.altitude = d.items || [];
-        }
-        if (resTa.ok) {
-          const d = await resTa.json();
-          lootlockerData.timeAttack = d.items || [];
-        }
-        if (resCoins.ok) {
+        let totalPlayersCount = 0;
+        let totalLogsCount = 0;
+
+        if (resCoins && resCoins.ok) {
           const d = await resCoins.json();
           lootlockerData.coins = d.items || [];
+          if (d.pagination && d.pagination.total) {
+            totalPlayersCount = d.pagination.total;
+            totalLogsCount += d.pagination.total;
+          }
+        }
+        if (resAlt && resAlt.ok) {
+          const d = await resAlt.json();
+          lootlockerData.altitude = d.items || [];
+          if (d.pagination && d.pagination.total) {
+            totalLogsCount += d.pagination.total;
+          }
+        }
+        if (resTa && resTa.ok) {
+          const d = await resTa.json();
+          lootlockerData.timeAttack = d.items || [];
+          if (d.pagination && d.pagination.total) {
+            totalLogsCount += d.pagination.total;
+          }
         }
 
-        // Stats summary
-        document.getElementById('statTotalLogs').innerText = lootlockerData.altitude.length.toString();
-        
-        // Count unique player IDs across leaderboards
-        const pids = new Set();
-        lootlockerData.altitude.forEach(i => pids.add(i.member_id));
-        lootlockerData.timeAttack.forEach(i => pids.add(i.member_id));
-        lootlockerData.coins.forEach(i => pids.add(i.member_id));
-        document.getElementById('statUniquePlayers').innerText = pids.size.toString();
+        // Count unique player IDs across leaderboards if pagination total was not present
+        if (!totalPlayersCount) {
+          const pids = new Set();
+          lootlockerData.coins.forEach(i => pids.add(i.member_id));
+          lootlockerData.altitude.forEach(i => pids.add(i.member_id));
+          lootlockerData.timeAttack.forEach(i => pids.add(i.member_id));
+          totalPlayersCount = pids.size;
+        }
+
+        document.getElementById('statUniquePlayers').innerText = totalPlayersCount.toLocaleString() + ' 名';
+        document.getElementById('statTotalLogs').innerText = (totalLogsCount || (lootlockerData.coins.length + lootlockerData.altitude.length)).toLocaleString();
 
         if (lootlockerData.altitude.length > 0) {
           document.getElementById('statMaxAlt').innerText = lootlockerData.altitude[0].score.toLocaleString() + ' m';
@@ -540,7 +602,7 @@
     }
 
     function renderLootLockerTables(q) {
-      // 1. Altitude
+      // 1. Primary: Altitude Leaderboard (Top 100)
       const pBody = document.getElementById('tablePrimaryBody');
       pBody.innerHTML = '';
       const filteredAlt = lootlockerData.altitude.filter(item => {
@@ -562,7 +624,7 @@
         pBody.appendChild(tr);
       });
 
-      // 2. Time Attack
+      // 2. Secondary: Time Attack Records
       const sBody = document.getElementById('tableSecondaryBody');
       sBody.innerHTML = '';
       const filteredTa = lootlockerData.timeAttack.filter(item => {
@@ -585,7 +647,7 @@
         sBody.appendChild(tr);
       });
 
-      // 3. Coins
+      // 3. Coins: Total Coins Status
       const cBody = document.getElementById('tableCoinsBody');
       cBody.innerHTML = '';
       const filteredCoins = lootlockerData.coins.filter(item => {
