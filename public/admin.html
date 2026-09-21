@@ -63,15 +63,6 @@
     .badge-ta { background: #581c87; color: #c084fc; }
     .badge-device { background: #334155; color: #e2e8f0; font-family: monospace; }
     .badge-region { background: #1e293b; border: 1px solid #475569; color: #94a3b8; }
-    .badge-no-ip { display: inline-block; font-size: 11px; color: #64748b; background: rgba(100, 116, 139, 0.15); border: 1px dashed rgba(100, 116, 139, 0.35); padding: 3px 8px; border-radius: 4px; }
-    
-    .ip-cell { display: flex; flex-direction: column; gap: 3px; min-width: 170px; }
-    .ip-row { display: inline-flex; align-items: center; gap: 6px; }
-    .ip-addr { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 11px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.25); letter-spacing: -0.2px; word-break: break-all; }
-    .ip-copy-btn { background: transparent; border: none; cursor: pointer; font-size: 11px; padding: 2px 4px; border-radius: 4px; color: #94a3b8; transition: all 0.15s; }
-    .ip-copy-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
-    .geo-row { font-size: 12px; font-weight: 600; color: #f1f5f9; display: flex; align-items: center; gap: 4px; }
-    .isp-row { font-size: 10px; color: #64748b; line-height: 1.2; }
     
     .dot-online { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; margin-right: 4px; vertical-align: middle; }
     
@@ -115,7 +106,7 @@
             FOLLOW ME! 利用者アクティビティ
             <span id="modeBadge" class="mode-badge">検出中...</span>
           </h1>
-          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">ユーザー・プレイ区域・プレイ日時の動向分析</div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">ユーザー・プレイ日時・到達記録の動向分析</div>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <a href="./" class="return-link" style="margin-right:8px;">← ゲームに戻る</a>
@@ -137,8 +128,8 @@
           <div class="stat-val" id="statClearedPlayers" style="font-size:17px; line-height:1.4;">-</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">📍 主要IP接続地域 (GeoIP)</div>
-          <div class="stat-val" id="statRegionBreakdown" style="font-size:17px; line-height:1.4;">-</div>
+          <div class="stat-label">⚡ 最速クリアタイム</div>
+          <div class="stat-val" id="statBestTaRecord" style="font-size:17px; line-height:1.4;">-</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">🕒 直近のアクティビティ</div>
@@ -158,7 +149,7 @@
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="nav-tabs" id="tabContainer">
-          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">👥 ユーザー利用状況 (IP地域・日時)</button>
+          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">👥 ユーザー利用状況 (日時・記録)</button>
           <button id="tabSecondary" class="tab-btn" onclick="switchTab('secondary')">🕒 プレイ履歴タイムライン (最新順)</button>
           <button id="tabLeaderboards" class="tab-btn" onclick="switchTab('leaderboards')">🏆 参考ランキング</button>
         </div>
@@ -169,18 +160,17 @@
             <option value="coins">並び替え: コイン獲得順</option>
             <option value="name">並び替え: ユーザー名順</option>
           </select>
-          <input type="text" id="searchInput" class="search-input" placeholder="名前 / ID / IP / 接続地域で検索..." oninput="renderTables()">
+          <input type="text" id="searchInput" class="search-input" placeholder="ユーザー名 / メンバーID / 内容で検索..." oninput="renderTables()">
         </div>
       </div>
 
-      <!-- Table 1: Consolidated User Activity List (Main Request) -->
+      <!-- Table 1: Consolidated User Activity List -->
       <div id="tablePrimaryView" class="table-container">
         <table>
           <thead>
             <tr>
               <th>ユーザー名</th>
               <th>メンバーID</th>
-              <th>🌐 IPアドレス / 接続地域</th>
               <th>最終プレイ日時</th>
               <th>到達記録</th>
               <th>ステータス</th>
@@ -199,7 +189,6 @@
               <th>アクション</th>
               <th>ユーザー名</th>
               <th>メンバーID</th>
-              <th>🌐 IPアドレス / 接続地域</th>
               <th>プレイ内容</th>
             </tr>
           </thead>
@@ -312,152 +301,6 @@
       };
     }
 
-    // ==========================================
-    // IP Address & GeoIP Resolution (Purely IP-based)
-    // ==========================================
-    const geoIpCache = new Map();
-    try {
-      const stored = localStorage.getItem('LL_ADMIN_GEO_CACHE');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        Object.keys(parsed).forEach(k => geoIpCache.set(k, parsed[k]));
-      }
-    } catch (e) {}
-
-    function saveGeoIpCache() {
-      try {
-        const obj = {};
-        geoIpCache.forEach((v, k) => { obj[k] = v; });
-        localStorage.setItem('LL_ADMIN_GEO_CACHE', JSON.stringify(obj));
-      } catch (e) {}
-    }
-
-    const pendingGeoLookups = new Set();
-    async function queueIpLookup(ip) {
-      if (!ip || ip === 'Unknown' || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('192.168.')) return;
-      if (geoIpCache.has(ip) || pendingGeoLookups.has(ip)) return;
-      pendingGeoLookups.add(ip);
-
-      try {
-        let url = `/api/geoip?ip=${encodeURIComponent(ip)}`;
-        if (currentMode !== 'server') {
-          url = `https://ipwho.is/${ip}`;
-        }
-        const res = await fetch(url);
-        if (res.ok) {
-          const d = await res.json();
-          let location = '';
-          let isp = '';
-          if (d.formatted) {
-            location = d.formatted;
-            isp = d.isp || '';
-          } else if (d.success) {
-            let flag = '🌐';
-            if (d.country_code === 'JP') flag = '🇯🇵';
-            else if (d.country_code === 'US') flag = '🇺🇸';
-            else if (d.country_code === 'KR') flag = '🇰🇷';
-            else if (d.country_code === 'TW') flag = '🇹🇼';
-            else if (d.country_code === 'GB') flag = '🇬🇧';
-            location = `${flag} ${d.country || ''} ${d.region || ''} (${d.city || ''})`.trim();
-            isp = d.connection ? (d.connection.isp || d.connection.org || '') : '';
-          }
-          if (location) {
-            geoIpCache.set(ip, { location, isp });
-            saveGeoIpCache();
-            updateGeoCellsInDOM(ip, location, isp);
-          }
-        }
-      } catch (e) {} finally {
-        pendingGeoLookups.delete(ip);
-      }
-    }
-
-    function updateGeoCellsInDOM(ip, location, isp) {
-      const safeClass = 'ip-geo-val-' + ip.replace(/[^a-zA-Z0-9]/g, '_');
-      const els = document.querySelectorAll('.' + safeClass);
-      els.forEach(el => {
-        el.innerHTML = `
-          <div class="geo-row">${escapeHtml(location)}</div>
-          ${isp ? `<div class="isp-row">ISP: ${escapeHtml(isp)}</div>` : ''}
-        `;
-      });
-    }
-
-    function renderIpCellMarkup(ip, location, isp, customClass) {
-      const safeIp = escapeHtml(ip);
-      return `
-        <div class="ip-cell">
-          <div class="ip-row">
-            <span class="ip-addr" title="IPアドレス">${safeIp}</span>
-            <button class="ip-copy-btn" onclick="copyIpText('${safeIp}', this)" title="IPアドレスをコピー">📋</button>
-          </div>
-          <div class="${customClass || ''}">
-            <div class="geo-row">${escapeHtml(location || '解析中...')}</div>
-            ${isp ? `<div class="isp-row">ISP: ${escapeHtml(isp)}</div>` : ''}
-          </div>
-        </div>
-      `;
-    }
-
-    function copyIpText(ip, btn) {
-      if (!navigator.clipboard) return;
-      navigator.clipboard.writeText(ip).then(() => {
-        const orig = btn.innerText;
-        btn.innerText = '✓';
-        btn.style.color = '#34d399';
-        setTimeout(() => {
-          btn.innerText = orig;
-          btn.style.color = '';
-        }, 1500);
-      });
-    }
-
-    // Resolves IP info strictly using IP address (never language or name)
-    function resolveIpGeo(ip, serverLoc, serverIsp) {
-      if (!ip || ip === 'Unknown' || ip === '-' || ip.trim() === '') {
-        return {
-          hasIp: false,
-          ip: '',
-          location: '',
-          isp: '',
-          displayHtml: '<span class="badge-no-ip">IP記録なし (旧データ)</span>'
-        };
-      }
-
-      if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.16.')) {
-        return {
-          hasIp: true,
-          ip: ip,
-          location: '💻 ローカル開発環境 (127.0.0.1)',
-          isp: 'Private',
-          displayHtml: renderIpCellMarkup(ip, '💻 ローカル開発環境 (127.0.0.1)', 'Private')
-        };
-      }
-
-      let location = serverLoc || '';
-      let isp = serverIsp || '';
-
-      if (geoIpCache.has(ip)) {
-        const c = geoIpCache.get(ip);
-        if (c.location) location = c.location;
-        if (c.isp) isp = c.isp;
-      } else if (serverLoc && !serverLoc.includes('Global') && !serverLoc.includes('GL') && serverLoc !== '-') {
-        geoIpCache.set(ip, { location: serverLoc, isp: serverIsp || '' });
-        saveGeoIpCache();
-      } else {
-        queueIpLookup(ip);
-      }
-
-      const safeClass = 'ip-geo-val-' + ip.replace(/[^a-zA-Z0-9]/g, '_');
-      return {
-        hasIp: true,
-        ip: ip,
-        location: location || '地域解析中...',
-        isp: isp,
-        displayHtml: renderIpCellMarkup(ip, location || '地域解析中...', isp, safeClass)
-      };
-    }
-
     function parseMeta(metaStr) {
       if (!metaStr) return null;
       try {
@@ -541,7 +384,7 @@
       // Always fetch live LootLocker data for maximum coverage
       await fetchLootLockerData();
 
-      // Consolidate both data sources
+      // Consolidate data sources
       consolidateData(connectedServer ? serverRawData : { logs: staticLogs, summaries: staticSummaries });
       
       updateMetricsAndCharts();
@@ -616,20 +459,10 @@
           if (l.coins !== undefined) detailText += `コイン: ${l.coins}枚 `;
           if (l.playTimeSec) detailText += `(${l.playTimeSec}s)`;
 
-          const ip = l.ip || '';
-          const serverGeo = l.geoFormatted || (l.country ? `${l.country}${l.city && l.city !== '-' ? ' / ' + l.city : ''}` : '');
-          const isp = l.isp || '';
-          const ipGeo = resolveIpGeo(ip, serverGeo, isp);
-
           events.push({
             time: timeMs,
             name: l.name || '名無し',
             id: pid,
-            device: resolveDevice(null, l.device),
-            ip: ip,
-            ipLocation: ipGeo.location,
-            isp: ipGeo.isp,
-            ipDisplayHtml: ipGeo.displayHtml,
             action: actText,
             detail: detailText.trim() || '-'
           });
@@ -638,11 +471,6 @@
             playerMap.set(pid, {
               id: pid,
               name: l.name || '名無し',
-              device: resolveDevice(null, l.device),
-              ip: ip,
-              ipLocation: ipGeo.location,
-              isp: ipGeo.isp,
-              ipDisplayHtml: ipGeo.displayHtml,
               lastSeen: timeMs,
               firstSeen: timeMs,
               maxAlt: l.alt || 0,
@@ -656,13 +484,6 @@
             if (l.name && l.name !== 'Anonymous') p.name = l.name;
             if (timeMs > p.lastSeen) {
               p.lastSeen = timeMs;
-              p.device = resolveDevice(null, l.device);
-              if (ip) {
-                p.ip = ip;
-                p.ipLocation = ipGeo.location;
-                p.isp = ipGeo.isp;
-                p.ipDisplayHtml = ipGeo.displayHtml;
-              }
               p.latestAction = actText;
             }
             if (timeMs < p.firstSeen) p.firstSeen = timeMs;
@@ -682,19 +503,11 @@
           const pid = String(s.pid || '');
           const lastMs = new Date(s.lastSeen).getTime();
           const firstMs = new Date(s.firstSeen).getTime();
-          const ip = s.lastIp || '';
-          const loc = s.lastLocation || '';
-          const isp = s.isp || '';
-          const ipGeo = resolveIpGeo(ip, loc, isp);
 
           if (!playerMap.has(pid)) {
             playerMap.set(pid, {
               id: pid,
               name: s.name || '名無し',
-              ip: ip,
-              ipLocation: ipGeo.location,
-              isp: ipGeo.isp,
-              ipDisplayHtml: ipGeo.displayHtml,
               lastSeen: lastMs,
               firstSeen: firstMs,
               maxAlt: s.maxAlt || 0,
@@ -711,12 +524,6 @@
             if (s.maxCoins && s.maxCoins > p.maxCoins) p.maxCoins = s.maxCoins;
             if (lastMs > p.lastSeen) {
               p.lastSeen = lastMs;
-              if (ip) {
-                p.ip = ip;
-                p.ipLocation = ipGeo.location;
-                p.isp = ipGeo.isp;
-                p.ipDisplayHtml = ipGeo.displayHtml;
-              }
             }
           }
         });
@@ -735,11 +542,6 @@
 
         const pid = String(item.member_id);
         const name = (item.player && item.player.name) || '名無し';
-
-        let ip = (meta && meta.ip) || '';
-        let loc = (meta && meta.loc) || '';
-        let isp = (meta && meta.isp) || '';
-        let ipGeo = resolveIpGeo(ip, loc, isp);
         let act = (meta && meta.act) || (boardType === 'ta' ? 'クリア達成 (TA)' : boardType === 'coins' ? 'コイン更新' : '高度記録');
 
         let altM = 0;
@@ -766,10 +568,6 @@
           time: timeMs,
           name: name,
           id: pid,
-          ip: ip,
-          ipLocation: ipGeo.location,
-          isp: ipGeo.isp,
-          ipDisplayHtml: ipGeo.displayHtml,
           action: act,
           detail: detail.trim() || '-'
         });
@@ -778,10 +576,6 @@
           playerMap.set(pid, {
             id: pid,
             name: name,
-            ip: ip,
-            ipLocation: ipGeo.location,
-            isp: ipGeo.isp,
-            ipDisplayHtml: ipGeo.displayHtml,
             lastSeen: timeMs,
             firstSeen: timeMs,
             hasRealTime: true,
@@ -797,12 +591,6 @@
           if (timeMs > p.lastSeen) {
             p.lastSeen = timeMs;
             p.hasRealTime = true;
-            if (ip) {
-              p.ip = ip;
-              p.ipLocation = ipGeo.location;
-              p.isp = ipGeo.isp;
-              p.ipDisplayHtml = ipGeo.displayHtml;
-            }
             p.latestAction = act;
           }
           if (altM > p.maxAlt) p.maxAlt = altM;
@@ -837,40 +625,25 @@
         <span style="color:#94a3b8; font-size:12px; font-weight:normal;">(高度144,000m到達)</span>
       `;
 
-      // 3. Region Breakdown (Strictly from IP location)
-      const regionCounts = {};
-      let totalWithIp = 0;
+      // 3. Best TA Record
+      let bestTaSec = null;
+      let bestTaPlayer = '';
       playerActivityList.forEach(p => {
-        if (p.ip && p.ipLocation && !p.ipLocation.includes('解析中')) {
-          totalWithIp++;
-          let key = 'その他';
-          if (p.ipLocation.includes('ローカル')) key = 'ローカル (開発)';
-          else if (p.ipLocation.includes('東京都') || p.ipLocation.includes('Tokyo')) key = '🇯🇵 東京都';
-          else if (p.ipLocation.includes('大阪')) key = '🇯🇵 大阪府';
-          else if (p.ipLocation.includes('神奈川')) key = '🇯🇵 神奈川県';
-          else if (p.ipLocation.includes('愛知')) key = '🇯🇵 愛知県';
-          else if (p.ipLocation.includes('日本')) key = '🇯🇵 日本 (その他)';
-          else if (p.ipLocation.includes('アメリカ') || p.ipLocation.includes('United States')) key = '🇺🇸 アメリカ';
-          else {
-            const m = p.ipLocation.match(/^[^\s(]+/);
-            key = m ? m[0] : '🌐 その他';
+        if (p.bestTA && p.bestTA > 0) {
+          if (bestTaSec === null || p.bestTA < bestTaSec) {
+            bestTaSec = p.bestTA;
+            bestTaPlayer = p.name;
           }
-          regionCounts[key] = (regionCounts[key] || 0) + 1;
         }
       });
-
-      if (totalWithIp > 0) {
-        const sorted = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]);
-        const top1 = sorted[0];
-        const top1Pct = Math.round((top1[1] / totalWithIp) * 100);
-        const top2 = sorted[1];
-        document.getElementById('statRegionBreakdown').innerHTML = `
-          <span>${top1[0]} ${top1Pct}%</span> <br>
-          <span style="color:#94a3b8; font-size:12px; font-weight:normal;">${top2 ? `${top2[0]} ${Math.round((top2[1] / totalWithIp) * 100)}%` : `(IP記録数: ${totalWithIp}件)`}</span>
+      if (bestTaSec !== null) {
+        document.getElementById('statBestTaRecord').innerHTML = `
+          <span style="color:#c084fc;">${bestTaSec.toFixed(2)} 秒</span> <br>
+          <span style="color:#94a3b8; font-size:12px; font-weight:normal;">(${escapeHtml(bestTaPlayer)})</span>
         `;
       } else {
-        document.getElementById('statRegionBreakdown').innerHTML = `
-          <span style="color:#94a3b8; font-size:13px;">IPログ記録待ち</span>
+        document.getElementById('statBestTaRecord').innerHTML = `
+          <span style="color:#94a3b8; font-size:13px;">記録待ち</span>
         `;
       }
 
@@ -934,7 +707,7 @@
         notice.classList.remove('hidden');
         notice.innerHTML = `
           <div style="font-weight:600; color:#38bdf8; margin-bottom:4px;">👥 ユーザー利用状況・プレイ動向一覧を表示中</div>
-          <div>LootLockerおよび記録済みログをリアルタイム集計し、どのユーザーが、どんな端末で、どの区域で、いつ遊んでいるかを一覧化しています。</div>
+          <div>LootLockerのリアルタイムプレイデータを集計し、プレイヤー毎の到達記録や最終プレイ日時を一覧化しています。</div>
         `;
       }
     }
@@ -976,7 +749,7 @@
       }
     }
 
-    // Tab 1: 👥 ユーザー利用状況 (どのユーザーが・どんな端末で・どの区域で・いつ遊んでいるか)
+    // Tab 1: 👥 ユーザー利用状況 (日時・記録)
     function renderUserActivityTable(q, sort) {
       const tbody = document.getElementById('tablePrimaryBody');
       tbody.innerHTML = '';
@@ -988,9 +761,6 @@
         list = list.filter(p =>
           (p.name && p.name.toLowerCase().includes(q)) ||
           (p.id && p.id.toLowerCase().includes(q)) ||
-          (p.ip && p.ip.toLowerCase().includes(q)) ||
-          (p.ipLocation && p.ipLocation.toLowerCase().includes(q)) ||
-          (p.isp && p.isp.toLowerCase().includes(q)) ||
           (p.latestAction && p.latestAction.toLowerCase().includes(q))
         );
       }
@@ -1039,7 +809,6 @@
         } else {
           dateCellHtml = `
             <div style="color:#64748b; font-size:12px;">日時記録なし</div>
-            <div style="color:#475569; font-size:11px;">(旧データ)</div>
           `;
         }
 
@@ -1048,9 +817,6 @@
             <div style="font-weight:700; color:#fff; font-size:13px;">${onlineDot}${escapeHtml(p.name)}</div>
           </td>
           <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(p.id)}</td>
-          <td>
-            ${p.ipDisplayHtml || renderIpCellMarkup(p.ip, p.ipLocation, p.isp)}
-          </td>
           <td>
             ${dateCellHtml}
           </td>
@@ -1061,7 +827,7 @@
       });
 
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:36px 20px; color:#94a3b8; line-height:1.7;">
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:36px 20px; color:#94a3b8; line-height:1.7;">
           <div style="font-size:15px; font-weight:600; color:#e2e8f0; margin-bottom:6px;">🕒 管理画面実装後のプレイデータはありません</div>
           <div style="font-size:13px; color:#64748b;">
             ※過去の旧データは除外されています。新フォーマットでプレイ記録が送信されるとここに一覧表示されます。
@@ -1080,9 +846,6 @@
         list = list.filter(ev =>
           (ev.name && ev.name.toLowerCase().includes(q)) ||
           (ev.id && ev.id.toLowerCase().includes(q)) ||
-          (ev.ip && ev.ip.toLowerCase().includes(q)) ||
-          (ev.ipLocation && ev.ipLocation.toLowerCase().includes(q)) ||
-          (ev.isp && ev.isp.toLowerCase().includes(q)) ||
           (ev.action && ev.action.toLowerCase().includes(q)) ||
           (ev.detail && ev.detail.toLowerCase().includes(q))
         );
@@ -1104,14 +867,13 @@
           <td>${actionBadge}</td>
           <td style="font-weight:700; color:#fff;">${escapeHtml(ev.name)}</td>
           <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(ev.id)}</td>
-          <td>${ev.ipDisplayHtml || renderIpCellMarkup(ev.ip, ev.ipLocation, ev.isp)}</td>
           <td style="color:#cbd5e1; font-weight:500;">${escapeHtml(ev.detail)}</td>
         `;
         tbody.appendChild(tr);
       });
 
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:36px 20px; color:#94a3b8; line-height:1.7;">
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:36px 20px; color:#94a3b8; line-height:1.7;">
           <div style="font-size:15px; font-weight:600; color:#e2e8f0; margin-bottom:6px;">🕒 リアルタイム日時が記録されたプレイ履歴はありません</div>
           <div style="font-size:13px; color:#64748b;">
             ※管理画面実装後の新フォーマットでプレイ記録が送信されると自動的に反映されます。
@@ -1133,7 +895,6 @@
             <th>プレイヤー名</th>
             <th>メンバーID</th>
             <th>最高到達高度</th>
-            <th>接続地域 (IP Geo)</th>
           </tr>
         `;
         const items = lootlockerRawData.altitude.filter(i => {
@@ -1144,18 +905,11 @@
           const tr = document.createElement('tr');
           const altM = Math.floor(i.score / 1000);
           const coins = i.score % 1000;
-          const meta = parseMeta(i.metadata);
-          const p = playerActivityList.find(pl => pl.id === String(i.member_id));
-          const ip = (meta && meta.ip) || (p && p.ip) || '';
-          const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
-          const isp = (meta && meta.isp) || (p && p.isp) || '';
-          const ipGeo = resolveIpGeo(ip, loc, isp);
           tr.innerHTML = `
             <td style="font-weight:bold; color:#38bdf8;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
             <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
-            <td>${ipGeo.displayHtml}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -1166,7 +920,6 @@
             <th>プレイヤー名</th>
             <th>メンバーID</th>
             <th>クリアタイム</th>
-            <th>接続地域 (IP Geo)</th>
           </tr>
         `;
         const items = lootlockerRawData.timeAttack.filter(i => {
@@ -1178,18 +931,11 @@
           const rawScore = i.score;
           const actualMs = rawScore > 500000000 ? (1000000000 - rawScore) : rawScore;
           const sec = (actualMs / 1000).toFixed(2);
-          const meta = parseMeta(i.metadata);
-          const p = playerActivityList.find(pl => pl.id === String(i.member_id));
-          const ip = (meta && meta.ip) || (p && p.ip) || '';
-          const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
-          const isp = (meta && meta.isp) || (p && p.isp) || '';
-          const ipGeo = resolveIpGeo(ip, loc, isp);
           tr.innerHTML = `
             <td style="font-weight:bold; color:#c084fc;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
             <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
-            <td>${ipGeo.displayHtml}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -1200,7 +946,6 @@
             <th>プレイヤー名</th>
             <th>メンバーID</th>
             <th>累計コイン数</th>
-            <th>接続地域 (IP Geo)</th>
           </tr>
         `;
         const items = lootlockerRawData.coins.filter(i => {
@@ -1209,18 +954,11 @@
         });
         items.forEach(i => {
           const tr = document.createElement('tr');
-          const meta = parseMeta(i.metadata);
-          const p = playerActivityList.find(pl => pl.id === String(i.member_id));
-          const ip = (meta && meta.ip) || (p && p.ip) || '';
-          const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
-          const isp = (meta && meta.isp) || (p && p.isp) || '';
-          const ipGeo = resolveIpGeo(ip, loc, isp);
           tr.innerHTML = `
             <td style="font-weight:bold; color:#facc15;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
             <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#facc15;">${i.score.toLocaleString()} 枚</td>
-            <td>${ipGeo.displayHtml}</td>
           `;
           tbody.appendChild(tr);
         });
