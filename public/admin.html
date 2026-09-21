@@ -115,7 +115,7 @@
             FOLLOW ME! 利用者アクティビティ
             <span id="modeBadge" class="mode-badge">検出中...</span>
           </h1>
-          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">ユーザー・利用端末・プレイ区域・プレイ日時の動向分析</div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">ユーザー・プレイ区域・プレイ日時の動向分析</div>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <a href="./" class="return-link" style="margin-right:8px;">← ゲームに戻る</a>
@@ -133,8 +133,8 @@
           <div class="stat-val" id="statUniquePlayers">-</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">📱 端末利用比率</div>
-          <div class="stat-val" id="statDeviceBreakdown" style="font-size:17px; line-height:1.4;">-</div>
+          <div class="stat-label">🏆 クリア達成プレイヤー</div>
+          <div class="stat-val" id="statClearedPlayers" style="font-size:17px; line-height:1.4;">-</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">📍 主要IP接続地域 (GeoIP)</div>
@@ -158,7 +158,7 @@
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="nav-tabs" id="tabContainer">
-          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">👥 ユーザー利用状況 (端末・IP地域・日時)</button>
+          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">👥 ユーザー利用状況 (IP地域・日時)</button>
           <button id="tabSecondary" class="tab-btn" onclick="switchTab('secondary')">🕒 プレイ履歴タイムライン (最新順)</button>
           <button id="tabLeaderboards" class="tab-btn" onclick="switchTab('leaderboards')">🏆 参考ランキング</button>
         </div>
@@ -169,7 +169,7 @@
             <option value="coins">並び替え: コイン獲得順</option>
             <option value="name">並び替え: ユーザー名順</option>
           </select>
-          <input type="text" id="searchInput" class="search-input" placeholder="名前 / ID / 端末 / IP / 接続地域で検索..." oninput="renderTables()">
+          <input type="text" id="searchInput" class="search-input" placeholder="名前 / ID / IP / 接続地域で検索..." oninput="renderTables()">
         </div>
       </div>
 
@@ -180,7 +180,6 @@
             <tr>
               <th>ユーザー名</th>
               <th>メンバーID</th>
-              <th>使用端末</th>
               <th>🌐 IPアドレス / 接続地域</th>
               <th>最終プレイ日時</th>
               <th>到達記録</th>
@@ -200,7 +199,6 @@
               <th>アクション</th>
               <th>ユーザー名</th>
               <th>メンバーID</th>
-              <th>使用端末</th>
               <th>🌐 IPアドレス / 接続地域</th>
               <th>プレイ内容</th>
             </tr>
@@ -460,15 +458,6 @@
       };
     }
 
-    function resolveDevice(meta, rawDevice) {
-      const d = (meta && meta.dev) || rawDevice || '';
-      if (!d || d === 'Unknown') return '🌐 Web (ブラウザ)';
-      let icon = '📱';
-      if (/Windows|Mac|Linux|PC/i.test(d)) icon = '💻';
-      else if (/iPad|Tablet/i.test(d)) icon = '📟';
-      return `${icon} ${d}`;
-    }
-
     function parseMeta(metaStr) {
       if (!metaStr) return null;
       try {
@@ -702,7 +691,6 @@
             playerMap.set(pid, {
               id: pid,
               name: s.name || '名無し',
-              device: resolveDevice(null, s.device),
               ip: ip,
               ipLocation: ipGeo.location,
               isp: ipGeo.isp,
@@ -735,14 +723,19 @@
       }
 
       // 2. Ingest Live LootLocker Leaderboards (Altitude, TA, Coins)
+      // ※管理画面実装後フォーマット (ts タイムスタンプが記録された新データ) のみ表示対象とし、過去データは除外
       const ingestLootLockerItem = (item, boardType) => {
         if (!item || !item.member_id) return;
-        const pid = String(item.member_id);
-        const name = (item.player && item.player.name) || '名無し';
         const meta = parseMeta(item.metadata);
 
-        let timeMs = (meta && meta.ts) ? meta.ts : (item.created_at ? new Date(item.created_at).getTime() : 0);
-        let device = resolveDevice(meta);
+        // 管理画面実装後のフォーマット (meta.ts が存在し有効な数値) のみ受領
+        if (!meta || !meta.ts) return;
+        let timeMs = Number(meta.ts);
+        if (isNaN(timeMs) || timeMs <= 0) return;
+
+        const pid = String(item.member_id);
+        const name = (item.player && item.player.name) || '名無し';
+
         let ip = (meta && meta.ip) || '';
         let loc = (meta && meta.loc) || '';
         let isp = (meta && meta.isp) || '';
@@ -769,32 +762,29 @@
         if (coinsVal > 0) detail += `コイン: ${coinsVal}枚 `;
         if (taSec !== null) detail += `タイム: ${taSec.toFixed(2)}s`;
 
-        if (timeMs > 0) {
-          events.push({
-            time: timeMs,
-            name: name,
-            id: pid,
-            device: device,
-            ip: ip,
-            ipLocation: ipGeo.location,
-            isp: ipGeo.isp,
-            ipDisplayHtml: ipGeo.displayHtml,
-            action: act,
-            detail: detail.trim() || '-'
-          });
-        }
+        events.push({
+          time: timeMs,
+          name: name,
+          id: pid,
+          ip: ip,
+          ipLocation: ipGeo.location,
+          isp: ipGeo.isp,
+          ipDisplayHtml: ipGeo.displayHtml,
+          action: act,
+          detail: detail.trim() || '-'
+        });
 
         if (!playerMap.has(pid)) {
           playerMap.set(pid, {
             id: pid,
             name: name,
-            device: device,
             ip: ip,
             ipLocation: ipGeo.location,
             isp: ipGeo.isp,
             ipDisplayHtml: ipGeo.displayHtml,
-            lastSeen: timeMs || Date.now() - 86400000 * 3, // default recent estimate if legacy
-            firstSeen: timeMs || Date.now() - 86400000 * 3,
+            lastSeen: timeMs,
+            firstSeen: timeMs,
+            hasRealTime: true,
             maxAlt: altM,
             maxCoins: coinsVal,
             bestTA: taSec,
@@ -806,7 +796,7 @@
           if (name && name !== '名無し') p.name = name;
           if (timeMs > p.lastSeen) {
             p.lastSeen = timeMs;
-            if (meta && meta.dev) p.device = device;
+            p.hasRealTime = true;
             if (ip) {
               p.ip = ip;
               p.ipLocation = ipGeo.location;
@@ -823,7 +813,7 @@
 
       (lootlockerRawData.coins || []).forEach(i => ingestLootLockerItem(i, 'coins'));
       (lootlockerRawData.altitude || []).forEach(i => ingestLootLockerItem(i, 'alt'));
-      (lootlockerRawData.timeAttack || []).forEach(i => ingestLootLockerItem(i, 'ta'));
+      (lootlockerRawData.ta || lootlockerRawData.timeAttack || []).forEach(i => ingestLootLockerItem(i, 'ta'));
 
       // Sort chronological events: newest first
       events.sort((a, b) => b.time - a.time);
@@ -837,19 +827,14 @@
       // 1. Unique Players
       document.getElementById('statUniquePlayers').innerText = `${playerActivityList.length.toLocaleString()} 名`;
 
-      // 2. Device Breakdown
-      let mobileCount = 0;
-      let pcCount = 0;
+      // 2. Cleared Players
+      let clearedCount = 0;
       playerActivityList.forEach(p => {
-        if (/iPhone|Android|iPad|Mobile/i.test(p.device)) mobileCount++;
-        else pcCount++;
+        if (p.maxAlt >= 144000 || (p.bestTA && p.bestTA > 0)) clearedCount++;
       });
-      const totalDev = Math.max(playerActivityList.length, 1);
-      const mPct = Math.round((mobileCount / totalDev) * 100);
-      const pcPct = 100 - mPct;
-      document.getElementById('statDeviceBreakdown').innerHTML = `
-        <span>📱 スマホ ${mPct}%</span> <br>
-        <span style="color:#94a3b8; font-size:12px; font-weight:normal;">💻 PC ${pcPct}%</span>
+      document.getElementById('statClearedPlayers').innerHTML = `
+        <span style="color:#38bdf8;">${clearedCount.toLocaleString()} 名</span> <br>
+        <span style="color:#94a3b8; font-size:12px; font-weight:normal;">(高度144,000m到達)</span>
       `;
 
       // 3. Region Breakdown (Strictly from IP location)
@@ -897,7 +882,10 @@
           <span style="color:#94a3b8; font-size:12px; font-weight:normal;">${formatJST(latest.time)}</span>
         `;
       } else {
-        document.getElementById('statLatestActivity').innerText = '-';
+        document.getElementById('statLatestActivity').innerHTML = `
+          <span style="color:#94a3b8; font-size:13px;">新記録ログ待ち</span> <br>
+          <span style="color:#64748b; font-size:11px; font-weight:normal;">(新バージョンプレイ後に反映)</span>
+        `;
       }
 
       // 5. Hourly Distribution Chart
@@ -924,6 +912,8 @@
           `;
           chartEl.appendChild(col);
         }
+      } else {
+        document.getElementById('chartSection').classList.add('hidden');
       }
     }
 
@@ -998,7 +988,6 @@
         list = list.filter(p =>
           (p.name && p.name.toLowerCase().includes(q)) ||
           (p.id && p.id.toLowerCase().includes(q)) ||
-          (p.device && p.device.toLowerCase().includes(q)) ||
           (p.ip && p.ip.toLowerCase().includes(q)) ||
           (p.ipLocation && p.ipLocation.toLowerCase().includes(q)) ||
           (p.isp && p.isp.toLowerCase().includes(q)) ||
@@ -1008,7 +997,12 @@
 
       // Sorting
       if (sort === 'recent') {
-        list.sort((a, b) => b.lastSeen - a.lastSeen);
+        list.sort((a, b) => {
+          if ((b.lastSeen || 0) !== (a.lastSeen || 0)) {
+            return (b.lastSeen || 0) - (a.lastSeen || 0);
+          }
+          return (b.maxAlt || 0) - (a.maxAlt || 0);
+        });
       } else if (sort === 'alt') {
         list.sort((a, b) => (b.maxAlt || 0) - (a.maxAlt || 0));
       } else if (sort === 'coins') {
@@ -1019,9 +1013,9 @@
 
       list.forEach(p => {
         const tr = document.createElement('tr');
-        const isRecentlyActive = (Date.now() - p.lastSeen) < (15 * 60 * 1000);
+        const isRecentlyActive = p.lastSeen > 0 && (Date.now() - p.lastSeen) < (15 * 60 * 1000);
         const onlineDot = isRecentlyActive ? '<span class="dot-online" title="直近15分以内にアクティブ"></span>' : '';
-        const timeAgo = formatTimeAgo(p.lastSeen);
+        const timeAgo = p.lastSeen > 0 ? formatTimeAgo(p.lastSeen) : '';
 
         let recordStr = '';
         if (p.maxAlt > 0) recordStr += `<span style="color:#34d399; font-weight:bold;">${p.maxAlt.toLocaleString()}m</span> `;
@@ -1036,20 +1030,29 @@
           statusBadge = '<span class="badge badge-coin">コイン更新</span>';
         }
 
+        let dateCellHtml = '';
+        if (p.lastSeen > 0) {
+          dateCellHtml = `
+            <div style="font-weight:600; color:#e2e8f0;">${formatJST(p.lastSeen)}</div>
+            <div style="margin-top:2px;">${timeAgo}</div>
+          `;
+        } else {
+          dateCellHtml = `
+            <div style="color:#64748b; font-size:12px;">日時記録なし</div>
+            <div style="color:#475569; font-size:11px;">(旧データ)</div>
+          `;
+        }
+
         tr.innerHTML = `
           <td>
             <div style="font-weight:700; color:#fff; font-size:13px;">${onlineDot}${escapeHtml(p.name)}</div>
           </td>
           <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(p.id)}</td>
           <td>
-            <span class="badge badge-device">${escapeHtml(p.device)}</span>
-          </td>
-          <td>
             ${p.ipDisplayHtml || renderIpCellMarkup(p.ip, p.ipLocation, p.isp)}
           </td>
           <td>
-            <div style="font-weight:600; color:#e2e8f0;">${formatJST(p.lastSeen)}</div>
-            <div style="margin-top:2px;">${timeAgo}</div>
+            ${dateCellHtml}
           </td>
           <td>${recordStr}</td>
           <td>${statusBadge}</td>
@@ -1058,7 +1061,12 @@
       });
 
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">該当するユーザーデータがありません</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:36px 20px; color:#94a3b8; line-height:1.7;">
+          <div style="font-size:15px; font-weight:600; color:#e2e8f0; margin-bottom:6px;">🕒 管理画面実装後のプレイデータはありません</div>
+          <div style="font-size:13px; color:#64748b;">
+            ※過去の旧データは除外されています。新フォーマットでプレイ記録が送信されるとここに一覧表示されます。
+          </div>
+        </td></tr>`;
       }
     }
 
@@ -1072,7 +1080,6 @@
         list = list.filter(ev =>
           (ev.name && ev.name.toLowerCase().includes(q)) ||
           (ev.id && ev.id.toLowerCase().includes(q)) ||
-          (ev.device && ev.device.toLowerCase().includes(q)) ||
           (ev.ip && ev.ip.toLowerCase().includes(q)) ||
           (ev.ipLocation && ev.ipLocation.toLowerCase().includes(q)) ||
           (ev.isp && ev.isp.toLowerCase().includes(q)) ||
@@ -1097,7 +1104,6 @@
           <td>${actionBadge}</td>
           <td style="font-weight:700; color:#fff;">${escapeHtml(ev.name)}</td>
           <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(ev.id)}</td>
-          <td><span class="badge badge-device">${escapeHtml(ev.device)}</span></td>
           <td>${ev.ipDisplayHtml || renderIpCellMarkup(ev.ip, ev.ipLocation, ev.isp)}</td>
           <td style="color:#cbd5e1; font-weight:500;">${escapeHtml(ev.detail)}</td>
         `;
@@ -1105,7 +1111,12 @@
       });
 
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:#64748b;">該当する履歴がありません</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:36px 20px; color:#94a3b8; line-height:1.7;">
+          <div style="font-size:15px; font-weight:600; color:#e2e8f0; margin-bottom:6px;">🕒 リアルタイム日時が記録されたプレイ履歴はありません</div>
+          <div style="font-size:13px; color:#64748b;">
+            ※管理画面実装後の新フォーマットでプレイ記録が送信されると自動的に反映されます。
+          </div>
+        </td></tr>`;
       }
     }
 
@@ -1122,7 +1133,7 @@
             <th>プレイヤー名</th>
             <th>メンバーID</th>
             <th>最高到達高度</th>
-            <th>付加情報</th>
+            <th>接続地域 (IP Geo)</th>
           </tr>
         `;
         const items = lootlockerRawData.altitude.filter(i => {
@@ -1139,13 +1150,12 @@
           const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
           const isp = (meta && meta.isp) || (p && p.isp) || '';
           const ipGeo = resolveIpGeo(ip, loc, isp);
-          const device = (p && p.device && p.device !== 'Unknown') ? p.device : resolveDevice(meta);
           tr.innerHTML = `
             <td style="font-weight:bold; color:#38bdf8;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
             <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
-            <td><span class="badge badge-device">${escapeHtml(device)}</span> ${ipGeo.displayHtml}</td>
+            <td>${ipGeo.displayHtml}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -1156,7 +1166,7 @@
             <th>プレイヤー名</th>
             <th>メンバーID</th>
             <th>クリアタイム</th>
-            <th>付加情報</th>
+            <th>接続地域 (IP Geo)</th>
           </tr>
         `;
         const items = lootlockerRawData.timeAttack.filter(i => {
@@ -1174,13 +1184,12 @@
           const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
           const isp = (meta && meta.isp) || (p && p.isp) || '';
           const ipGeo = resolveIpGeo(ip, loc, isp);
-          const device = (p && p.device && p.device !== 'Unknown') ? p.device : resolveDevice(meta);
           tr.innerHTML = `
             <td style="font-weight:bold; color:#c084fc;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
             <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
-            <td><span class="badge badge-device">${escapeHtml(device)}</span> ${ipGeo.displayHtml}</td>
+            <td>${ipGeo.displayHtml}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -1191,7 +1200,7 @@
             <th>プレイヤー名</th>
             <th>メンバーID</th>
             <th>累計コイン数</th>
-            <th>付加情報</th>
+            <th>接続地域 (IP Geo)</th>
           </tr>
         `;
         const items = lootlockerRawData.coins.filter(i => {
@@ -1206,13 +1215,12 @@
           const loc = (meta && meta.loc) || (p && p.ipLocation) || '';
           const isp = (meta && meta.isp) || (p && p.isp) || '';
           const ipGeo = resolveIpGeo(ip, loc, isp);
-          const device = (p && p.device && p.device !== 'Unknown') ? p.device : resolveDevice(meta);
           tr.innerHTML = `
             <td style="font-weight:bold; color:#facc15;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
             <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#facc15;">${i.score.toLocaleString()} 枚</td>
-            <td><span class="badge badge-device">${escapeHtml(device)}</span> ${ipGeo.displayHtml}</td>
+            <td>${ipGeo.displayHtml}</td>
           `;
           tbody.appendChild(tr);
         });

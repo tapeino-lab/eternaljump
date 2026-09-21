@@ -19,7 +19,6 @@ function generateSignature(alt, coins, playTime, lang) {
 }
 
 
-
 export const LootLockerAPI = {
   hasLootLockerConfig: null,
   isDirectMode: false,
@@ -487,6 +486,8 @@ export const LootLockerAPI = {
       coins: c,
       lang: l,
       t: Math.floor(t / 1000),
+      ts: Date.now(),
+      act: (a >= 144000) ? 'クリア達成' : '高度記録更新',
       sig: sig,
       d: isDup
     });
@@ -568,6 +569,8 @@ export const LootLockerAPI = {
       coins: sc,
       lang: lang,
       name: getPlayerName(),
+      ts: Date.now(),
+      act: 'コイン更新',
       sig: sig,
       d: isDup
     });
@@ -643,6 +646,8 @@ export const LootLockerAPI = {
       coins: c,
       lang: l,
       t: Math.floor(t / 1000),
+      ts: Date.now(),
+      act: 'クリア達成 (TA)',
       sig: sig,
       d: isDup
     });
