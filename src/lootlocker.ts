@@ -6,19 +6,6 @@ import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerId
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 
 
-function generateSignature(alt, coins, playTime, lang) {
-  const salt = "E7eRn4L_JumP_Pr0t3ct10n";
-  let str = alt + "_" + (coins || 0) + "_" + Math.floor(playTime / 1000) + "_" + lang + "_" + salt;
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-      let char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-  }
-  return hash.toString(36);
-}
-
-
 export const LootLockerAPI = {
   hasLootLockerConfig: null,
   isDirectMode: false,
@@ -563,7 +550,7 @@ export const LootLockerAPI = {
     }
 
     let sc = Math.floor(coins);
-    let sig = generateSignature(0, sc, 0, lang);
+    let sig = computeGameSignature(0, sc, 0, lang);
     let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
     let meta = JSON.stringify({
       coins: sc,
@@ -757,21 +744,17 @@ export const LootLockerAPI = {
           if (i.metadata) m = JSON.parse(i.metadata);
         } catch (e) {}
         
-        let isValid = true;
-        if (m.sig) {
-            let expectedSig = generateSignature(m.alt, m.coins, (m.t || 0) * 1000, m.lang);
-            if (expectedSig !== m.sig) isValid = false;
-        } else {
-            isValid = false;
-        }
-        
-        // Impossible speed check (max theoretical speed is ~3600m/s)
-        if (m.t && m.t > 0) {
-            if (m.alt / m.t > 6000) isValid = false;
-        }
+        let alt = (typeof m.alt === 'number' && m.alt > 0) ? m.alt : FLR(i.score / 1000);
+        let coins = (typeof m.coins === 'number' && m.coins >= 0) ? m.coins : (i.score % 1000);
+        let playTimeMs = (typeof m.t === 'number') ? m.t * 1000 : 0;
+        let lang = m.lang || '---';
 
+        // Physical feasibility check (bounds, realistic speed, altitude max, coins max)
+        const physValidation = validatePhysicalScore(alt, coins, playTimeMs);
+        let isValid = physValidation.valid;
+        
         // Exclude 0m scores
-        if (!m.alt || m.alt <= 0) {
+        if (!alt || alt <= 0) {
             isValid = false;
         }
         
@@ -780,7 +763,7 @@ export const LootLockerAPI = {
             // MANUALLY FLAG SPECIFIC USERS WHO SUFFERED THE DUPLICATION BUG BEFORE THE FIX WAS DEPLOYED
             // Add their exact in-game names here.
             let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
-            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, t: (typeof m.t === 'number') ? m.t : 0, d: !!m.d || isManualTarget });
+            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: alt, coins: coins, lang: lang, n: playerName, t: (typeof m.t === 'number') ? m.t : 0, d: !!m.d || isManualTarget });
         }
       });
       
