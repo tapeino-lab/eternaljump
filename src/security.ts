@@ -20,7 +20,7 @@ export const MAX_ALLOWED_ALTITUDE = 144000;
 // In-memory rate limiter tracker for submissions (separated by leaderboard channel)
 let lastScoreSubmissionTimestamp = 0;
 let lastTASubmissionTimestamp = 0;
-const MIN_SUBMISSION_INTERVAL_MS = 1500; // 1.5s between submissions of the SAME leaderboard type
+const MIN_SUBMISSION_INTERVAL_MS = 500; // 500ms between submissions of the SAME leaderboard type
 
 /**
  * Validates if an altitude, time, and coin count are physically possible within the game rules.

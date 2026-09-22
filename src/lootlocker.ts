@@ -274,12 +274,31 @@ export const LootLockerAPI = {
       let validItems = [];
       allItems.forEach(i => {
         let m = null;
-        try { m = JSON.parse(i.metadata); } catch(e) {}
-        if (m && m.t) {
-            let playerName = (i.player && i.player.name) ? i.player.name : '???';
-            // MANUALLY FLAG SPECIFIC USERS WHO SUFFERED THE DUPLICATION BUG BEFORE THE FIX WAS DEPLOYED
-            let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
-            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: m.alt, coins: m.coins, lang: m.lang, n: playerName, t: 1000000000 - i.score, d: !!m.d || isManualTarget });
+        try { if (i.metadata) m = JSON.parse(i.metadata); } catch(e) {}
+        
+        let rawScore = i.score;
+        let actualMs = (typeof rawScore === 'number') ? (rawScore > 500000000 ? (1000000000 - rawScore) : rawScore) : 0;
+        let alt = (m && typeof m.alt === 'number') ? m.alt : 144000;
+        let coins = (m && typeof m.coins === 'number') ? m.coins : 0;
+        let lang = (m && m.lang) ? m.lang : '---';
+        let playerName = (i.player && i.player.name) ? i.player.name : '???';
+
+        // Check if time is in valid reasonable range
+        if (actualMs > 0 && actualMs < 86400000) {
+            const physValidation = validatePhysicalScore(alt, coins, actualMs);
+            if (physValidation.valid) {
+                let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
+                validItems.push({ 
+                  id: i.member_id, 
+                  _originalRank: i.rank, 
+                  alt: alt, 
+                  coins: coins, 
+                  lang: lang, 
+                  n: playerName, 
+                  t: actualMs, 
+                  d: (m && !!m.d) || isManualTarget 
+                });
+            }
         }
       });
       // Deduplicate by name but ONLY if explicitly flagged as a duplication bug
@@ -454,15 +473,33 @@ export const LootLockerAPI = {
       return false;
     }
 
+    // Helper to queue score locally for retry
+    const queuePendingScore = () => {
+      if (!isRetry) {
+        try {
+          let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
+          pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
+          pending.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.t || 99999999) - (B.t || 99999999));
+          pending = pending.slice(0, 1);
+          safeStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
+          this.log('Score saved locally for offline queue (PB only).', 'warning');
+        } catch (err) {
+          safeStorage.removeItem('LL_PENDING_SCORES');
+        }
+      }
+    };
+
     // Anti-Cheat: Rate limit rapid automated submissions
     if (!isRetry && !checkSubmissionRateLimit()) {
-      this.log('Score submission throttled: minimum interval violation', 'warning');
+      this.log('Score submission throttled: minimum interval violation, queuing for next retry', 'warning');
+      queuePendingScore();
       return false;
     }
 
     this.log(`Attempting to submit score: ${a}m (Coins: ${c}, Lang: ${l})`, 'info');
     if (!await this.init()) {
-      this.log('Score submission aborted (Init Failed)', 'error');
+      this.log('Score submission aborted (Init Failed), queuing for next retry', 'error');
+      queuePendingScore();
       return false;
     }
     let sc = a * 1000 + c;

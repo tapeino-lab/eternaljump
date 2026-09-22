@@ -47,11 +47,20 @@ import { validatePhysicalScore } from '../security.js';
               onlineIsBetter = true;
             }
 
-            if (onlineIsBetter || pending.length === 0) {
+            if (onlineIsBetter) {
               secureStorage.setItem(pbKey, onlinePB);
-              if (game.personalBest && game.personalBest.alt === onlinePB.alt) {
-                game.personalBest.time = onlinePB.time;
-                game.personalBest.coins = onlinePB.coins;
+              if (!game.personalBest || game.personalBest.alt <= onlinePB.alt) {
+                game.personalBest = onlinePB;
+              }
+            } else if (localPB && typeof localPB.alt === 'number' && localPB.alt > 0) {
+              // Local is strictly better than online -> Upload local PB to server to fix desync
+              const v = validatePhysicalScore(localPB.alt, localPB.coins || 0, localPB.time || 0);
+              if (v.valid) {
+                LootLockerAPI.submitScore(localPB.alt, localPB.coins || 0, localPB.time || 0, currentLang).then(res => {
+                  if (res) {
+                    safeStorage.setItem('LL_LAST_FETCH', '0');
+                  }
+                });
               }
             }
 
@@ -87,13 +96,23 @@ import { validatePhysicalScore } from '../security.js';
           }
 
           if (onlineTAPB && typeof onlineTAPB.time === 'number' && onlineTAPB.time > 0 && onlineTAPB.time < 86400000) {
-            if (pending.length === 0) {
+            let localTAPB = secureStorage.getItem<any>(taPbKey, null);
+            let localTime = (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0) ? localTAPB.time : 99999999;
+
+            if (!localTAPB || typeof localTAPB.time !== 'number' || localTAPB.time <= 0 || onlineTAPB.time < localTime) {
               secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
-            } else {
-              let localTAPB = secureStorage.getItem<any>(taPbKey, null);
-              let localTime = (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0) ? localTAPB.time : 99999999;
-              if (!localTAPB || typeof localTAPB.time !== 'number' || localTAPB.time <= 0 || onlineTAPB.time <= localTime) {
-                secureStorage.setItem(taPbKey, { time: onlineTAPB.time });
+            } else if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0 && localTAPB.time < onlineTAPB.time) {
+              // Local TA PB is better than online -> upload local TA PB to server
+              let localPB = secureStorage.getItem<any>(pbKey, null);
+              let alt = (localPB && typeof localPB.alt === 'number') ? localPB.alt : 144000;
+              let coins = (localPB && typeof localPB.coins === 'number') ? localPB.coins : 0;
+              const v = validatePhysicalScore(alt, coins, localTAPB.time);
+              if (v.valid) {
+                LootLockerAPI.submitTimeAttackScore(localTAPB.time, alt, coins, currentLang).then(res => {
+                  if (res) {
+                    safeStorage.setItem('LL_LAST_TA_FETCH', '0');
+                  }
+                });
               }
             }
 
