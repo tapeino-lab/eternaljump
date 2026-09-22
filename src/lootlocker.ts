@@ -119,7 +119,7 @@ export const LootLockerAPI = {
       console.warn("Failed to fetch remote coins", e);
     }
 
-    if (localTotal >= 0) {
+    if (localTotal > remoteTotal && localTotal > 0) {
       await this.submitCoinScore(localTotal, getLang());
     }
   },

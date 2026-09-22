@@ -47,12 +47,23 @@ import { validatePhysicalScore } from '../security.js';
               onlineIsBetter = true;
             }
 
+            let localIsBetter = false;
+            if (localPB && typeof localPB.alt === 'number' && localPB.alt > 0) {
+              let localCoins = localPB.coins || 0;
+              let onlineCoins = onlinePB.coins || 0;
+              if (localPB.alt > onlinePB.alt || 
+                  (localPB.alt === onlinePB.alt && localCoins > onlineCoins) || 
+                  (localPB.alt === onlinePB.alt && localCoins === onlineCoins && localTime < onlineTime)) {
+                localIsBetter = true;
+              }
+            }
+
             if (onlineIsBetter) {
               secureStorage.setItem(pbKey, onlinePB);
               if (!game.personalBest || game.personalBest.alt <= onlinePB.alt) {
                 game.personalBest = onlinePB;
               }
-            } else if (localPB && typeof localPB.alt === 'number' && localPB.alt > 0) {
+            } else if (localIsBetter) {
               // Local is strictly better than online -> Upload local PB to server to fix desync
               const v = validatePhysicalScore(localPB.alt, localPB.coins || 0, localPB.time || 0);
               if (v.valid) {
@@ -62,16 +73,6 @@ import { validatePhysicalScore } from '../security.js';
                   }
                 });
               }
-            }
-
-            // Sync language online only if online registered language differs from current local language
-            if (onlinePB.lang && onlinePB.lang !== currentLang) {
-              LootLockerAPI.submitScore(onlinePB.alt, onlinePB.coins, onlinePB.time, currentLang).then(res => {
-                if (res) {
-                  safeStorage.setItem('LL_LAST_FETCH', '0');
-                  updateOptimisticCache(onlinePB.alt, onlinePB.coins, onlinePB.time, false);
-                }
-              });
             }
           } else if (onlinePB && onlinePB.notFound) {
             // Player preservation: If online PB is not found but local PB exists,
@@ -114,16 +115,6 @@ import { validatePhysicalScore } from '../security.js';
                   }
                 });
               }
-            }
-
-            // Sync language online for TA only if online registered language differs from current local language
-            if (onlineTAPB.lang && onlineTAPB.lang !== currentLang) {
-              LootLockerAPI.submitTimeAttackScore(onlineTAPB.time, onlineTAPB.alt || 144000, onlineTAPB.coins || 0, currentLang).then(res => {
-                if (res) {
-                  safeStorage.setItem('LL_LAST_TA_FETCH', '0');
-                  updateOptimisticCache(onlineTAPB.alt || 144000, onlineTAPB.coins || 0, onlineTAPB.time, true);
-                }
-              });
             }
           } else if (onlineTAPB && onlineTAPB.notFound) {
             // Player preservation: If online TA PB is not found but local TA record exists,
