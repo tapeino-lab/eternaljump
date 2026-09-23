@@ -158,10 +158,10 @@
           <thead>
             <tr>
               <th>ユーザー名</th>
-              <th>メンバーID</th>
               <th>最終プレイ日時</th>
               <th>到達記録</th>
               <th>ステータス</th>
+              <th>メンバーID</th>
             </tr>
           </thead>
           <tbody id="tablePrimaryBody"></tbody>
@@ -176,8 +176,8 @@
               <th>発生日時 (JST)</th>
               <th>アクション</th>
               <th>ユーザー名</th>
-              <th>メンバーID</th>
               <th>プレイ内容</th>
+              <th>メンバーID</th>
             </tr>
           </thead>
           <tbody id="tableSecondaryBody"></tbody>
@@ -787,12 +787,12 @@
           <td>
             <div style="font-weight:700; color:#fff; font-size:13px;">${onlineDot}${escapeHtml(p.name)}</div>
           </td>
-          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(p.id)}</td>
           <td>
             ${dateCellHtml}
           </td>
           <td>${recordStr}</td>
           <td>${statusBadge}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(p.id)}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -837,8 +837,8 @@
           </td>
           <td>${actionBadge}</td>
           <td style="font-weight:700; color:#fff;">${escapeHtml(ev.name)}</td>
-          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(ev.id)}</td>
           <td style="color:#cbd5e1; font-weight:500;">${escapeHtml(ev.detail)}</td>
+          <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(ev.id)}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -864,8 +864,8 @@
           <tr>
             <th>順位</th>
             <th>プレイヤー名</th>
-            <th>メンバーID</th>
             <th>最高到達高度</th>
+            <th>メンバーID</th>
           </tr>
         `;
         const items = lootlockerRawData.altitude.filter(i => {
@@ -879,8 +879,8 @@
           tr.innerHTML = `
             <td style="font-weight:bold; color:#38bdf8;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
-            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#34d399;">${altM.toLocaleString()} m <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(${coins}枚)</span></td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -889,8 +889,8 @@
           <tr>
             <th>順位</th>
             <th>プレイヤー名</th>
-            <th>メンバーID</th>
             <th>クリアタイム</th>
+            <th>メンバーID</th>
           </tr>
         `;
         const items = lootlockerRawData.timeAttack.filter(i => {
@@ -905,8 +905,8 @@
           tr.innerHTML = `
             <td style="font-weight:bold; color:#c084fc;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
-            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#facc15;">${sec} 秒</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -915,8 +915,8 @@
           <tr>
             <th>順位</th>
             <th>プレイヤー名</th>
-            <th>メンバーID</th>
             <th>累計コイン数</th>
+            <th>メンバーID</th>
           </tr>
         `;
         const items = lootlockerRawData.coins.filter(i => {
@@ -928,8 +928,8 @@
           tr.innerHTML = `
             <td style="font-weight:bold; color:#facc15;">#${i.rank}</td>
             <td style="font-weight:700; color:#fff;">${escapeHtml((i.player && i.player.name) || '名無し')}</td>
-            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
             <td style="font-weight:bold; color:#facc15;">${i.score.toLocaleString()} 枚</td>
+            <td style="font-family:monospace; color:#94a3b8;">${escapeHtml(String(i.member_id))}</td>
           `;
           tbody.appendChild(tr);
         });
