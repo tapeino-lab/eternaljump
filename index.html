@@ -20,6 +20,7 @@
     setAppHeight();
   </script>
   <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -191,9 +192,9 @@
         <div id="rankingContainer" class="result-container">
           <div class="ranking-title-spacer" style="height: 22px; margin-bottom: 10px;"></div>
           <div class="ranking-title-header">
-            <span id="rankingPrevLangBtn" class="ranking-arrow-indicator" style="display: none;">◀</span>
+            <span id="rankingPrevLangBtn" class="ranking-arrow-indicator" style="display: none;">◀&#xFE0E;</span>
             <h1 id="rankingTitleLabel" class="ranking-title">RANKING</h1>
-            <span id="rankingNextLangBtn" class="ranking-arrow-indicator" style="display: none;">▶</span>
+            <span id="rankingNextLangBtn" class="ranking-arrow-indicator" style="display: none;">▶&#xFE0E;</span>
           </div>
           <div class="ranking-list-inner">
             <table class="ranking-table-header-table">
@@ -245,8 +246,8 @@
   <div id="controlArea">
     <button id="autoCruiseBtn" style="position: absolute; top: calc(-50px * var(--ctrl-scale, 1)); left: 50%; transform: translateX(-50%); width: calc(80px * var(--ctrl-scale, 1)); height: calc(40px * var(--ctrl-scale, 1)); font-size: calc(10px * var(--ctrl-scale, 1)); z-index: 1; display: none; background: rgba(0,0,0,0.5); color: #fff; border: 3px solid rgba(255, 255, 255, 0.7); border-radius: 6px; font-family: 'Press Start 2P', monospace; cursor: pointer;">AUTO</button>
     <div id="pauseBtn"></div>
-    <div id="btnLeft" class="dir-btn"><span class="tri"></span></div>
-    <div id="btnRight" class="dir-btn"><span class="tri"></span></div>
+    <div id="btnLeft" class="dir-btn"><svg class="tri tri-left" viewBox="0 0 22 28" aria-hidden="true"><path d="M22 0 L22 28 L0 14 Z" /></svg></div>
+    <div id="btnRight" class="dir-btn"><svg class="tri tri-right" viewBox="0 0 22 28" aria-hidden="true"><path d="M0 0 L22 14 L0 28 Z" /></svg></div>
     <div id="tapToStartMsg" class="tap-to-start-msg">TAP TO START</div>
   </div>
 <div id="shopScreen" class="shop-screen">
@@ -314,8 +315,8 @@
     </div>
 
     <div id="shopControlArea">
-      <div id="shopBtnLeft" class="dir-btn" style="opacity: 0.2;"><span class="tri"></span></div>
-      <div id="shopBtnRight" class="dir-btn" style="opacity: 0.2;"><span class="tri"></span></div>
+      <div id="shopBtnLeft" class="dir-btn" style="opacity: 0.2;"><svg class="tri tri-left" viewBox="0 0 22 28" aria-hidden="true"><path d="M22 0 L22 28 L0 14 Z" /></svg></div>
+      <div id="shopBtnRight" class="dir-btn" style="opacity: 0.2;"><svg class="tri tri-right" viewBox="0 0 22 28" aria-hidden="true"><path d="M0 0 L22 14 L0 28 Z" /></svg></div>
       <div id="shopTapToClose" class="tap-to-start-msg" style="display: block;">TAP TO CLOSE</div>
     </div>
   </div>
