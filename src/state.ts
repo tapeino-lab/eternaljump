@@ -1,4 +1,5 @@
 import type { GameState } from './types.js';
+import { secureStorage } from './secureStorage.js';
 
 export function createInitialGameState(): GameState {
   let scoreKey = Math.floor(Math.random() * 0xFFFFFFFF);
@@ -55,7 +56,8 @@ export function createInitialGameState(): GameState {
     lastUI: '',
     flockDir: 1,
     isNewRecord: false,
-  isNewTARecord: false,
+    isNewTARecord: false,
+    coinsAwardedThisRun: false,
     personalBest: null,
     showAIThoughts: false,
     meteorOverheat: 0,
@@ -147,6 +149,7 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.lastScoreObj = initial.lastScoreObj;
   game.isNewRecord = initial.isNewRecord;
   game.isNewTARecord = false;
+  game.coinsAwardedThisRun = false;
   game.personalBest = personalBest;
   game.clearTime = initial.clearTime;
   game.debugUsed = initial.debugUsed;
@@ -154,6 +157,17 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.showAIThoughts = oldShowAIThoughts;
   game.meteorOverheat = 0;
   game.npcExclamationBonus = false;
+}
+
+export function awardRunCoins(reason: string, baseCoins: number): number {
+  if (game.coinsAwardedThisRun || game.demoMode) return 0;
+  let earned = (reason === 'CLEAR') ? (baseCoins * 2) : baseCoins;
+  if (earned > 0) {
+    game.totalCoins += earned;
+    secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+  }
+  game.coinsAwardedThisRun = true;
+  return earned;
 }
 
 export function isEquipped(game: GameState, id: string): boolean {

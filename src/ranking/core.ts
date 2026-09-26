@@ -1,4 +1,4 @@
-import { game } from '../state.js';
+import { game, awardRunCoins } from '../state.js';
 import { secureStorage } from '../secureStorage.js';
 import { safeStorage } from '../safeStorage.js';
 import { LootLockerAPI } from '../lootlocker.js';
@@ -391,7 +391,8 @@ import { validatePhysicalScore } from '../security.js';
         }
 
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;
-        game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l };
+        awardRunCoins(r, c);
+        game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l, coinsAdded: true };
         game.lastScoreId = pid;
         let pbKey = RankingAPI.pbKey;
         game.isNewRecord = false;

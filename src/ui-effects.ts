@@ -1,13 +1,47 @@
 import { game } from './state.js';
-import { secureStorage } from './secureStorage.js';
 
-export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', alreadyAddedToTotal: boolean = false, showWindow: boolean = true) {
-  if (coins <= 0) return;
-  
-  if (alreadyAddedToTotal) {
-    game.totalCoins -= coins;
+export let animatedTotalCoins: number | null = null;
+
+let activeDelayTimer: any = null;
+let activeCountUpDelayTimer: any = null;
+let activeSpawnTimer: any = null;
+let activeFloater: HTMLElement | null = null;
+
+export function stopCoinCountUpAnimation() {
+  if (activeDelayTimer) {
+    clearTimeout(activeDelayTimer);
+    activeDelayTimer = null;
   }
-  
+  if (activeCountUpDelayTimer) {
+    clearTimeout(activeCountUpDelayTimer);
+    activeCountUpDelayTimer = null;
+  }
+  if (activeSpawnTimer) {
+    clearInterval(activeSpawnTimer);
+    activeSpawnTimer = null;
+  }
+  if (activeFloater) {
+    activeFloater.remove();
+    activeFloater = null;
+  }
+  animatedTotalCoins = null;
+}
+
+export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', _alreadyAddedToTotal: boolean = false, showWindow: boolean = true) {
+  if (coins <= 0) return;
+
+  stopCoinCountUpAnimation();
+
+  const finalTotal = game.totalCoins;
+  const startTotal = Math.max(0, finalTotal - coins);
+  animatedTotalCoins = startTotal;
+
+  // Immediately reflect starting animated value in HUD if present
+  let hudCoinEl = document.getElementById('hud-coin');
+  if (hudCoinEl) {
+    hudCoinEl.textContent = startTotal.toString();
+  }
+
   let floater: HTMLElement | null = null;
   let valSpan: HTMLElement | null = null;
   if (showWindow) {
@@ -42,11 +76,13 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
     let cw = document.getElementById('canvasWrapper');
     if (cw) cw.appendChild(floater);
     valSpan = floater.querySelector('#floater-coin-val');
+    activeFloater = floater;
   }
   
   // Start flying effect after blinking text animation completes (1200ms)
   let delay = showWindow ? 1200 : 50;
-  setTimeout(() => {
+  activeDelayTimer = setTimeout(() => {
+    activeDelayTimer = null;
     // Spawn floating +n popup text near the HUD coin display
     let coinBox = document.getElementById('hud-coin-box') || (document.querySelector('#ui .coin-icon')?.parentElement as HTMLElement);
     if (coinBox && coinBox.parentElement) {
@@ -66,20 +102,8 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
       });
     }
 
-    let startX = 128;
-    let startY = 250;
-    let cw = document.getElementById('canvasWrapper');
-    let iconEl = floater ? floater.querySelector('.coin-icon') : null;
-    if (cw && iconEl) {
-      let cwRect = cw.getBoundingClientRect();
-      let iconRect = iconEl.getBoundingClientRect();
-      if (cwRect.width > 0 && cwRect.height > 0) {
-        startX = (iconRect.left + iconRect.width / 2 - cwRect.left) * (256 / cwRect.width);
-        startY = (iconRect.top + iconRect.height / 2 - cwRect.top) * (360 / cwRect.height);
-      }
-    }
-
     let remainingCoins = coins;
+    let currentDisplay = startTotal;
     // Split into max 10 particle bursts to complete smoothly even for large coin counts
     let totalSpawns = Math.min(coins, 10);
     let coinPerSpawn = Math.max(1, Math.ceil(coins / totalSpawns));
@@ -88,15 +112,24 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
     // Start count-up timing right as the popup begins fading out at 2.2 seconds (2200ms)
     let countUpDelay = 2200;
 
-    setTimeout(() => {
-      let spawnTimer = setInterval(() => {
-        if (remainingCoins <= 0) {
-          clearInterval(spawnTimer);
+    activeCountUpDelayTimer = setTimeout(() => {
+      activeCountUpDelayTimer = null;
+      activeSpawnTimer = setInterval(() => {
+        if (remainingCoins <= 0 || currentDisplay >= finalTotal) {
+          clearInterval(activeSpawnTimer);
+          activeSpawnTimer = null;
+          animatedTotalCoins = null;
+
+          let hc = document.getElementById('hud-coin');
+          if (hc) hc.textContent = finalTotal.toString();
+
           setTimeout(() => {
-            if (floater) {
-              floater.style.transition = 'opacity 0.3s';
-              floater.style.opacity = '0';
-              setTimeout(() => { if (floater) floater.remove(); }, 300);
+            if (activeFloater) {
+              activeFloater.style.transition = 'opacity 0.3s';
+              activeFloater.style.opacity = '0';
+              let toRemove = activeFloater;
+              activeFloater = null;
+              setTimeout(() => { if (toRemove) toRemove.remove(); }, 300);
             }
           }, 400);
           return;
@@ -104,12 +137,17 @@ export function applyCoinCountUp(coins: number, title: string = 'DEMO BONUS', al
 
         let amt = Math.min(remainingCoins, coinPerSpawn);
         remainingCoins -= amt;
+        currentDisplay = Math.min(finalTotal, currentDisplay + amt);
+        animatedTotalCoins = currentDisplay;
+
         if (valSpan) {
           valSpan.textContent = remainingCoins.toString();
         }
 
-        game.totalCoins += amt;
-        secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+        let hc = document.getElementById('hud-coin');
+        if (hc) {
+          hc.textContent = currentDisplay.toString();
+        }
 
         let coinBox = document.getElementById('hud-coin-box');
         if (coinBox) {

@@ -1,4 +1,4 @@
-import { game } from '../state.js';
+import { game, awardRunCoins } from '../state.js';
 import { setIgnoreNextTap } from '../lifecycle.js';
 import { secureStorage } from '../secureStorage.js';
 import { safeStorage } from '../safeStorage.js';
@@ -19,12 +19,10 @@ export let currentLangFilter = '';
         }
 }
       export const showResult = async function(state) {
-        if (!game.demoMode && game.lastScoreObj && !game.lastScoreObj.coinsAdded && state !== 'demo') {
+        if (!game.demoMode && game.lastScoreObj && !game.lastScoreObj.coinsAdded && !game.coinsAwardedThisRun && state !== 'demo') {
           let c = game.lastScoreObj.coins || 0;
-          if (state === 'clear') c *= 2;
-          game.totalCoins += c;
+          awardRunCoins(state === 'clear' ? 'CLEAR' : 'GAMEOVER', c);
           game.lastScoreObj.coinsAdded = true;
-          secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
         }
 
         RankingAPI.isShowingResult = true;

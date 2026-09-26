@@ -4,6 +4,7 @@ import { ctx, IMG } from '../display.js';
 import { isAttractMode, runAttractUICycle, setIgnoreNextTap } from '../lifecycle.js';
 import { fireworksSystem } from '../fireworks.js';
 import { airplaneSystem } from '../airplane.js';
+import { animatedTotalCoins } from '../ui-effects.js';
 import { config } from '../config.js';
 import { RankingAPI } from '../ranking.js';
 import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
@@ -282,7 +283,8 @@ export function updateHUD(topColor) {
   let isTitle = (isAttractMode && !demoState.active) || ((game.state === 'intro' || (game.state as any) === 'intro_anim') && game.player.y <= 240 - config.playerSize);
   let isTimerVisible = !isAttractMode;
 
-  let coinDisplay = isTitle ? game.totalCoins : game.scoreCoin;
+  let currentTotal = (animatedTotalCoins !== null) ? animatedTotalCoins : game.totalCoins;
+  let coinDisplay = isTitle ? currentTotal : game.scoreCoin;
   let scoreVal = isTitle ? -1 : MIN(config.goalScore, game.score);
 
   // Fast check equipped items key without array allocations if possible

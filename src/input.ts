@@ -1,5 +1,5 @@
 import { applyCoinCountUp } from './ui-effects.js';
-import { game } from './state.js';
+import { game, awardRunCoins } from './state.js';
 import { ctrlCenterX } from './display.js';
 import { isAttractMode, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, togglePause, setAuto } from './lifecycle.js';
 import { RankingAPI } from './ranking.js';
@@ -112,7 +112,7 @@ export class InputManager {
               let earned = game.scoreCoin;
               if (game.state === 'clear') earned *= 2;
               startAttractCycle();
-              applyCoinCountUp(earned, 'COINS GET!', true, false);
+              if (earned > 0) applyCoinCountUp(earned, 'COINS GET!', false, false);
             }
           } else if (game.isPaused) {
             $('tapToStartMsg')!.innerText = isAttractMode ? 'TAP TO CLOSE' : 'TAP TO RESUME';
@@ -157,7 +157,7 @@ export class InputManager {
       let earned = game.scoreCoin;
       if (game.state === 'clear') earned *= 2;
       startAttractCycle();
-      applyCoinCountUp(earned, 'COINS GET!', true, false);
+      if (earned > 0) applyCoinCountUp(earned, 'COINS GET!', false, false);
       return true;
     }
 
@@ -452,6 +452,9 @@ export class InputManager {
             e.preventDefault();
             e.stopPropagation();
             let earned = (!game.demoMode && game.scoreCoin) ? game.scoreCoin : 0;
+            if (earned > 0) {
+              awardRunCoins('PAUSE_QUIT', earned);
+            }
             $('pauseConfirmModal')!.style.display = 'none';
             $('pauseScreen')!.style.display = 'none';
             game.isPaused = false;

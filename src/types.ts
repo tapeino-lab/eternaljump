@@ -64,6 +64,7 @@ export interface GameState {
   flockDir: number;
   isNewRecord: boolean;
   isNewTARecord: boolean;
+  coinsAwardedThisRun?: boolean;
   isBenchmarking?: boolean;
   personalBest: any;
   showAIThoughts?: boolean;

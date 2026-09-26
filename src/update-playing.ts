@@ -1,5 +1,7 @@
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
+import { awardRunCoins } from './state.js';
+import { secureStorage } from './secureStorage.js';
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, getFc } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $, swapRemove, isColliding } from './utils.js';
@@ -149,6 +151,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
           game.player.isCleared = true;
           document.body.classList.add('game-ended');
           game.endReason = 'CLEAR';
+          awardRunCoins('CLEAR', game.scoreCoin);
           if (!isAttractMode && !game.demoMode) {
           }
           game.clearTime = game.playTime;
@@ -177,8 +180,12 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
             setTimeout(function() {
               if (game.state === 'gameover' || game.state === 'clear') {
                 let earned = game.scoreCoin;
+                if (earned > 0) {
+                  game.totalCoins += earned;
+                  secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+                }
                 initGame();
-                if (isAttractMode) applyCoinCountUp(earned, 'DEMO BONUS', false);
+                if (isAttractMode && earned > 0) applyCoinCountUp(earned, 'DEMO BONUS');
               }
             }, 2000);
           }
