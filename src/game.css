@@ -14,6 +14,21 @@
   100% { box-shadow: 0 0 4px 1px rgba(255, 255, 0, 0.4); border-color: rgba(255, 255, 0, 0.6); }
 }
 
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, input, select, textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
 margin: 0;
@@ -89,6 +104,7 @@ display: flex;
 position: relative;
 height: clamp(var(--control-min-height, 96px), var(--control-height, 96px), var(--control-max-height, 200px));
 max-height: var(--control-max-height);
+padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 #controlArea[data-theme="classic"], #shopControlArea[data-theme="classic"] {
@@ -1102,6 +1118,33 @@ body.no-fullscreen #hud-time {
   touch-action: pan-y;
 }
 
+.ranking-list-inner::-webkit-scrollbar,
+.shop-items-container::-webkit-scrollbar,
+.shop-item-desc-text::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ranking-list-inner::-webkit-scrollbar-track,
+.shop-items-container::-webkit-scrollbar-track,
+.shop-item-desc-text::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+
+.ranking-list-inner::-webkit-scrollbar-thumb,
+.shop-items-container::-webkit-scrollbar-thumb,
+.shop-item-desc-text::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.ranking-list-inner::-webkit-scrollbar-thumb:hover,
+.shop-items-container::-webkit-scrollbar-thumb:hover,
+.shop-item-desc-text::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
 .ranking-table {
   width: 100%;
   table-layout: fixed;
@@ -1203,7 +1246,8 @@ body.no-fullscreen #hud-time {
   box-sizing: border-box;
 }
 .name-edit-btn-reset { font-size: 10px; }
-.name-edit-btn-random { font-size: 20px; }
+.name-edit-btn-random { font-size: 0; }
+.name-edit-btn-random svg { width: 22px; height: 22px; display: block; }
 
 .name-edit-val-container {
   display: flex;
@@ -1601,10 +1645,15 @@ body.no-fullscreen #hud-time {
 .shop-items-container {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #555 #222;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 .shop-item {
