@@ -18,7 +18,16 @@ export class InputManager {
   public update() {
     if (game.aiActive) return;
     let d = 0;
-    this.active.forEach(v => { d = v; });
+    let hasDirection = false;
+    this.active.forEach(v => {
+      if (v !== 0) {
+        d = v;
+        hasDirection = true;
+      }
+    });
+    if (!hasDirection && this.active.size > 0) {
+      d = 0;
+    }
     game.player.inputDir = d;
     $('btnLeft')?.classList.toggle('active-visual', d === -1);
     $('btnRight')?.classList.toggle('active-visual', d === 1);

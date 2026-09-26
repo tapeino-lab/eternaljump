@@ -193,7 +193,6 @@ export function getPl(y: number, t = 'normal', ig = false, cx: number | null = n
                 if (game.equipped?.['golden_glove'] && RND() < coinChance) {
                   let fc = getFc(cX, cY, () => {
                     if (game.scoreCoin < 999) game.scoreCoin++;
-                    game.totalCoins++;
                   });
                   fc.maxProgress = 25;
                   game.flyingCoins.push(fc);

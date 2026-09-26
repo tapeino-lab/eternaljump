@@ -19,10 +19,11 @@ export let currentLangFilter = '';
         }
 }
       export const showResult = async function(state) {
-        if (!game.demoMode && game.lastScoreObj && state !== 'demo') {
+        if (!game.demoMode && game.lastScoreObj && !game.lastScoreObj.coinsAdded && state !== 'demo') {
           let c = game.lastScoreObj.coins || 0;
           if (state === 'clear') c *= 2;
           game.totalCoins += c;
+          game.lastScoreObj.coinsAdded = true;
           secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
         }
 

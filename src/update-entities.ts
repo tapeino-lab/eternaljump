@@ -92,7 +92,6 @@ export function updateMeteors(game: GameState) {
         for (let j = 0; j < reward; j++) {
           let fc = getFc(m.x + m.w / 2 + (j * 15 - 15), m.y + m.h / 2 + (j * 10 - 10), () => {
             if (game.scoreCoin < 999) game.scoreCoin++;
-            game.totalCoins++;
           });
           fc.maxProgress = 30 + j * 5;
           game.flyingCoins.push(fc);

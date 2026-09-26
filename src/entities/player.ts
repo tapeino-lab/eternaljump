@@ -101,6 +101,19 @@ import { spawnParticles } from './particles.js';
         this.highestReachedY = this.y;
         this.hitTimer = 0;
         this.savedIntroImgKey = null;
+        this.savedVx = undefined;
+        this.savedVy = undefined;
+        this.recentExternalCollisionTimer = 0;
+        this.facingDirFrames = 0;
+        this.aiTarget = null;
+        this.aiLockedTarget = null;
+        this.aiLockedFromNormalJump = false;
+        this.aiLookAheadTarget = null;
+        this.aiBoostAppliedThisJump = false;
+        this.samePlatformVertJumps = 0;
+        this.platformTheyJumpedFrom = null;
+        this.breakoutTimer = 0;
+        this.breakoutDir = 0;
       }
       powerUp() {
         if (this.isPoweredUp) {
