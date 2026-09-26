@@ -1,7 +1,7 @@
 import { game, awardRunCoins } from '../state.js';
 import { secureStorage } from '../secureStorage.js';
 import { safeStorage } from '../safeStorage.js';
-import { LootLockerAPI } from '../lootlocker.js';
+import { LootLockerAPI, compareScoreRanking, compareTARanking } from '../lootlocker.js';
 import { getLang, MIN, getPlayerName, markHasPlayed } from '../utils.js';
 import { RankingAPI } from './api.js';
 import { validatePhysicalScore } from '../security.js';
@@ -183,9 +183,10 @@ import { validatePhysicalScore } from '../security.js';
                 if (!scores) scores = [];
                 pending.forEach(p => {
                   let pTime = (typeof p.time === 'number' && p.time > 0) ? p.time : (typeof p.t === 'number' ? p.t : 0);
-                  scores.push({ id: pid, alt: p.alt, coins: p.coins, lang: p.lang, n: playerName, t: pTime, time: pTime });
+                  let pTs = p.timestamp || p.ts || Date.now();
+                  scores.push({ id: pid, alt: p.alt, coins: p.coins, lang: p.lang, n: playerName, t: pTime, time: pTime, ts: pTs });
                 });
-                scores.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (((A.time || A.t || 99999999) - (B.time || B.t || 99999999))));
+                scores.sort(compareScoreRanking);
                 
                 // Deduplicate to keep only best score per player
                 let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : safeStorage.getItem('LL_SYS_PLAYER_ID');
@@ -216,7 +217,7 @@ import { validatePhysicalScore } from '../security.js';
                   if (Array.isArray(s) && s.length > 0) return s;
               }
               let s = secureStorage.getItem<any[]>(RankingAPI.key, []);
-              s.sort((A: any, B: any) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.time || 99999999) - (B.time || 99999999));
+              s.sort(compareScoreRanking);
               return s.map((r: any, i: number) => ({ ...r, rank: i + 1 }));
             } catch (e) {
               secureStorage.removeItem(RankingAPI.key);
@@ -281,9 +282,10 @@ import { validatePhysicalScore } from '../security.js';
                 if (!scores) scores = [];
                 pendingTA.forEach(p => {
                   let pTime = (typeof p.time === 'number' && p.time > 0) ? p.time : (typeof p.t === 'number' ? p.t : 0);
-                  scores.push({ id: pid, alt: p.alt || 144000, coins: p.coins || 0, lang: p.lang, n: playerName, t: pTime, time: pTime });
+                  let pTs = p.timestamp || p.ts || Date.now();
+                  scores.push({ id: pid, alt: p.alt || 144000, coins: p.coins || 0, lang: p.lang, n: playerName, t: pTime, time: pTime, ts: pTs });
                 });
-                scores.sort((A, B) => ((A.time || A.t || 99999999) - (B.time || B.t || 99999999)) || (B.coins || 0) - (A.coins || 0));
+                scores.sort(compareTARanking);
                 
                 // Deduplicate to keep only best score per player
                 let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : safeStorage.getItem('LL_SYS_PLAYER_ID');
@@ -341,36 +343,34 @@ import { validatePhysicalScore } from '../security.js';
             let raw = safeStorage.getItem('LL_CACHED_LEADERBOARD');
             let scores: any[] = raw ? JSON.parse(raw) : [];
             let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (s.n && s.n === playerName));
-            let myEntry = { id: pid, alt, coins, time, t: time, lang, n: playerName };
+            let myEntry = { id: pid, alt, coins, time, t: time, lang, n: playerName, ts: Date.now() };
 
             if (existingIndex !== -1) {
               let current = scores[existingIndex];
-              let curTime = (typeof current.time === 'number' && current.time > 0) ? current.time : (current.t || 99999999);
-              if (alt > current.alt || (alt === current.alt && coins > current.coins) || (alt === current.alt && coins === current.coins && time < curTime)) {
+              if (compareScoreRanking(myEntry, current) < 0) {
                 scores[existingIndex] = { ...current, ...myEntry };
               }
             } else {
               scores.push(myEntry);
             }
-            scores.sort((A, B) => (B.alt || 0) - (A.alt || 0) || (B.coins || 0) - (A.coins || 0) || (((A.time || A.t || 99999999) - (B.time || B.t || 99999999))));
+            scores.sort(compareScoreRanking);
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
           } else {
             let raw = safeStorage.getItem('LL_CACHED_TA_LEADERBOARD');
             let scores: any[] = raw ? JSON.parse(raw) : [];
             let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (s.n && s.n === playerName));
-            let myEntry = { id: pid, alt, coins, t: time, time, lang, n: playerName };
+            let myEntry = { id: pid, alt, coins, t: time, time, lang, n: playerName, ts: Date.now() };
 
             if (existingIndex !== -1) {
               let current = scores[existingIndex];
-              let curT = (typeof current.time === 'number' && current.time > 0) ? current.time : (typeof current.t === 'number' ? current.t : 0);
-              if (typeof curT !== 'number' || curT === 0 || time < curT) {
+              if (compareTARanking(myEntry, current) < 0) {
                 scores[existingIndex] = { ...current, ...myEntry };
               }
             } else {
               scores.push(myEntry);
             }
-            scores.sort((A, B) => ((typeof A.time === 'number' && A.time > 0) ? A.time : (A.t || 99999999)) - ((typeof B.time === 'number' && B.time > 0) ? B.time : (B.t || 99999999)) || (B.coins || 0) - (A.coins || 0));
+            scores.sort(compareTARanking);
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_TA_LEADERBOARD', JSON.stringify(scores));
           }
@@ -392,7 +392,7 @@ import { validatePhysicalScore } from '../security.js';
 
         let l = getLang(), pid = LootLockerAPI.playerIdentifier;
         awardRunCoins(r, c);
-        game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l, coinsAdded: true };
+        game.lastScoreObj = { id: pid, alt: MIN(a, 144000), time: t, coins: c, reason: r, lang: l, coinsAdded: true, ts: Date.now() };
         game.lastScoreId = pid;
         let pbKey = RankingAPI.pbKey;
         game.isNewRecord = false;
@@ -408,9 +408,7 @@ import { validatePhysicalScore } from '../security.js';
         }
 
         let isNewRecordLocal = false;
-        let prevPBTime = (localPB && typeof localPB.time === 'number' && localPB.time > 0) ? localPB.time : 99999999;
-        let currTime = (cObj.time && cObj.time > 0) ? cObj.time : 99999999;
-        if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins) || (cObj.alt === localPB.alt && cObj.coins === localPB.coins && currTime < prevPBTime)) {
+        if (!localPB || cObj.alt > localPB.alt || (cObj.alt === localPB.alt && cObj.coins > localPB.coins)) {
           isNewRecordLocal = true;
           game.isNewRecord = true;
           secureStorage.setItem(pbKey, cObj);
@@ -472,16 +470,13 @@ import { validatePhysicalScore } from '../security.js';
             let s = await RankingAPI.getScores();
             let ex = s.findIndex(x => x.id === pid);
             if (ex !== -1) {
-              let ca = s[ex].alt, cc = s[ex].coins || 0;
-              let ct = (s[ex].time && s[ex].time > 0) ? s[ex].time : 99999999;
-              let nt = (game.lastScoreObj.time && game.lastScoreObj.time > 0) ? game.lastScoreObj.time : 99999999;
-              if (a > ca || (a === ca && c > cc) || (a === ca && c === cc && nt < ct)) {
+              if (compareScoreRanking(game.lastScoreObj, s[ex]) < 0) {
                 s[ex] = game.lastScoreObj;
               }
             } else {
               s.push(game.lastScoreObj);
             }
-            s.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.time || 99999999) - (B.time || 99999999));
+            s.sort(compareScoreRanking);
             game.lastRank = s.findIndex(x => x.id === pid) + 1;
             secureStorage.setItem(RankingAPI.key, s);
           } catch (e) {}

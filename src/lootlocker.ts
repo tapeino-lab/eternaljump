@@ -5,6 +5,52 @@ import { game } from './state.js';
 import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 
+/**
+ * Tie-breaker rule: Oldest date first (earliest timestamp / original rank).
+ * Visible parameters decide rank first; invisible parameters are never used.
+ */
+export function compareScoreRanking(A: any, B: any): number {
+  let altA = typeof A.alt === 'number' ? A.alt : 0;
+  let altB = typeof B.alt === 'number' ? B.alt : 0;
+  if (altB !== altA) return altB - altA;
+
+  let coinDiff = (B.coins || 0) - (A.coins || 0);
+  if (coinDiff !== 0) return coinDiff;
+
+  let tsA = (typeof A.ts === 'number' && A.ts > 0) ? A.ts : ((typeof A.timestamp === 'number' && A.timestamp > 0) ? A.timestamp : 0);
+  let tsB = (typeof B.ts === 'number' && B.ts > 0) ? B.ts : ((typeof B.timestamp === 'number' && B.timestamp > 0) ? B.timestamp : 0);
+  if (tsA > 0 && tsB > 0) {
+    if (tsA !== tsB) return tsA - tsB;
+  } else if (tsA === 0 && tsB > 0) {
+    return -1;
+  } else if (tsA > 0 && tsB === 0) {
+    return 1;
+  }
+
+  let rA = (typeof A._originalRank === 'number') ? A._originalRank : (typeof A.rank === 'number' ? A.rank : 999999);
+  let rB = (typeof B._originalRank === 'number') ? B._originalRank : (typeof B.rank === 'number' ? B.rank : 999999);
+  return rA - rB;
+}
+
+export function compareTARanking(A: any, B: any): number {
+  let tA = (typeof A.time === 'number' && A.time > 0) ? A.time : (typeof A.t === 'number' && A.t > 0 ? A.t : 99999999);
+  let tB = (typeof B.time === 'number' && B.time > 0) ? B.time : (typeof B.t === 'number' && B.t > 0 ? B.t : 99999999);
+  if (tA !== tB) return tA - tB;
+
+  let tsA = (typeof A.ts === 'number' && A.ts > 0) ? A.ts : ((typeof A.timestamp === 'number' && A.timestamp > 0) ? A.timestamp : 0);
+  let tsB = (typeof B.ts === 'number' && B.ts > 0) ? B.ts : ((typeof B.timestamp === 'number' && B.timestamp > 0) ? B.timestamp : 0);
+  if (tsA > 0 && tsB > 0) {
+    if (tsA !== tsB) return tsA - tsB;
+  } else if (tsA === 0 && tsB > 0) {
+    return -1;
+  } else if (tsA > 0 && tsB === 0) {
+    return 1;
+  }
+
+  let rA = (typeof A._originalRank === 'number') ? A._originalRank : (typeof A.rank === 'number' ? A.rank : 999999);
+  let rB = (typeof B._originalRank === 'number') ? B._originalRank : (typeof B.rank === 'number' ? B.rank : 999999);
+  return rA - rB;
+}
 
 export const LootLockerAPI = {
   hasLootLockerConfig: null,
@@ -305,6 +351,7 @@ export const LootLockerAPI = {
             const physValidation = validatePhysicalScore(alt, coins, actualMs);
             if (physValidation.valid) {
                 let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
+                let ts = (m && typeof m.ts === 'number') ? m.ts : 0;
                 validItems.push({ 
                   id: i.member_id, 
                   _originalRank: i.rank, 
@@ -314,6 +361,7 @@ export const LootLockerAPI = {
                   n: playerName, 
                   t: actualMs, 
                   time: actualMs,
+                  ts: ts,
                   d: (m && !!m.d) || isManualTarget 
                 });
             }
@@ -329,15 +377,8 @@ export const LootLockerAPI = {
                       // Only merge if one of them is explicitly flagged as a duplicate account
                       if (item.d || existing.d) {
                           isDuplicate = true;
-                          // Keep the better score (lower time, or higher coins if same time)
-                          let isBetter = false;
-                          let iT = item.t || 99999999;
-                          let eT = existing.t || 99999999;
-                          if (iT < eT) {
-                              isBetter = true;
-                          } else if (iT === eT && (item.coins || 0) > (existing.coins || 0)) {
-                              isBetter = true;
-                          }
+                          // Keep the better score (lower time, tie-break with oldest date)
+                          let isBetter = compareTARanking(item, existing) < 0;
                           if (isBetter) {
                               Object.assign(existing, item); // Overwrite existing with better item
                           }
@@ -355,8 +396,8 @@ export const LootLockerAPI = {
       };
       
       validItems = deduplicateItems(validItems);
-      // Sort by lowest time, tie-break with coins
-      validItems.sort((A, B) => (A.t || 99999999) - (B.t || 99999999) || (B.coins || 0) - (A.coins || 0));
+      // Sort by lowest time, tie-break with oldest date
+      validItems.sort(compareTARanking);
       validItems.forEach((v, idx) => v.rank = idx + 1);
       return validItems;
     } catch(e) {
@@ -497,7 +538,7 @@ export const LootLockerAPI = {
         try {
           let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
           pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
-          pending.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.t || 99999999) - (B.t || 99999999));
+          pending.sort(compareScoreRanking);
           pending = pending.slice(0, 1);
           safeStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
           this.log('Score saved locally for offline queue (PB only).', 'warning');
@@ -579,7 +620,7 @@ export const LootLockerAPI = {
         try {
           let pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
           pending.push({ alt: a, coins: c, lang: l, t: t, timestamp: Date.now() });
-          pending.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.t || 99999999) - (B.t || 99999999));
+          pending.sort(compareScoreRanking);
           pending = pending.slice(0, 1);
           safeStorage.setItem('LL_PENDING_SCORES', JSON.stringify(pending));
           this.log('Score saved locally for offline queue (PB only).', 'warning');
@@ -675,7 +716,7 @@ export const LootLockerAPI = {
         try {
           let pending = JSON.parse(safeStorage.getItem('LL_PENDING_TA_SCORES') || '[]');
           pending.push({ alt: a || 144000, coins: c, lang: l, t: t, time: t, timestamp: Date.now() });
-          pending.sort((A: any, B: any) => ((A.time || A.t || 99999999) - (B.time || B.t || 99999999)) || ((B.coins || 0) - (A.coins || 0)));
+          pending.sort(compareTARanking);
           pending = pending.slice(0, 1);
           safeStorage.setItem('LL_PENDING_TA_SCORES', JSON.stringify(pending));
           this.log('TA score saved locally for offline queue.', 'warning');
@@ -844,7 +885,8 @@ export const LootLockerAPI = {
             // MANUALLY FLAG SPECIFIC USERS WHO SUFFERED THE DUPLICATION BUG BEFORE THE FIX WAS DEPLOYED
             // Add their exact in-game names here.
             let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
-            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: alt, coins: coins, lang: lang, n: playerName, t: playTimeMs, time: playTimeMs, d: !!m.d || isManualTarget });
+            let ts = (m && typeof m.ts === 'number') ? m.ts : 0;
+            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: alt, coins: coins, lang: lang, n: playerName, t: playTimeMs, time: playTimeMs, ts: ts, d: !!m.d || isManualTarget });
         }
       });
       
@@ -858,23 +900,8 @@ export const LootLockerAPI = {
                       // Only merge if one of them is explicitly flagged as a duplicate account
                       if (item.d || existing.d) {
                           isDuplicate = true;
-                          // Keep the better score (higher altitude -> higher coins -> lower time)
-                          let isBetter = false;
-                          if (item.alt > existing.alt) {
-                              isBetter = true;
-                          } else if (item.alt === existing.alt) {
-                              let itemCoins = item.coins || 0;
-                              let existCoins = existing.coins || 0;
-                              if (itemCoins > existCoins) {
-                                  isBetter = true;
-                              } else if (itemCoins === existCoins) {
-                                  let iT = (typeof item.time === 'number' && item.time > 0) ? item.time : (item.t || 99999999);
-                                  let eT = (typeof existing.time === 'number' && existing.time > 0) ? existing.time : (existing.t || 99999999);
-                                  if (iT < eT) {
-                                      isBetter = true;
-                                  }
-                              }
-                          }
+                          // Keep the better score (altitude -> coins -> oldest date)
+                          let isBetter = compareScoreRanking(item, existing) < 0;
                           if (isBetter) {
                               Object.assign(existing, item); // Overwrite existing with better item
                           }
@@ -892,8 +919,8 @@ export const LootLockerAPI = {
       };
       
       validItems = deduplicateItemsAlt(validItems);
-      // Sort by altitude (highest), tie-break with coins (highest) and time (lowest)
-      validItems.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (((A.time || A.t || 99999999) - (B.time || B.t || 99999999))));
+      // Sort by altitude (highest), coins (highest), tie-break with oldest date
+      validItems.sort(compareScoreRanking);
 
       // Re-assign ranks based on filtered list
       validItems.forEach((v, idx) => {
