@@ -3,7 +3,7 @@ import { setIgnoreNextTap } from '../lifecycle.js';
 import { secureStorage } from '../secureStorage.js';
 import { safeStorage } from '../safeStorage.js';
 import { $, getLang, escapeHTML, getPlayerName } from '../utils.js';
-import { LootLockerAPI } from '../lootlocker.js';
+import { LootLockerAPI, compareScoreRanking, compareTARanking } from '../lootlocker.js';
 import { RankingAPI } from './api.js';
 
 let currentRankingSession = 0;
@@ -686,6 +686,10 @@ export let currentLangFilter = '';
           let raw = safeStorage.getItem(cacheKey);
           if (raw) cached = JSON.parse(raw);
         } catch (e) {}
+
+        if (cached && Array.isArray(cached)) {
+          cached.sort(mode === 'ta' ? compareTARanking : compareScoreRanking);
+        }
 
         if (currentLangFilter && cached && Array.isArray(cached)) {
            cached = cached.filter((r: any) => normalizeLangCode(r.lang || r.l) === currentLangFilter)

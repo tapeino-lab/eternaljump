@@ -35,8 +35,17 @@ export function compareScoreRanking(A: any, B: any): number {
 export function compareTARanking(A: any, B: any): number {
   let tA = (typeof A.time === 'number' && A.time > 0) ? A.time : (typeof A.t === 'number' && A.t > 0 ? A.t : 99999999);
   let tB = (typeof B.time === 'number' && B.time > 0) ? B.time : (typeof B.t === 'number' && B.t > 0 ? B.t : 99999999);
-  if (tA !== tB) return tA - tB;
 
+  // Normalize to milliseconds if needed
+  let msA = tA < 1000 ? tA * 1000 : tA;
+  let msB = tB < 1000 ? tB * 1000 : tB;
+
+  // Compare by 1/100th second (centisecond, matching the m:ss.cc UI display)
+  let cA = Math.floor(msA / 10);
+  let cB = Math.floor(msB / 10);
+  if (cA !== cB) return cA - cB;
+
+  // Exact tie at 1/100th second -> first-come-first-served (oldest date first)
   let tsA = (typeof A.ts === 'number' && A.ts > 0) ? A.ts : ((typeof A.timestamp === 'number' && A.timestamp > 0) ? A.timestamp : 0);
   let tsB = (typeof B.ts === 'number' && B.ts > 0) ? B.ts : ((typeof B.timestamp === 'number' && B.timestamp > 0) ? B.timestamp : 0);
   if (tsA > 0 && tsB > 0) {
