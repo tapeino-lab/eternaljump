@@ -257,6 +257,10 @@ export function setAuto(isActive) {
     game.player.lastPlatform = null;
     inputHandler.active.clear();
     game.player.inputDir = 0;
+  } else {
+    inputHandler.active.clear();
+    game.player.inputDir = 0;
+    inputHandler.update();
   }
   updateAutoCruiseBtnVisibility();
 }

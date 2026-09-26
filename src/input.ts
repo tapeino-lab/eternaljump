@@ -280,7 +280,7 @@ export class InputManager {
 
         if (this.handleControlTap(e)) return;
         
-        if (game.aiActive) return;
+        if (game.aiActive) setAuto(false);
         if (e.changedTouches) {
           for (let i = 0; i < e.changedTouches.length; i++) {
             let t = e.changedTouches[i];
