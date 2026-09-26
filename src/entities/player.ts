@@ -323,7 +323,7 @@ import { spawnParticles } from './particles.js';
           for (let i = 0; i < this.history.length; i++) {
             let pos = this.history[i];
             ctx.globalAlpha = MAX(0, 0.4 - i * 0.1) * bA * bAl;
-            if (useSp && (drawImg.complete || drawImg.width > 0)) {
+            if (useSp && drawImg && (drawImg.complete || drawImg.width > 0)) {
               ctx.save();
               ctx.translate(FLR(pos.x + this.w / 2), FLR(pos.y + dH));
               if (!pos.dir) ctx.scale(-1, 1);
@@ -344,7 +344,7 @@ import { spawnParticles } from './particles.js';
         }
         
         ctx.globalAlpha = bAl;
-        if (useSp && (drawImg.complete || drawImg.width > 0)) {
+        if (useSp && drawImg && (drawImg.complete || drawImg.width > 0)) {
           ctx.save();
           ctx.translate(FLR(this.x + this.w / 2), FLR(dY + dH));
           if (!this.facingRight) ctx.scale(-1, 1);
