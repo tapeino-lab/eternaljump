@@ -17,7 +17,7 @@ export const LootLockerAPI = {
   playerIdentifier: getStoredPlayerIdentifierSync(),
   
   sessionToken: null,
-  playerId: null,
+  playerId: safeStorage.getItem('LL_SYS_PLAYER_ID') || null,
   version: `v${import.meta.env.VITE_APP_VERSION}`,
   _initPromise: null as Promise<any> | null,
   logs: [],
@@ -131,13 +131,30 @@ export const LootLockerAPI = {
         this.log(`Found ${pending.length} pending scores, attempting to submit...`, 'info');
         let remaining = [];
         for (let s of pending) {
-           let success = await this.submitScore(s.alt, s.coins, s.t, s.lang, true);
+           let timeVal = (typeof s.time === 'number' && s.time > 0) ? s.time : (s.t || 0);
+           let success = await this.submitScore(s.alt, s.coins, timeVal, s.lang, true);
            if (!success) remaining.push(s);
         }
         safeStorage.setItem('LL_PENDING_SCORES', JSON.stringify(remaining));
       }
     } catch(e) {
       safeStorage.removeItem('LL_PENDING_SCORES');
+    }
+
+    try {
+      let pendingTA = JSON.parse(safeStorage.getItem('LL_PENDING_TA_SCORES') || '[]');
+      if (pendingTA && pendingTA.length > 0) {
+        this.log(`Found ${pendingTA.length} pending TA scores, attempting to submit...`, 'info');
+        let remainingTA = [];
+        for (let s of pendingTA) {
+           let timeVal = (typeof s.time === 'number' && s.time > 0) ? s.time : (s.t || 0);
+           let success = await this.submitTimeAttackScore(timeVal, s.alt, s.coins, s.lang, true);
+           if (!success) remainingTA.push(s);
+        }
+        safeStorage.setItem('LL_PENDING_TA_SCORES', JSON.stringify(remainingTA));
+      }
+    } catch(e) {
+      safeStorage.removeItem('LL_PENDING_TA_SCORES');
     }
   },
   init: async function() {
@@ -296,6 +313,7 @@ export const LootLockerAPI = {
                   lang: lang, 
                   n: playerName, 
                   t: actualMs, 
+                  time: actualMs,
                   d: (m && !!m.d) || isManualTarget 
                 });
             }
@@ -510,6 +528,7 @@ export const LootLockerAPI = {
       coins: c,
       lang: l,
       t: Math.floor(t / 1000),
+      time: t,
       ts: Date.now(),
       act: (a >= 144000) ? 'クリア達成' : '高度記録更新',
       sig: sig,
@@ -636,7 +655,7 @@ export const LootLockerAPI = {
     }
   },
 
-  submitTimeAttackScore: async function(t, a, c, l) {
+  submitTimeAttackScore: async function(t, a, c, l, isRetry = false) {
     if (!this.taLeaderboardId) {
       this.log('Time Attack submission skipped (no TA leaderboard ID)', 'info');
       return false;
@@ -650,15 +669,33 @@ export const LootLockerAPI = {
       return false;
     }
 
+    // Helper to queue TA score locally for retry
+    const queuePendingTAScore = () => {
+      if (!isRetry) {
+        try {
+          let pending = JSON.parse(safeStorage.getItem('LL_PENDING_TA_SCORES') || '[]');
+          pending.push({ alt: a || 144000, coins: c, lang: l, t: t, time: t, timestamp: Date.now() });
+          pending.sort((A: any, B: any) => ((A.time || A.t || 99999999) - (B.time || B.t || 99999999)) || ((B.coins || 0) - (A.coins || 0)));
+          pending = pending.slice(0, 1);
+          safeStorage.setItem('LL_PENDING_TA_SCORES', JSON.stringify(pending));
+          this.log('TA score saved locally for offline queue.', 'warning');
+        } catch (err) {
+          safeStorage.removeItem('LL_PENDING_TA_SCORES');
+        }
+      }
+    };
+
     // Anti-Cheat: Rate limit rapid automated submissions
-    if (!checkSubmissionRateLimit('time_attack')) {
-      this.log('TA Score submission throttled: minimum interval violation', 'warning');
+    if (!isRetry && !checkSubmissionRateLimit('time_attack')) {
+      this.log('TA Score submission throttled: minimum interval violation, queuing for retry', 'warning');
+      queuePendingTAScore();
       return false;
     }
 
     this.log(`Attempting to submit TA score: time ${t}ms (Lang: ${l})`, 'info');
     if (!await this.init()) {
-      this.log('TA Score submission aborted (Init Failed)', 'error');
+      this.log('TA Score submission aborted (Init Failed), queuing for retry', 'error');
+      queuePendingTAScore();
       return false;
     }
     // Convert time to a score where higher is better, e.g. 100,000,000 - Math.floor(t)
@@ -670,6 +707,7 @@ export const LootLockerAPI = {
       coins: c,
       lang: l,
       t: Math.floor(t / 1000),
+      time: t,
       ts: Date.now(),
       act: 'クリア達成 (TA)',
       sig: sig,
@@ -702,12 +740,18 @@ export const LootLockerAPI = {
       }
       if (!r.ok) {
         this.log('TA Score submission error', 'error');
+        if (isRetry && r.status >= 400 && r.status < 500 && r.status !== 429) {
+          this.log('Permanent error during TA retry. Dropping score from queue.', 'error');
+          return true;
+        }
+        queuePendingTAScore();
         return false;
       }
       this.log('TA Score successfully submitted.', 'success');
       return await r.json();
     } catch (e) {
-      this.log(`TA Score submission failed: ${e.message}`, 'error');
+      this.log(`TA Score submission failed (offline?): ${e.message}`, 'error');
+      queuePendingTAScore();
       return false;
     }
   },
@@ -783,7 +827,7 @@ export const LootLockerAPI = {
         
         let alt = (typeof m.alt === 'number' && m.alt > 0) ? m.alt : FLR(i.score / 1000);
         let coins = (typeof m.coins === 'number' && m.coins >= 0) ? m.coins : (i.score % 1000);
-        let playTimeMs = (typeof m.t === 'number') ? m.t * 1000 : 0;
+        let playTimeMs = (typeof m.time === 'number' && m.time > 0) ? m.time : ((typeof m.t === 'number') ? (m.t > 86400 ? m.t : m.t * 1000) : 0);
         let lang = m.lang || '---';
 
         // Physical feasibility check (bounds, realistic speed, altitude max, coins max)
@@ -800,7 +844,7 @@ export const LootLockerAPI = {
             // MANUALLY FLAG SPECIFIC USERS WHO SUFFERED THE DUPLICATION BUG BEFORE THE FIX WAS DEPLOYED
             // Add their exact in-game names here.
             let isManualTarget = ["SWE SD","USA JW","LTU RJ","JPN SH","LTU EE","SPA Y9","USA 27","JPN 05"].includes(playerName);
-            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: alt, coins: coins, lang: lang, n: playerName, t: (typeof m.t === 'number') ? m.t : 0, d: !!m.d || isManualTarget });
+            validItems.push({ id: i.member_id, _originalRank: i.rank, alt: alt, coins: coins, lang: lang, n: playerName, t: playTimeMs, time: playTimeMs, d: !!m.d || isManualTarget });
         }
       });
       
@@ -824,8 +868,8 @@ export const LootLockerAPI = {
                               if (itemCoins > existCoins) {
                                   isBetter = true;
                               } else if (itemCoins === existCoins) {
-                                  let iT = item.t || 99999999;
-                                  let eT = existing.t || 99999999;
+                                  let iT = (typeof item.time === 'number' && item.time > 0) ? item.time : (item.t || 99999999);
+                                  let eT = (typeof existing.time === 'number' && existing.time > 0) ? existing.time : (existing.t || 99999999);
                                   if (iT < eT) {
                                       isBetter = true;
                                   }
@@ -849,7 +893,7 @@ export const LootLockerAPI = {
       
       validItems = deduplicateItemsAlt(validItems);
       // Sort by altitude (highest), tie-break with coins (highest) and time (lowest)
-      validItems.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || ((A.t || 99999999) - (B.t || 99999999)));
+      validItems.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (((A.time || A.t || 99999999) - (B.time || B.t || 99999999))));
 
       // Re-assign ranks based on filtered list
       validItems.forEach((v, idx) => {

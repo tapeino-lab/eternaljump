@@ -182,17 +182,21 @@ import { validatePhysicalScore } from '../security.js';
                 let playerName = getPlayerName();
                 if (!scores) scores = [];
                 pending.forEach(p => {
-                  scores.push({ id: pid, alt: p.alt, coins: p.coins, lang: p.lang, n: playerName, t: p.t });
+                  let pTime = (typeof p.time === 'number' && p.time > 0) ? p.time : (typeof p.t === 'number' ? p.t : 0);
+                  scores.push({ id: pid, alt: p.alt, coins: p.coins, lang: p.lang, n: playerName, t: pTime, time: pTime });
                 });
-                scores.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (A.t || 99999999) - (B.t || 99999999));
+                scores.sort((A, B) => B.alt - A.alt || (B.coins || 0) - (A.coins || 0) || (((A.time || A.t || 99999999) - (B.time || B.t || 99999999))));
                 
-                // Deduplicate by ID to keep only best score per player (if they appear multiple times)
+                // Deduplicate to keep only best score per player
+                let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : safeStorage.getItem('LL_SYS_PLAYER_ID');
                 let uniqueScores = [];
                 let seen = new Set();
                 scores.forEach(s => {
                   let id = String(s.id);
-                  if (!seen.has(id)) {
-                    seen.add(id);
+                  let isMe = (id === String(pid) || (pIdVal && id === String(pIdVal)) || (s.n && s.n === playerName && s.n !== '???'));
+                  let dedupKey = isMe ? '__ME__' : (id || s.n);
+                  if (!seen.has(dedupKey)) {
+                    seen.add(dedupKey);
                     uniqueScores.push(s);
                   }
                 });
@@ -268,6 +272,39 @@ import { validatePhysicalScore } from '../security.js';
               }
             }
             
+            // Merge pending offline TA scores
+            try {
+              let pendingTA = JSON.parse(safeStorage.getItem('LL_PENDING_TA_SCORES') || '[]');
+              if (pendingTA.length > 0) {
+                let pid = LootLockerAPI.playerIdentifier;
+                let playerName = getPlayerName();
+                if (!scores) scores = [];
+                pendingTA.forEach(p => {
+                  let pTime = (typeof p.time === 'number' && p.time > 0) ? p.time : (typeof p.t === 'number' ? p.t : 0);
+                  scores.push({ id: pid, alt: p.alt || 144000, coins: p.coins || 0, lang: p.lang, n: playerName, t: pTime, time: pTime });
+                });
+                scores.sort((A, B) => ((A.time || A.t || 99999999) - (B.time || B.t || 99999999)) || (B.coins || 0) - (A.coins || 0));
+                
+                // Deduplicate to keep only best score per player
+                let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : safeStorage.getItem('LL_SYS_PLAYER_ID');
+                let uniqueScores = [];
+                let seen = new Set();
+                scores.forEach(s => {
+                  let id = String(s.id);
+                  let isMe = (id === String(pid) || (pIdVal && id === String(pIdVal)) || (s.n && s.n === playerName && s.n !== '???'));
+                  let dedupKey = isMe ? '__ME__' : (id || s.n);
+                  if (!seen.has(dedupKey)) {
+                    seen.add(dedupKey);
+                    uniqueScores.push(s);
+                  }
+                });
+                scores = uniqueScores;
+                scores.forEach((s, i) => s.rank = i + 1);
+              }
+            } catch(e) {
+              safeStorage.removeItem('LL_PENDING_TA_SCORES');
+            }
+
             return scores || [];
           } else {
             try {
@@ -304,18 +341,18 @@ import { validatePhysicalScore } from '../security.js';
             let raw = safeStorage.getItem('LL_CACHED_LEADERBOARD');
             let scores: any[] = raw ? JSON.parse(raw) : [];
             let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (s.n && s.n === playerName));
-            let myEntry = { id: pid, alt, coins, time, lang, n: playerName };
+            let myEntry = { id: pid, alt, coins, time, t: time, lang, n: playerName };
 
             if (existingIndex !== -1) {
               let current = scores[existingIndex];
-              let curTime = current.time || 99999999;
+              let curTime = (typeof current.time === 'number' && current.time > 0) ? current.time : (current.t || 99999999);
               if (alt > current.alt || (alt === current.alt && coins > current.coins) || (alt === current.alt && coins === current.coins && time < curTime)) {
                 scores[existingIndex] = { ...current, ...myEntry };
               }
             } else {
               scores.push(myEntry);
             }
-            scores.sort((A, B) => (B.alt || 0) - (A.alt || 0) || (B.coins || 0) - (A.coins || 0) || (A.time || 99999999) - (B.time || 99999999));
+            scores.sort((A, B) => (B.alt || 0) - (A.alt || 0) || (B.coins || 0) - (A.coins || 0) || (((A.time || A.t || 99999999) - (B.time || B.t || 99999999))));
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_LEADERBOARD', JSON.stringify(scores));
           } else {
@@ -326,14 +363,14 @@ import { validatePhysicalScore } from '../security.js';
 
             if (existingIndex !== -1) {
               let current = scores[existingIndex];
-              let curT = (typeof current.t === 'number') ? current.t : current.time;
+              let curT = (typeof current.time === 'number' && current.time > 0) ? current.time : (typeof current.t === 'number' ? current.t : 0);
               if (typeof curT !== 'number' || curT === 0 || time < curT) {
                 scores[existingIndex] = { ...current, ...myEntry };
               }
             } else {
               scores.push(myEntry);
             }
-            scores.sort((A, B) => ((typeof A.t === 'number' && A.t > 0) ? A.t : A.time || 99999999) - ((typeof B.t === 'number' && B.t > 0) ? B.t : B.time || 99999999) || (B.coins || 0) - (A.coins || 0));
+            scores.sort((A, B) => ((typeof A.time === 'number' && A.time > 0) ? A.time : (A.t || 99999999)) - ((typeof B.time === 'number' && B.time > 0) ? B.time : (B.t || 99999999)) || (B.coins || 0) - (A.coins || 0));
             scores.forEach((item, idx) => item.rank = idx + 1);
             safeStorage.setItem('LL_CACHED_TA_LEADERBOARD', JSON.stringify(scores));
           }
@@ -409,12 +446,12 @@ import { validatePhysicalScore } from '../security.js';
           RankingAPI.prefetchTAScores(false);
 
           let submitTasks: Promise<any>[] = [];
-          if (isNewRecordLocal || r === 'CLEAR' || a >= 144000) {
+          if (isNewRecordLocal) {
             submitTasks.push(LootLockerAPI.submitScore(a, c, t, l).then(res => {
               if (res) safeStorage.setItem('LL_LAST_FETCH', '0');
             }));
           }
-          if (r === 'CLEAR' || a >= 144000) {
+          if (isNewTARecordLocal) {
             submitTasks.push(LootLockerAPI.submitTimeAttackScore(t, a, c, l).then(res => {
               if (res) safeStorage.setItem('LL_LAST_TA_FETCH', '0');
             }));

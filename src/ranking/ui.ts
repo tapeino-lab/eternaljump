@@ -258,8 +258,18 @@ export let currentLangFilter = '';
         }
 
         let pid = LootLockerAPI.playerIdentifier;
-        let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : null;
-        let pRank = s.find(x => x.id === pid || (pIdVal && x.id === pIdVal));
+        let sysPlayerId = safeStorage.getItem('LL_SYS_PLAYER_ID');
+        let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : (sysPlayerId ? String(sysPlayerId) : null);
+        let myName = getPlayerName();
+        let isCurrentPlayer = (r: any) => {
+            if (!r) return false;
+            if (pid && String(r.id) === String(pid)) return true;
+            if (pIdVal && String(r.id) === pIdVal) return true;
+            if (myName && r.n === myName && r.n !== '???' && !r.n.startsWith('CPU')) return true;
+            return false;
+        };
+
+        let pRank = s.find(x => isCurrentPlayer(x));
         if (pRank && mode === 'height') game.lastRank = pRank.rank;
         
         let isEnd = (state === 'clear' || state === 'gameover' || state === 'demo');
@@ -275,7 +285,7 @@ export let currentLangFilter = '';
         let isPlayerInList = false;
 
         let renderRow = (r, i) => {
-            let isC = (r.id === pid || (pIdVal && r.id === pIdVal));
+            let isC = isCurrentPlayer(r);
             if (isC) {
                 hl = true;
                 isPlayerInList = true;
@@ -347,13 +357,23 @@ export let currentLangFilter = '';
             shouldShowMyRecord = false;
         }
 
-        let myRecord = pRank || (game.personalBest && game.personalBest.alt > 0 ? game.personalBest : null);
-        if (shouldShowMyRecord && !isPlayerInList && mode === 'height' && myRecord && myRecord.alt > 0) {
-            let r = myRecord;
-            r.rank = r.rank || '???';
-            r.id = pid;
-            othersHTML += `<tr><td colspan="6" style="text-align:center;color:#555;font-size:8px;padding:4px 0;">...</td></tr>`;
-            othersHTML += renderRow(r, topLimited.length);
+        if (shouldShowMyRecord && !isPlayerInList) {
+            if (mode === 'height') {
+                let myRecord = pRank || (game.personalBest && game.personalBest.alt > 0 ? game.personalBest : null);
+                if (myRecord && myRecord.alt > 0) {
+                    let r = { ...myRecord, rank: myRecord.rank || '???', id: pid };
+                    othersHTML += `<tr><td colspan="6" style="text-align:center;color:#555;font-size:8px;padding:4px 0;">...</td></tr>`;
+                    othersHTML += renderRow(r, topLimited.length);
+                }
+            } else if (mode === 'ta') {
+                let localTAPB = secureStorage.getItem<any>(RankingAPI.taPbKey, null);
+                let myTARecord = pRank || ((localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0 && localTAPB.time < 86400000) ? { alt: 144000, coins: (game.personalBest?.coins || 0), t: localTAPB.time, time: localTAPB.time, lang: getLang(), n: myName } : null);
+                if (myTARecord && ((typeof myTARecord.time === 'number' && myTARecord.time > 0) || (typeof myTARecord.t === 'number' && myTARecord.t > 0))) {
+                    let r = { ...myTARecord, rank: myTARecord.rank || '???', id: pid };
+                    othersHTML += `<tr><td colspan="6" style="text-align:center;color:#555;font-size:8px;padding:4px 0;">...</td></tr>`;
+                    othersHTML += renderRow(r, topLimited.length);
+                }
+            }
         }
 
         $('rankingTop3Body').innerHTML = top3HTML;
