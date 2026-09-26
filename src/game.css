@@ -2,10 +2,6 @@
 
 :root {
   color-scheme: dark;
-  /* 操作ボタン・コントロールエリア調整用CSS変数 */
-  --control-max-height: 200px; /* 全画面等で操作エリアが高くなりすぎるのを抑える上限値 */
-  --control-min-height: 96px;  /* 最小高さ */
-  --control-btn-max-height: 100%;
 }
 
 @keyframes yellowGlow {
@@ -102,9 +98,7 @@ border-top: 4px solid var(--ca-bt);
 box-sizing: border-box;
 display: flex;
 position: relative;
-height: clamp(var(--control-min-height, 96px), var(--control-height, 96px), var(--control-max-height, 200px));
-max-height: var(--control-max-height);
-padding-bottom: env(safe-area-inset-bottom, 0px);
+height: var(--control-height);
 }
 
 #controlArea[data-theme="classic"], #shopControlArea[data-theme="classic"] {
@@ -2060,7 +2054,7 @@ body.showing-ranking #btnInstagram {
 /* Bottom Slide Toast Popup (Floating above controller area) */
 .bottom-toast {
   position: fixed;
-  bottom: calc(clamp(96px, var(--control-height, 96px), 200px) + 12px);
+  bottom: calc(var(--control-height, 96px) + 12px);
   left: 50%;
   transform: translateX(-50%) translateY(140%);
   z-index: 2147483647;

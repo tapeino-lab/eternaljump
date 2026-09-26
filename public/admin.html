@@ -36,12 +36,23 @@
     .stat-val { font-size: 22px; font-weight: 700; color: #38bdf8; }
     
     .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
-    .chart-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; justify-content: space-between; }
-    .bar-chart { display: flex; align-items: flex-end; height: 110px; gap: 3px; }
-    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-    .bar-fill { width: 100%; background: #38bdf8; border-radius: 2px 2px 0 0; min-height: 2px; transition: height 0.3s; }
-    .bar-label { font-size: 8px; color: #64748b; margin-top: 4px; }
-    .bar-count { font-size: 8px; color: #94a3b8; margin-bottom: 2px; }
+    .chart-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .freq-chart { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+    .freq-chart::-webkit-scrollbar { width: 6px; }
+    .freq-chart::-webkit-scrollbar-track { background: #0f172a; border-radius: 3px; }
+    .freq-chart::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .freq-chart::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .freq-row { display: grid; grid-template-columns: 28px minmax(90px, 140px) 1fr auto; align-items: center; gap: 10px; padding: 6px 10px; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(51, 65, 85, 0.4); border-radius: 6px; transition: all 0.15s; }
+    .freq-row:hover { background: #0f172a; border-color: #475569; }
+    .freq-rank { font-weight: 700; font-size: 13px; text-align: center; color: #94a3b8; }
+    .freq-rank.rank-1 { color: #f59e0b; font-size: 16px; }
+    .freq-rank.rank-2 { color: #94a3b8; font-size: 16px; }
+    .freq-rank.rank-3 { color: #d97706; font-size: 16px; }
+    .freq-player { font-weight: 600; font-size: 13px; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .freq-bar-wrap { position: relative; height: 26px; background: #0f172a; border-radius: 4px; overflow: hidden; display: flex; align-items: center; border: 1px solid #1e293b; min-width: 80px; }
+    .freq-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease-out; min-width: 6px; }
+    .freq-bar-text { position: absolute; left: 8px; font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.85); white-space: nowrap; pointer-events: none; display: flex; align-items: center; gap: 6px; }
+    .freq-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #94a3b8; white-space: nowrap; }
 
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
     .nav-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -125,13 +136,15 @@
         </div>
       </div>
 
-      <!-- Hourly Chart (When server logs or timestamp logs exist) -->
+      <!-- Player Play Frequency Ranking (Heat Bar Chart) -->
       <div id="chartSection" class="chart-card hidden">
         <div class="chart-title">
-          <span>時間帯別アクセス分布 (JST 日本時間 0時〜23時)</span>
-          <span style="font-size:11px; color:#94a3b8;">ピーク時間帯の把握</span>
+          <span style="display:flex; align-items:center; gap:6px;">
+            <span>🔥 プレイヤー別 プレイ頻度・やり込みランキング</span>
+          </span>
+          <span style="font-size:12px; color:#94a3b8;" id="chartSubtitle">挑戦回数 TOPランキング</span>
         </div>
-        <div id="barChart" class="bar-chart"></div>
+        <div id="freqChart" class="freq-chart"></div>
       </div>
 
       <!-- Toolbar -->
@@ -584,6 +597,7 @@
           if (altM > p.maxAlt) p.maxAlt = altM;
           if (coinsVal > p.maxCoins) p.maxCoins = coinsVal;
           if (taSec !== null && (!p.bestTA || taSec < p.bestTA)) p.bestTA = taSec;
+          p.playCount = (p.playCount || 1) + 1;
         }
       };
 
@@ -649,30 +663,82 @@
         `;
       }
 
-      // 5. Hourly Distribution Chart
-      if (activityTimeline.length > 0) {
+      // 5. Play Frequency Ranking (Horizontal Heat Bars)
+      if (playerActivityList.length > 0) {
         document.getElementById('chartSection').classList.remove('hidden');
-        const hourly = Array(24).fill(0);
-        activityTimeline.forEach(ev => {
-          if (ev.time) {
-            const h = new Date(ev.time).getHours();
-            if (h >= 0 && h < 24) hourly[h]++;
-          }
+
+        // Sort players by playCount descending, then by lastSeen descending
+        const sortedPlayers = [...playerActivityList].sort((a, b) => {
+          const countA = a.playCount || 1;
+          const countB = b.playCount || 1;
+          if (countB !== countA) return countB - countA;
+          return (b.lastSeen || 0) - (a.lastSeen || 0);
         });
-        const maxH = Math.max(...hourly, 1);
-        const chartEl = document.getElementById('barChart');
+
+        const totalPlays = sortedPlayers.reduce((acc, p) => acc + (p.playCount || 1), 0);
+        const avgPlays = sortedPlayers.length > 0 ? (totalPlays / sortedPlayers.length).toFixed(1) : '0';
+        const maxPlays = Math.max(...sortedPlayers.map(p => p.playCount || 1), 1);
+
+        document.getElementById('chartSubtitle').innerHTML = `
+          総挑戦回数: <strong style="color:#38bdf8;">${totalPlays.toLocaleString()}回</strong> 
+          <span style="color:#64748b; margin:0 4px;">|</span> 
+          平均: <strong style="color:#facc15;">${avgPlays}回 / 人</strong>
+        `;
+
+        const chartEl = document.getElementById('freqChart');
         chartEl.innerHTML = '';
-        for (let h = 0; h < 24; h++) {
-          const col = document.createElement('div');
-          col.className = 'bar-col';
-          const pct = (hourly[h] / maxH) * 100;
-          col.innerHTML = `
-            <div class="bar-count">${hourly[h] > 0 ? hourly[h] : ''}</div>
-            <div class="bar-fill" style="height: ${Math.max(pct, 3)}%;"></div>
-            <div class="bar-label">${h}h</div>
+
+        sortedPlayers.forEach((p, idx) => {
+          const rank = idx + 1;
+          const count = p.playCount || 1;
+          const pct = Math.max(10, Math.min(100, Math.round((count / maxPlays) * 100)));
+
+          let rankBadge = `${rank}`;
+          let rankClass = '';
+          let barGradient = 'linear-gradient(90deg, #6366f1, #818cf8)'; // Indigo
+
+          if (rank === 1) {
+            rankBadge = '🥇';
+            rankClass = 'rank-1';
+            barGradient = 'linear-gradient(90deg, #f97316, #ef4444)'; // Flame Red/Orange
+          } else if (rank === 2) {
+            rankBadge = '🥈';
+            rankClass = 'rank-2';
+            barGradient = 'linear-gradient(90deg, #f59e0b, #fbbf24)'; // Gold/Amber
+          } else if (rank === 3) {
+            rankBadge = '🥉';
+            rankClass = 'rank-3';
+            barGradient = 'linear-gradient(90deg, #0284c7, #38bdf8)'; // Sky Blue
+          }
+
+          // Achievement tag
+          let tagHtml = '';
+          if (p.maxAlt >= 144 || (p.bestTA && p.bestTA > 0)) {
+            tagHtml = `<span style="background:rgba(234,179,8,0.25); color:#fde047; padding:1px 5px; border-radius:3px; font-size:10px; font-weight:bold; border:1px solid rgba(234,179,8,0.4);">👑 CLEAR</span>`;
+          } else if (p.maxAlt > 0) {
+            tagHtml = `<span style="background:rgba(56,189,248,0.15); color:#7dd3fc; padding:1px 5px; border-radius:3px; font-size:10px;">${p.maxAlt.toLocaleString()}m</span>`;
+          }
+
+          const row = document.createElement('div');
+          row.className = 'freq-row';
+          row.innerHTML = `
+            <div class="freq-rank ${rankClass}">${rankBadge}</div>
+            <div class="freq-player" title="${escapeHtml(p.name)}">
+              <span>${escapeHtml(p.name)}</span>
+            </div>
+            <div class="freq-bar-wrap">
+              <div class="freq-bar-fill" style="width:${pct}%; background:${barGradient};"></div>
+              <div class="freq-bar-text">
+                <span>🔥 ${count}回</span>
+                ${tagHtml}
+              </div>
+            </div>
+            <div class="freq-meta">
+              ${p.lastSeen ? formatTimeAgo(p.lastSeen) : '<span class="badge badge-region">-</span>'}
+            </div>
           `;
-          chartEl.appendChild(col);
-        }
+          chartEl.appendChild(row);
+        });
       } else {
         document.getElementById('chartSection').classList.add('hidden');
       }

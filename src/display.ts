@@ -293,26 +293,19 @@ function resize() {
   let winW = window.innerWidth, winH = window.innerHeight;
   let ratio = config.gameWidth / config.gameHeight;
   
-  // 最低高さは 96px または 画面高さの 1/7 (約14.3%) の大きい方
-  const minCtrlH = Math.max(96, Math.floor(winH / 7));
-
   // まず画面横幅いっぱいにゲーム画面を配置
   let tW = winW;
   let tH = tW / ratio;
-
-  // 最大高さは「画面全体の高さの1/5」または「200px」の小さい方（最低高さ以上）
-  const maxCtrlH = Math.max(minCtrlH, Math.min(200, Math.floor(winH / 5)));
-
   let remH = winH - tH;
   let ctrlH = 0;
 
-  if (remH >= minCtrlH) {
-    // 十分な高さがある場合（一般的な縦長Android端末など）: 左右余白0pxで横幅いっぱい
-    ctrlH = Math.min(maxCtrlH, remH);
+  if (remH >= 96) {
+    // 縦長端末: 画面下部の残り領域全体を操作ボタンエリアとして使用
+    ctrlH = remH;
   } else {
-    // 縦長比率が不十分な場合（iPhone 14/15等）:
-    // 操作エリアに最低高さを保証するためゲーム画面を縮小し、その分左右に余白を作る
-    ctrlH = minCtrlH;
+    // 画面の縦長比率が不十分な場合（PCやタブレット、横長画面等）:
+    // 操作エリアに適切な高さを確保するためゲーム画面を縮小し、その分左右に余白を作る
+    ctrlH = Math.max(120, Math.floor(winH * 0.22));
     let availGameH = winH - ctrlH;
     if (availGameH > 0) {
       tH = availGameH;
@@ -341,8 +334,6 @@ function resize() {
   document.documentElement.style.setProperty("--game-scale", (window as any).gameScale);
   document.documentElement.style.setProperty("--game-height", tH + "px");
   document.documentElement.style.setProperty("--control-height", ctrlH + "px");
-  document.documentElement.style.setProperty("--control-min-height", minCtrlH + "px");
-  document.documentElement.style.setProperty("--control-max-height", maxCtrlH + "px");
   // Cap the scale factor at 1.3 to prevent elements from becoming huge in fullscreen mode
   let ctrlScale = Math.min(1.3, Math.max(1, ctrlH / 96));
   document.documentElement.style.setProperty("--ctrl-scale", ctrlScale.toString());
