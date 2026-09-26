@@ -197,6 +197,14 @@ export class InputManager {
         this.end('k_1');
       }
     });
+
+    window.addEventListener('blur', () => {
+      this.active.clear();
+      if (!game.aiActive) {
+        game.player.inputDir = 0;
+        this.update();
+      }
+    });
   }
 
   private bindGlobalTouchEvents() {

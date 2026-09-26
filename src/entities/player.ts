@@ -79,7 +79,7 @@ import { spawnParticles } from './particles.js';
         this.x = config.gameWidth / 2 - this.w / 2;
         this.y = config.gameHeight - 80;
         this.vx = this.vy = this.animTimer = this.baseY = 0;
-        this.isFalling = this.isSuperJumping = this.isPoweredUp = this.isSparkleJumping = false;
+        this.isFalling = this.isSuperJumping = this.isPoweredUp = this.isSparkleJumping = this.isCleared = false;
         this.inGreenMushroomChain = false;
         this.history = [
           { x: this.x, y: this.y, dir: true },
