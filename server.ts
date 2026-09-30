@@ -688,13 +688,53 @@ async function startServer() {
     }
   });
 
+  // Shared server-side read session token for anonymous leaderboard fetching without generating new player IDs
+  let serverReadSessionToken: string | null = null;
+  let serverReadSessionPromise: Promise<string | null> | null = null;
+
+  async function getServerReadSessionToken(): Promise<string | null> {
+    if (serverReadSessionToken) return serverReadSessionToken;
+    if (serverReadSessionPromise) return serverReadSessionPromise;
+
+    serverReadSessionPromise = (async () => {
+      try {
+        const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || 'dev_a30dce847162445799eac173326a4f9d';
+        const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
+        const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/v2/session/guest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            game_key: apiKey,
+            player_identifier: 'SERVER_SHARED_READ_VIEWER',
+            game_version: '0.1.0.0'
+          })
+        });
+        const data = await response.json();
+        if (data.session_token) {
+          serverReadSessionToken = data.session_token;
+          return serverReadSessionToken;
+        }
+      } catch (e) {
+        console.error('Failed to obtain server read session token:', e);
+      } finally {
+        serverReadSessionPromise = null;
+      }
+      return null;
+    })();
+
+    return serverReadSessionPromise;
+  }
+
   // Proxy routes for fetching scores from LootLocker Leaderboard
   app.get("/api/lootlocker/leaderboards/list", async (req, res) => {
     const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
     const defaultLeaderboardId = process.env.LOOTLOCKER_LEADERBOARD_ID || process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || 'hct2';
     const count = req.query.count || 2000;
     const after = req.query.after ? `&after=${encodeURIComponent(req.query.after as string)}` : '';
-    const sessionToken = req.query.session_token as string;
+    let sessionToken = req.query.session_token as string;
+    if (!sessionToken || sessionToken === 'undefined' || sessionToken === 'null' || sessionToken.trim() === '') {
+      sessionToken = (await getServerReadSessionToken()) || '';
+    }
     const leaderboardId = req.query.leaderboard_id as string || defaultLeaderboardId;
 
     try {

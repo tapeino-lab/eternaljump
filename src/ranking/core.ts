@@ -16,6 +16,7 @@ import { validatePhysicalScore } from '../security.js';
         RankingAPI.syncPersonalBestPromise = (async () => {
           const isConfigured = await LootLockerAPI.checkConfig();
           if (!isConfigured) return;
+          if (!LootLockerAPI.hasRegisteredPlayer()) return;
           
           // Submit any updated total coins count at the beginning
           LootLockerAPI.syncTotalCoins();

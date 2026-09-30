@@ -86,6 +86,10 @@ export const LootLockerAPI = {
   },
 
 
+  hasRegisteredPlayer: function(): boolean {
+    return !!(this.playerId || safeStorage.getItem('LL_SYS_PLAYER_ID'));
+  },
+
   checkConfig: async function() {
     if (this.hasLootLockerConfig !== null) return this.hasLootLockerConfig;
     
@@ -134,6 +138,9 @@ export const LootLockerAPI = {
     let localTotal = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
     let remoteTotal = 0;
     
+    // Only attempt to fetch remote coins if player has already registered an ID
+    if (!this.hasRegisteredPlayer()) return;
+
     // Attempt to fetch remote coins
     try {
       if (this.coinLeaderboardId && await this.init()) {
@@ -309,11 +316,11 @@ export const LootLockerAPI = {
   getTimeAttackScores: async function(lm = 2000) {
     if (!this.taLeaderboardId) return null;
     this.log(`Attempting to fetch all TA scores...`, 'info');
-    if (!await this.init()) return null;
+    if (this.isDirectMode && !await this.init()) return null;
     try {
       let allItems: any[] = [];
       let headers: any = { 'Content-Type': 'application/json' };
-      if (this.isDirectMode) {
+      if (this.isDirectMode && this.sessionToken) {
         headers['x-session-token'] = this.sessionToken;
       }
 
@@ -323,7 +330,7 @@ export const LootLockerAPI = {
           let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.taLeaderboardId}/list?count=${lm}${afterQuery}`;
           return await fetch(url, { headers });
         } else {
-          return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken)}&leaderboard_id=${this.taLeaderboardId}`, { headers });
+          return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken || '')}&leaderboard_id=${this.taLeaderboardId}`, { headers });
         }
       };
 
@@ -416,6 +423,7 @@ export const LootLockerAPI = {
   },
 
   getMemberScore: async function() {
+    if (!this.hasRegisteredPlayer()) return { notFound: true };
     if (!await this.init()) return null;
     try {
       let r;
@@ -461,6 +469,7 @@ export const LootLockerAPI = {
 
   getMemberTAScore: async function() {
     if (!this.taLeaderboardId) return null;
+    if (!this.hasRegisteredPlayer()) return { notFound: true };
     if (!await this.init()) return null;
     try {
       let r;
@@ -508,6 +517,7 @@ export const LootLockerAPI = {
   },
 
   setPlayerName: async function(name) {
+    if (!this.hasRegisteredPlayer()) return;
     if (!await this.init()) return;
     try {
       if (this.isDirectMode) {
@@ -808,7 +818,7 @@ export const LootLockerAPI = {
 
   getScores: async function(lm = 2000) {
     this.log(`Attempting to fetch all scores (count: ${lm})...`, 'info');
-    if (!await this.init()) {
+    if (this.isDirectMode && !await this.init()) {
       this.log('Score fetch aborted (Init Failed)', 'error');
       return null;
     }
@@ -825,10 +835,10 @@ export const LootLockerAPI = {
         let afterQuery = cursor ? `&after=${encodeURIComponent(cursor)}` : '';
         if (this.isDirectMode) {
           let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/list?count=${lm}${afterQuery}`;
-          headers['x-session-token'] = this.sessionToken;
+          if (this.sessionToken) headers['x-session-token'] = this.sessionToken;
           return await fetch(url, { headers });
         } else {
-          return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken)}`, { headers });
+          return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken || '')}`, { headers });
         }
       };
 
@@ -952,8 +962,6 @@ export const LootLockerAPI = {
     this.playerIdentifier = null;
     this.sessionToken = null;
     this.playerId = null;
-    
-    this.init();
   }
 };
 
