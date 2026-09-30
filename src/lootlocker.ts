@@ -516,13 +516,12 @@ export const LootLockerAPI = {
     return null;
   },
 
-  setPlayerName: async function(name) {
-    if (!this.hasRegisteredPlayer()) return;
+  setPlayerName: async function(name: string) {
     if (!await this.init()) return;
     try {
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/player/name`;
-        fetch(url, {
+        await fetch(url, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -531,7 +530,7 @@ export const LootLockerAPI = {
           body: JSON.stringify({ name: name })
         });
       } else {
-        fetch('/api/lootlocker/player/name', {
+        await fetch('/api/lootlocker/player/name', {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json'
@@ -539,7 +538,24 @@ export const LootLockerAPI = {
           body: JSON.stringify({ name: name, session_token: this.sessionToken })
         });
       }
-    } catch(e) {}
+
+      // Re-submit existing personal best records with the updated name so that LootLocker leaderboard entries reflect the new name immediately
+      const pbKey = 'JUMP_PERSONAL_BEST';
+      const localPB = secureStorage.getItem<any>(pbKey, null);
+      if (localPB && typeof localPB.alt === 'number' && localPB.alt > 0) {
+        const lang = name.split(' ')[0] || getLang();
+        await this.submitScore(localPB.alt, localPB.coins || 0, localPB.time || 0, lang);
+      }
+
+      const taPbKey = 'JUMP_TIME_ATTACK_PERSONAL_BEST';
+      const localTAPB = secureStorage.getItem<any>(taPbKey, null);
+      if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0) {
+        const lang = name.split(' ')[0] || getLang();
+        await this.submitTimeAttackScore(localTAPB.time, localTAPB.alt || 144000, localTAPB.coins || 0, lang);
+      }
+    } catch(e: any) {
+      this.log(`Failed to set player name: ${e.message}`, 'error');
+    }
   },
   submitScore: async function(a, c, t, l, isRetry = false) {
     c = Math.min(c || 0, 999);

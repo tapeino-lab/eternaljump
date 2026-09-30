@@ -2,6 +2,7 @@ import { $, getPlayerName } from "./utils.js";
 import { LootLockerAPI } from "./lootlocker.js";
 import { safeStorage } from "./safeStorage.js";
 import { persistPlayerName } from "./identity.js";
+import { RankingAPI } from "./ranking/index.js";
 
 let tempNameVal = '';
 let originalNameVal = '';
@@ -164,7 +165,10 @@ export function setupKeyboardUI() {
       
       persistPlayerName(newFullName);
       
-      LootLockerAPI.setPlayerName(newFullName);
+      LootLockerAPI.setPlayerName(newFullName).then(() => {
+        RankingAPI.prefetchScores(true);
+        RankingAPI.prefetchTAScores(true);
+      });
       
       const tn = document.getElementById('gamePlayerName');
       if (tn) tn.innerText = 'ID: ' + newFullName;
