@@ -242,26 +242,62 @@ export function getStoredTotalCoinsSync(): number {
 }
 
 /**
- * Asynchronously resolves total coins across all 3 layers (localStorage, Cookie, IndexedDB)
+ * Asynchronously resolves total coins across all 3 layers (localStorage, Cookie, IndexedDB),
+ * shop inventory lower-bound heuristics, and server log recovery endpoints.
  */
 export async function resolveTotalCoinsAsync(): Promise<number> {
-  const syncMax = getStoredTotalCoinsSync();
+  let syncMax = getStoredTotalCoinsSync();
 
+  // 1. Check shop inventory lower-bound price heuristics
+  try {
+    const inv = secureStorage.getItem<Record<string, boolean>>('JUMP_INVENTORY', {});
+    if (inv && typeof inv === 'object') {
+      const itemPrices: Record<string, number> = {
+        'autocruise2': 100000,
+        'lithuanian': 50000,
+        'autocruise': 10000,
+        'helmet': 1000,
+        'skates': 500,
+        'mushroom': 100
+      };
+      for (const [id, unlocked] of Object.entries(inv)) {
+        if (unlocked && itemPrices[id] && itemPrices[id] > syncMax) {
+          console.log(`[Identity] Inferred minimum total coins (${itemPrices[id]}) from unlocked shop item: ${id}`);
+          syncMax = itemPrices[id];
+        }
+      }
+    }
+  } catch (e) {}
+
+  // 2. Check IndexedDB
   try {
     const idbRaw = await getIndexedDBValue(COINS_KEY);
     if (idbRaw) {
       const idbCoins = parseInt(idbRaw, 10);
       if (!isNaN(idbCoins) && idbCoins > syncMax) {
         console.log('[Identity] Restored total coins from IndexedDB:', idbCoins);
-        secureStorage.setItem(COINS_KEY, idbCoins);
-        setCookie(COOKIE_COINS_NAME, String(idbCoins));
-        return idbCoins;
+        syncMax = idbCoins;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Query server recovery log for historical maxCoins
+  try {
+    const pid = getStoredPlayerIdentifierSync();
+    if (pid) {
+      const res = await fetch(`/api/player-recovery?pid=${encodeURIComponent(pid)}`).catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data && typeof data.maxCoins === 'number' && data.maxCoins > syncMax) {
+          console.log('[Identity] Restored total coins from server log recovery:', data.maxCoins);
+          syncMax = data.maxCoins;
+        }
       }
     }
   } catch (e) {}
 
   if (syncMax > 0) {
-    setIndexedDBValue(COINS_KEY, String(syncMax)).catch(() => {});
+    persistTotalCoins(syncMax);
   }
   return syncMax;
 }

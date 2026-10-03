@@ -62,6 +62,32 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Recovery endpoint for restoring maxCoins / maxAlt for affected players from server logs
+  app.get("/api/player-recovery", (req, res) => {
+    const pid = String(req.query.pid || '').trim();
+    if (!pid) return res.status(400).json({ error: 'Missing pid' });
+
+    let maxCoins = 0;
+    let maxAlt = 0;
+    let name = '';
+
+    if (playerSummaries[pid]) {
+      const summary = playerSummaries[pid];
+      if (typeof summary.maxCoins === 'number') maxCoins = Math.max(maxCoins, summary.maxCoins);
+      if (typeof summary.maxAlt === 'number') maxAlt = Math.max(maxAlt, summary.maxAlt);
+      if (summary.name && summary.name !== 'Anonymous') name = summary.name;
+    }
+
+    playLogs.forEach(l => {
+      if (l.pid === pid || (l.name && name && l.name === name)) {
+        if (typeof l.coins === 'number' && l.coins > maxCoins) maxCoins = l.coins;
+        if (typeof l.alt === 'number' && l.alt > maxAlt) maxAlt = l.alt;
+      }
+    });
+
+    res.json({ pid, maxCoins, maxAlt, name });
+  });
+
   const DB_FILE = path.join(process.cwd(), 'players.json');
   const LOGS_FILE = path.join(process.cwd(), 'play_logs.json');
   const PUB_DB_FILE = path.join(process.cwd(), 'public', 'players.json');
