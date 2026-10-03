@@ -1,5 +1,6 @@
 import type { GameState } from './types.js';
 import { secureStorage } from './secureStorage.js';
+import { persistTotalCoins } from './identity.js';
 
 export function createInitialGameState(): GameState {
   let scoreKey = Math.floor(Math.random() * 0xFFFFFFFF);
@@ -164,7 +165,7 @@ export function awardRunCoins(reason: string, baseCoins: number): number {
   let earned = (reason === 'CLEAR') ? (baseCoins * 2) : baseCoins;
   if (earned > 0) {
     game.totalCoins += earned;
-    secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+    persistTotalCoins(game.totalCoins);
   }
   game.coinsAwardedThisRun = true;
   return earned;

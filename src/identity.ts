@@ -212,3 +212,68 @@ export function persistPlayerName(name: string): void {
   setCookie(COOKIE_PLAYER_NAME, name);
   setIndexedDBValue(NAME_KEY, name).catch(() => {});
 }
+
+const COINS_KEY = 'JUMP_TOTAL_COINS';
+const COOKIE_COINS_NAME = 'ej_total_coins';
+
+/**
+ * Synchronously retrieves total coins from localStorage or Cookie (whichever is higher)
+ */
+export function getStoredTotalCoinsSync(): number {
+  const localCoins = secureStorage.getItem<number>(COINS_KEY, 0);
+  
+  let cookieCoins = 0;
+  const rawCookie = getCookie(COOKIE_COINS_NAME);
+  if (rawCookie) {
+    const parsed = parseInt(rawCookie, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      cookieCoins = parsed;
+    }
+  }
+
+  const bestSync = Math.max(localCoins, cookieCoins);
+  if (bestSync > localCoins) {
+    secureStorage.setItem(COINS_KEY, bestSync);
+  }
+  if (bestSync > cookieCoins && bestSync > 0) {
+    setCookie(COOKIE_COINS_NAME, String(bestSync));
+  }
+  return bestSync;
+}
+
+/**
+ * Asynchronously resolves total coins across all 3 layers (localStorage, Cookie, IndexedDB)
+ */
+export async function resolveTotalCoinsAsync(): Promise<number> {
+  const syncMax = getStoredTotalCoinsSync();
+
+  try {
+    const idbRaw = await getIndexedDBValue(COINS_KEY);
+    if (idbRaw) {
+      const idbCoins = parseInt(idbRaw, 10);
+      if (!isNaN(idbCoins) && idbCoins > syncMax) {
+        console.log('[Identity] Restored total coins from IndexedDB:', idbCoins);
+        secureStorage.setItem(COINS_KEY, idbCoins);
+        setCookie(COOKIE_COINS_NAME, String(idbCoins));
+        return idbCoins;
+      }
+    }
+  } catch (e) {}
+
+  if (syncMax > 0) {
+    setIndexedDBValue(COINS_KEY, String(syncMax)).catch(() => {});
+  }
+  return syncMax;
+}
+
+/**
+ * Persists total coins across all 3 storage layers simultaneously (localStorage, Cookie, IndexedDB)
+ */
+export function persistTotalCoins(coins: number): void {
+  const currentBest = getStoredTotalCoinsSync();
+  const safeCoins = Math.max(Math.floor(coins || 0), currentBest);
+  
+  secureStorage.setItem(COINS_KEY, safeCoins);
+  setCookie(COOKIE_COINS_NAME, String(safeCoins));
+  setIndexedDBValue(COINS_KEY, String(safeCoins)).catch(() => {});
+}

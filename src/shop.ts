@@ -1,6 +1,7 @@
 import { startAttractCycle } from "./lifecycle.js";
 import { game } from './state.js';
 import { secureStorage } from './secureStorage.js';
+import { persistTotalCoins } from './identity.js';
 import { $ } from './utils.js';
 
 export interface ShopItemConfig {
@@ -479,7 +480,7 @@ export function initShop() {
           game.equipped[id] = true; // Auto equip if slot available
         }
 
-        secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+        persistTotalCoins(game.totalCoins);
         secureStorage.setItem('JUMP_INVENTORY', game.inventory);
         secureStorage.setItem('JUMP_EQUIPPED', game.equipped);
 

@@ -3,6 +3,7 @@ import { pBtn } from './display.js';
 import { loopRunning, resetLoopStats, startLoop } from './loop.js';
 import { applyCoinCountUp, stopCoinCountUpAnimation } from './ui-effects.js';
 import { secureStorage } from './secureStorage.js';
+import { getStoredTotalCoinsSync, persistTotalCoins } from './identity.js';
 import { startDemoRankingScroll } from './demo-ranking.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
 import { NPC, getPl, getCn, getBd, getIt, getCl, trySpawnBirdsOnPlatform, P_PT, P_PL, P_CN, P_BD, P_MT, P_IT, P_CL, P_FC } from './entities/index.js';
@@ -175,7 +176,7 @@ export function runAttractUICycle() {
   
   if (wasDemo && earned > 0) {
     game.totalCoins += earned;
-    secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+    persistTotalCoins(game.totalCoins);
     applyCoinCountUp(earned, 'DEMO BONUS', false, true);
   }
 }
@@ -246,7 +247,7 @@ export function startRealGame() {
   initGame(false);
   if (wasDemo && earned > 0) {
     game.totalCoins += earned;
-    secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+    persistTotalCoins(game.totalCoins);
     applyCoinCountUp(earned, 'DEMO BONUS', false, true);
   }
 }
@@ -363,12 +364,12 @@ export function setupGameCameraAndPlayer(isConsecutive) {
   game.score = game.startScore;
   game.scoreCoin = 0;
   game.flyingCoins = [];
-  game.totalCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+  game.totalCoins = Math.max(game.totalCoins || 0, getStoredTotalCoinsSync());
   
   // Dev preview specific: restore known coin balance for the linked player so testing can continue
   if (import.meta.env.DEV && game.totalCoins === 0) {
     game.totalCoins = 200827; // Restore JPN T_'s known balance
-    secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+    persistTotalCoins(game.totalCoins);
   }
 
   game.inventory = secureStorage.getItem<Record<string, boolean>>('JUMP_INVENTORY', {});

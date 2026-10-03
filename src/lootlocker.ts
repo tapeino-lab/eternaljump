@@ -2,7 +2,7 @@ import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage, safeCrypto } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
-import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier } from './identity.js';
+import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 
 /**
@@ -87,7 +87,12 @@ export const LootLockerAPI = {
 
 
   hasRegisteredPlayer: function(): boolean {
-    return !!(this.playerId || safeStorage.getItem('LL_SYS_PLAYER_ID'));
+    return !!(
+      this.playerId ||
+      safeStorage.getItem('LL_SYS_PLAYER_ID') ||
+      getStoredPlayerIdentifierSync() ||
+      getStoredTotalCoinsSync() > 0
+    );
   },
 
   checkConfig: async function() {
@@ -135,10 +140,10 @@ export const LootLockerAPI = {
   },
 
   syncTotalCoins: async function() {
-    let localTotal = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+    let localTotal = getStoredTotalCoinsSync();
     let remoteTotal = 0;
     
-    // Only attempt to fetch remote coins if player has already registered an ID
+    // Only attempt to fetch remote coins if player has already registered or has stored identity
     if (!this.hasRegisteredPlayer()) return;
 
     // Attempt to fetch remote coins
@@ -164,7 +169,7 @@ export const LootLockerAPI = {
             if (remoteTotal > localTotal) {
               this.log(`Remote coins (${remoteTotal}) > Local coins (${localTotal}). Syncing to local.`, 'info');
               localTotal = remoteTotal;
-              secureStorage.setItem('JUMP_TOTAL_COINS', localTotal);
+              persistTotalCoins(localTotal);
               
               // Update game state if available
               if (game) {
@@ -177,7 +182,7 @@ export const LootLockerAPI = {
           }
         }
       }
-    } catch(e) {
+    } catch(e: any) {
       console.warn("Failed to fetch remote coins", e);
     }
 
@@ -675,13 +680,25 @@ export const LootLockerAPI = {
       this.log('Coin submission skipped (no coin leaderboard ID)', 'info');
       return false;
     }
-    this.log(`Attempting to submit Coin score: ${coins} (Lang: ${lang})`, 'info');
+
+    const currentBest = getStoredTotalCoinsSync();
+    let sc = Math.floor(Math.max(coins || 0, currentBest || 0));
+
+    // Never submit 0 coins to prevent accidentally erasing remote record
+    if (sc <= 0) {
+      this.log('Coin submission skipped (coin total is 0)', 'info');
+      return false;
+    }
+
+    // Always persist highest known coin total across all storage layers
+    persistTotalCoins(sc);
+
+    this.log(`Attempting to submit Coin score: ${sc} (Lang: ${lang})`, 'info');
     if (!await this.init()) {
       this.log('Coin Score submission aborted (Init Failed)', 'error');
       return false;
     }
 
-    let sc = Math.floor(coins);
     let sig = computeGameSignature(0, sc, 0, lang);
     let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
     let meta = JSON.stringify({

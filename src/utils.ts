@@ -1,6 +1,6 @@
 import { safeStorage } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
-import { getStoredPlayerNameSync, persistPlayerName } from './identity.js';
+import { getStoredPlayerNameSync, persistPlayerName, getStoredTotalCoinsSync } from './identity.js';
 
 export const RND = Math.random;
 export const FLR = Math.floor;
@@ -36,7 +36,7 @@ export const hasPlayedOnce = (): boolean => {
       safeStorage.setItem('JUMP_HAS_PLAYED', 'true');
       return true;
     }
-    const coins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
+    const coins = getStoredTotalCoinsSync();
     if (coins > 0) {
       safeStorage.setItem('JUMP_HAS_PLAYED', 'true');
       return true;
