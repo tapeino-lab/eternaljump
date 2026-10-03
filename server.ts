@@ -63,7 +63,7 @@ async function startServer() {
   });
 
   // Recovery endpoint for restoring maxCoins / maxAlt for affected players from server logs
-  app.get("/api/player-recovery", (req, res) => {
+  app.get("/api/player-recovery", async (req, res) => {
     const pid = String(req.query.pid || '').trim();
     const queryName = String(req.query.name || '').trim();
 
@@ -105,8 +105,48 @@ async function startServer() {
       if (matchPid || matchName) {
         if (typeof l.coins === 'number' && l.coins > maxCoins) maxCoins = l.coins;
         if (typeof l.alt === 'number' && l.alt > maxAlt) maxAlt = l.alt;
+        if (l.pid && !matchedPid) matchedPid = l.pid;
       }
     });
+
+    // 4. Query LootLocker Leaderboards (cointtl & hct2) for Cloud Match if maxCoins or pid is missing
+    if (targetName && targetName !== 'anonymous') {
+      try {
+        const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || 'v1_5c32587ffba44840af7bf11c81cb5147';
+        const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
+        
+        const sessRes = await fetch(`https://${domainKey}.api.lootlocker.io/game/v2/session/guest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ game_key: apiKey, game_version: '2.10.79' })
+        });
+        if (sessRes.ok) {
+          const sessData = await sessRes.json();
+          const sessionToken = sessData.session_token;
+          if (sessionToken) {
+            const coinLbRes = await fetch(`https://${domainKey}.api.lootlocker.io/game/leaderboards/cointtl/list?count=100`, {
+              headers: { 'x-session-token': sessionToken }
+            });
+            if (coinLbRes.ok) {
+              const coinLbData = await coinLbRes.json();
+              const items = coinLbData.items || [];
+              const match = items.find((i: any) => {
+                const pName = (i.player && i.player.name) || i.name || '';
+                let mName = '';
+                if (i.metadata) { try { mName = JSON.parse(i.metadata).name || ''; } catch(e){} }
+                return pName.trim().toLowerCase() === targetName || mName.trim().toLowerCase() === targetName;
+              });
+              if (match) {
+                if (match.member_id) matchedPid = String(match.member_id);
+                if (typeof match.score === 'number' && match.score > maxCoins) {
+                  maxCoins = match.score;
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }
 
     res.json({ pid: matchedPid || pid, maxCoins, maxAlt, name: foundName || queryName });
   });
