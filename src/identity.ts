@@ -217,10 +217,23 @@ const COINS_KEY = 'JUMP_TOTAL_COINS';
 const COOKIE_COINS_NAME = 'ej_total_coins';
 
 /**
- * Synchronously retrieves total coins from localStorage or Cookie (whichever is higher)
+ * Synchronously retrieves total coins from localStorage or Cookie (whichever is higher),
+ * scanning all legacy key names.
  */
 export function getStoredTotalCoinsSync(): number {
-  const localCoins = secureStorage.getItem<number>(COINS_KEY, 0);
+  let localCoins = secureStorage.getItem<number>(COINS_KEY, 0);
+
+  // Scan all legacy key variations across localStorage
+  const legacyKeys = ['JUMP_TOTAL_COINS', 'totalCoins', 'EJ_TOTAL_COINS', 'ej_total_coins', 'COINS_TOTAL', 'jump_coins'];
+  for (const k of legacyKeys) {
+    try {
+      const v = safeStorage.getItem(k);
+      if (v) {
+        const n = parseInt(v, 10);
+        if (!isNaN(n) && n > localCoins) localCoins = n;
+      }
+    } catch (e) {}
+  }
   
   let cookieCoins = 0;
   const rawCookie = getCookie(COOKIE_COINS_NAME);
@@ -281,16 +294,24 @@ export async function resolveTotalCoinsAsync(): Promise<number> {
     }
   } catch (e) {}
 
-  // 3. Query server recovery log for historical maxCoins
+  // 3. Query server recovery log for historical maxCoins matching PID or Player Name
   try {
     const pid = getStoredPlayerIdentifierSync();
-    if (pid) {
-      const res = await fetch(`/api/player-recovery?pid=${encodeURIComponent(pid)}`).catch(() => null);
+    const name = getStoredPlayerNameSync();
+    const queryParams = new URLSearchParams();
+    if (pid) queryParams.set('pid', pid);
+    if (name) queryParams.set('name', name);
+
+    if (queryParams.toString().length > 0) {
+      const res = await fetch(`/api/player-recovery?${queryParams.toString()}`).catch(() => null);
       if (res && res.ok) {
         const data = await res.json();
         if (data && typeof data.maxCoins === 'number' && data.maxCoins > syncMax) {
           console.log('[Identity] Restored total coins from server log recovery:', data.maxCoins);
           syncMax = data.maxCoins;
+        }
+        if (data && data.pid) {
+          persistPlayerIdentifier(data.pid);
         }
       }
     }
@@ -300,6 +321,34 @@ export async function resolveTotalCoinsAsync(): Promise<number> {
     persistTotalCoins(syncMax);
   }
   return syncMax;
+}
+
+/**
+ * Manual Recovery Function: Allows a user to enter their Player Name to restore their
+ * PID, high scores, and coin balances from server logs & LootLocker cloud.
+ */
+export async function restoreAccountByName(playerName: string): Promise<{ success: boolean; coins: number; name: string }> {
+  const name = playerName.trim();
+  if (!name || name.length < 2) return { success: false, coins: 0, name: '' };
+
+  try {
+    const res = await fetch(`/api/player-recovery?name=${encodeURIComponent(name)}`);
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data && (data.maxCoins > 0 || data.pid)) {
+        if (data.pid) {
+          persistPlayerIdentifier(data.pid);
+        }
+        persistPlayerName(data.name || name);
+        if (data.maxCoins > 0) {
+          persistTotalCoins(data.maxCoins);
+        }
+        return { success: true, coins: data.maxCoins || 0, name: data.name || name };
+      }
+    }
+  } catch (e) {}
+
+  return { success: false, coins: 0, name: '' };
 }
 
 /**

@@ -2,7 +2,7 @@ import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage, safeCrypto } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
-import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins } from './identity.js';
+import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, restoreAccountByName } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 
 /**
@@ -524,6 +524,17 @@ export const LootLockerAPI = {
   setPlayerName: async function(name: string) {
     if (!await this.init()) return;
     try {
+      // 1. Trigger automatic account & coin recovery for this player name
+      try {
+        const rec = await restoreAccountByName(name);
+        if (rec && rec.coins > 0 && game) {
+          game.totalCoins = Math.max(game.totalCoins || 0, rec.coins);
+          persistTotalCoins(game.totalCoins);
+          let el = document.getElementById('shopCoinCounter');
+          if (el) el.innerText = game.totalCoins.toString();
+        }
+      } catch (e) {}
+
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/player/name`;
         await fetch(url, {

@@ -65,27 +65,50 @@ async function startServer() {
   // Recovery endpoint for restoring maxCoins / maxAlt for affected players from server logs
   app.get("/api/player-recovery", (req, res) => {
     const pid = String(req.query.pid || '').trim();
-    if (!pid) return res.status(400).json({ error: 'Missing pid' });
+    const queryName = String(req.query.name || '').trim();
+
+    if (!pid && !queryName) return res.status(400).json({ error: 'Missing pid or name' });
 
     let maxCoins = 0;
     let maxAlt = 0;
-    let name = '';
+    let foundName = queryName;
+    let matchedPid = pid;
 
-    if (playerSummaries[pid]) {
+    // 1. Search by PID
+    if (pid && playerSummaries[pid]) {
       const summary = playerSummaries[pid];
       if (typeof summary.maxCoins === 'number') maxCoins = Math.max(maxCoins, summary.maxCoins);
       if (typeof summary.maxAlt === 'number') maxAlt = Math.max(maxAlt, summary.maxAlt);
-      if (summary.name && summary.name !== 'Anonymous') name = summary.name;
+      if (summary.name && summary.name !== 'Anonymous') foundName = summary.name;
     }
 
+    // 2. Search by Player Name
+    const targetName = (queryName || foundName || '').trim().toLowerCase();
+    if (targetName && targetName !== 'anonymous' && targetName.length >= 2) {
+      Object.entries(playerSummaries).forEach(([p, summary]) => {
+        if (summary.name && summary.name.trim().toLowerCase() === targetName) {
+          if (typeof summary.maxCoins === 'number' && summary.maxCoins > maxCoins) {
+            maxCoins = summary.maxCoins;
+            matchedPid = p;
+          }
+          if (typeof summary.maxAlt === 'number' && summary.maxAlt > maxAlt) {
+            maxAlt = summary.maxAlt;
+          }
+        }
+      });
+    }
+
+    // 3. Search play logs
     playLogs.forEach(l => {
-      if (l.pid === pid || (l.name && name && l.name === name)) {
+      const matchPid = pid && l.pid === pid;
+      const matchName = targetName && targetName !== 'anonymous' && l.name && l.name.trim().toLowerCase() === targetName;
+      if (matchPid || matchName) {
         if (typeof l.coins === 'number' && l.coins > maxCoins) maxCoins = l.coins;
         if (typeof l.alt === 'number' && l.alt > maxAlt) maxAlt = l.alt;
       }
     });
 
-    res.json({ pid, maxCoins, maxAlt, name });
+    res.json({ pid: matchedPid || pid, maxCoins, maxAlt, name: foundName || queryName });
   });
 
   const DB_FILE = path.join(process.cwd(), 'players.json');
