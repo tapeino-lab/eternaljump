@@ -136,22 +136,11 @@
         </div>
       </div>
 
-      <!-- Player Play Frequency Ranking (Heat Bar Chart) -->
-      <div id="chartSection" class="chart-card hidden">
-        <div class="chart-title">
-          <span style="display:flex; align-items:center; gap:6px;">
-            <span>🔥 プレイヤー別 プレイ頻度・やり込みランキング</span>
-          </span>
-          <span style="font-size:12px; color:#94a3b8;" id="chartSubtitle">挑戦回数 TOPランキング</span>
-        </div>
-        <div id="freqChart" class="freq-chart"></div>
-      </div>
-
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="nav-tabs" id="tabContainer">
-          <button id="tabPrimary" class="tab-btn active" onclick="switchTab('primary')">👥 ユーザー利用状況 (日時・記録)</button>
-          <button id="tabSecondary" class="tab-btn" onclick="switchTab('secondary')">🕒 プレイ履歴タイムライン (最新順)</button>
+          <button id="tabPrimary" class="tab-btn" onclick="switchTab('primary')">👥 ユーザー利用状況 (日時・記録)</button>
+          <button id="tabSecondary" class="tab-btn active" onclick="switchTab('secondary')">🕒 プレイ履歴タイムライン (最新順)</button>
           <button id="tabLeaderboards" class="tab-btn" onclick="switchTab('leaderboards')">🏆 参考ランキング</button>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -166,7 +155,7 @@
       </div>
 
       <!-- Table 1: Consolidated User Activity List -->
-      <div id="tablePrimaryView" class="table-container">
+      <div id="tablePrimaryView" class="table-container hidden">
         <table>
           <thead>
             <tr>
@@ -182,7 +171,7 @@
       </div>
 
       <!-- Table 2: Chronological Play Event Timeline -->
-      <div id="tableSecondaryView" class="table-container hidden">
+      <div id="tableSecondaryView" class="table-container">
         <table>
           <thead>
             <tr>
@@ -214,7 +203,7 @@
 
   <script>
     let currentMode = 'detecting'; // 'server' or 'static'
-    let currentTab = 'primary'; // 'primary', 'secondary', 'leaderboards'
+    let currentTab = 'secondary'; // 'primary', 'secondary', 'leaderboards'
     let currentLbSubTab = 'alt'; // 'alt', 'ta', 'coins'
     
     // Core consolidated data stores
@@ -661,86 +650,6 @@
           <span style="color:#94a3b8; font-size:13px;">新記録ログ待ち</span> <br>
           <span style="color:#64748b; font-size:11px; font-weight:normal;">(新バージョンプレイ後に反映)</span>
         `;
-      }
-
-      // 5. Play Frequency Ranking (Horizontal Heat Bars)
-      if (playerActivityList.length > 0) {
-        document.getElementById('chartSection').classList.remove('hidden');
-
-        // Sort players by playCount descending, then by lastSeen descending
-        const sortedPlayers = [...playerActivityList].sort((a, b) => {
-          const countA = a.playCount || 1;
-          const countB = b.playCount || 1;
-          if (countB !== countA) return countB - countA;
-          return (b.lastSeen || 0) - (a.lastSeen || 0);
-        });
-
-        const totalPlays = sortedPlayers.reduce((acc, p) => acc + (p.playCount || 1), 0);
-        const avgPlays = sortedPlayers.length > 0 ? (totalPlays / sortedPlayers.length).toFixed(1) : '0';
-        const maxPlays = Math.max(...sortedPlayers.map(p => p.playCount || 1), 1);
-
-        document.getElementById('chartSubtitle').innerHTML = `
-          総挑戦回数: <strong style="color:#38bdf8;">${totalPlays.toLocaleString()}回</strong> 
-          <span style="color:#64748b; margin:0 4px;">|</span> 
-          平均: <strong style="color:#facc15;">${avgPlays}回 / 人</strong>
-        `;
-
-        const chartEl = document.getElementById('freqChart');
-        chartEl.innerHTML = '';
-
-        sortedPlayers.forEach((p, idx) => {
-          const rank = idx + 1;
-          const count = p.playCount || 1;
-          const pct = Math.max(10, Math.min(100, Math.round((count / maxPlays) * 100)));
-
-          let rankBadge = `${rank}`;
-          let rankClass = '';
-          let barGradient = 'linear-gradient(90deg, #6366f1, #818cf8)'; // Indigo
-
-          if (rank === 1) {
-            rankBadge = '🥇';
-            rankClass = 'rank-1';
-            barGradient = 'linear-gradient(90deg, #f97316, #ef4444)'; // Flame Red/Orange
-          } else if (rank === 2) {
-            rankBadge = '🥈';
-            rankClass = 'rank-2';
-            barGradient = 'linear-gradient(90deg, #f59e0b, #fbbf24)'; // Gold/Amber
-          } else if (rank === 3) {
-            rankBadge = '🥉';
-            rankClass = 'rank-3';
-            barGradient = 'linear-gradient(90deg, #0284c7, #38bdf8)'; // Sky Blue
-          }
-
-          // Achievement tag
-          let tagHtml = '';
-          if (p.maxAlt >= 144 || (p.bestTA && p.bestTA > 0)) {
-            tagHtml = `<span style="background:rgba(234,179,8,0.25); color:#fde047; padding:1px 5px; border-radius:3px; font-size:10px; font-weight:bold; border:1px solid rgba(234,179,8,0.4);">👑 CLEAR</span>`;
-          } else if (p.maxAlt > 0) {
-            tagHtml = `<span style="background:rgba(56,189,248,0.15); color:#7dd3fc; padding:1px 5px; border-radius:3px; font-size:10px;">${p.maxAlt.toLocaleString()}m</span>`;
-          }
-
-          const row = document.createElement('div');
-          row.className = 'freq-row';
-          row.innerHTML = `
-            <div class="freq-rank ${rankClass}">${rankBadge}</div>
-            <div class="freq-player" title="${escapeHtml(p.name)}">
-              <span>${escapeHtml(p.name)}</span>
-            </div>
-            <div class="freq-bar-wrap">
-              <div class="freq-bar-fill" style="width:${pct}%; background:${barGradient};"></div>
-              <div class="freq-bar-text">
-                <span>🔥 ${count}回</span>
-                ${tagHtml}
-              </div>
-            </div>
-            <div class="freq-meta">
-              ${p.lastSeen ? formatTimeAgo(p.lastSeen) : '<span class="badge badge-region">-</span>'}
-            </div>
-          `;
-          chartEl.appendChild(row);
-        });
-      } else {
-        document.getElementById('chartSection').classList.add('hidden');
       }
     }
 
