@@ -8,7 +8,7 @@ import { startAttractCycle } from './lifecycle.js';
 import { setupToastPrompts } from './pwa.js';
 import { $ } from './utils.js';
 import { RankingAPI } from './ranking/index.js';
-import { resolvePlayerIdentifier, resolveTotalCoinsAsync } from './identity.js';
+import { resolvePlayerIdentifier, resolveTotalCoinsAsync, persistTotalCoins } from './identity.js';
 import './display.js';
 
 // Check if user is navigating to Admin Dashboard
@@ -39,12 +39,15 @@ function initGameApp() {
   setupToastPrompts();
 
   // Multi-layer Identity & Coin Storage Restoration on Startup
+  const initialBootCoins = game.totalCoins || 0;
   resolvePlayerIdentifier().then(() => {
     resolveTotalCoinsAsync().then((restoredCoins) => {
-      if (restoredCoins > game.totalCoins) {
-        game.totalCoins = restoredCoins;
+      if (restoredCoins > initialBootCoins) {
+        const diff = restoredCoins - initialBootCoins;
+        game.totalCoins = (game.totalCoins || 0) + diff;
+        persistTotalCoins(game.totalCoins);
         const shopCounter = document.getElementById('shopCoinCounter');
-        if (shopCounter) shopCounter.innerText = restoredCoins.toString();
+        if (shopCounter) shopCounter.innerText = game.totalCoins.toString();
       }
       // Sync with LootLocker cloud in background for returning players
       RankingAPI.syncPersonalBest();
