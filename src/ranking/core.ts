@@ -26,13 +26,6 @@ import { validatePhysicalScore } from '../security.js';
           let pbKey = RankingAPI.pbKey;
           let taPbKey = RankingAPI.taPbKey;
           
-          let pending = [];
-          try {
-            pending = JSON.parse(safeStorage.getItem('LL_PENDING_SCORES') || '[]');
-          } catch(e) {
-            safeStorage.removeItem('LL_PENDING_SCORES');
-          }
-
           let currentLang = getLang();
 
           if (onlinePB && typeof onlinePB.alt === 'number') {

@@ -4,13 +4,7 @@ import { updatePlayingState } from './update-playing.js';
 import { postUpdatePhysics, updateStateAnimations, updateIntroState } from './update-post.js';
 
 import type { GameState } from "./types.js";
-import { applyCoinCountUp } from './ui-effects.js';
-import { config } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
-import { RND, FLR, MAX, MIN, $ } from './utils.js';
-import { initGame } from './lifecycle.js';
 
-import { RankingAPI } from './ranking.js';
 
     export function updatePhysicsMain(
       game: GameState, isAttractMode: boolean, demoState: any, config: any, inputHandler: any, IMG: any,

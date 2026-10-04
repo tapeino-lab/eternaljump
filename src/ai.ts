@@ -1,7 +1,6 @@
 import { config, SCORE_THRESHOLDS } from './config.js';
 import { game } from './state.js';
 import { isAttractMode } from './lifecycle.js';
-import { getSafetyLineY } from './spawner.js';
 import type { Player, Platform, Item, AILevel } from './types.js';
 
 export function getEntityAILevel(entity: Player): AILevel {
@@ -12,11 +11,6 @@ export function getEntityAILevel(entity: Player): AILevel {
   }
   if (entity && entity.aiLevel) return entity.aiLevel;
   return 'smart';
-}
-
-function isLockOnPlatform(platform: any): boolean {
-  if (!platform) return false;
-  return (platform.type === 'normal' || platform.isIcy || platform.type === 'h-slide' || platform.type === 'v-slide');
 }
 
 export function getTargetTouchY(cand: any): number {
@@ -98,7 +92,6 @@ export function runAI(entity: Player) {
 
     let holeCenter = 112; // Center of ground hole (96..128)
     let dx = holeCenter - px; // px is entity.x + 8 (center X)
-    let vx = entity.vx || 0;
 
     if (entity.y >= 230) {
       // Inside hole or ascending from super jump until clearing y < 210

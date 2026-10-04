@@ -1,6 +1,5 @@
 import { FLR, getPlayerName, getLang } from './utils.js';
-import { safeStorage, safeCrypto } from './safeStorage.js';
-import { secureStorage } from './secureStorage.js';
+import { safeStorage } from './safeStorage.js';
 import { game } from './state.js';
 import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, bootCoinsReady } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';

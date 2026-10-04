@@ -14,7 +14,6 @@ class AirplaneBannerSystem {
   // Offscreen canvas for banner rendering
   private offCanvas: HTMLCanvasElement | null = null;
   private offCtx: CanvasRenderingContext2D | null = null;
-  private updateTimer: number = 0;
   private fontLoaded: boolean = false;
 
   constructor() {
@@ -49,7 +48,6 @@ class AirplaneBannerSystem {
     this.flapFrame = 0;
     this.flapTimer = 0;
     this.waveTimer = 0;
-    this.updateTimer = 0;
   }
 
   private updateOffscreenBanner() {

@@ -1,6 +1,5 @@
 import { $, getPlayerName } from "./utils.js";
 import { LootLockerAPI } from "./lootlocker.js";
-import { safeStorage } from "./safeStorage.js";
 import { persistPlayerName } from "./identity.js";
 import { RankingAPI } from "./ranking/index.js";
 

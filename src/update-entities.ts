@@ -1,11 +1,8 @@
 import type { GameState } from "./types.js";
-import { applyCoinCountUp } from './ui-effects.js';
 import { config, SCORE_THRESHOLDS } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, spawnDebris, spawnFireSparks, P_PT, P_PL, P_IT, P_CN, P_CL, P_FC, getFc } from './entities/index.js';
-import { RND, FLR, MAX, MIN, $, swapRemove, isColliding } from './utils.js';
-import { initGame } from './lifecycle.js';
+import { P_BD, getBd, P_MT, getMt, spawnParticles, spawnDebris, spawnFireSparks, P_PT, P_FC, getFc } from './entities/index.js';
+import { RND, FLR, swapRemove, isColliding } from './utils.js';
 
-import { RankingAPI } from './ranking.js';
 
 export function updateBirds(game: GameState) {
   for (let i = 0; i < game.birds.length; i++) {

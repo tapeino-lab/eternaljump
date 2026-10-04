@@ -280,13 +280,11 @@ export let currentLangFilter = '';
             for (let i = 0; i < 10 - curLen; i++) s.push({ rank: curLen + i + 1, t: 5 * 60000, coins: 0, lang: 'CPU', n: 'CPU --' });
         }
         
-        let hl = false;
         let isPlayerInList = false;
 
         let renderRow = (r, i) => {
             let isC = isCurrentPlayer(r);
             if (isC) {
-                hl = true;
                 isPlayerInList = true;
             }
             let bg = isC ? 'animation:rowBlink 1s infinite;font-weight:bold;' : '';

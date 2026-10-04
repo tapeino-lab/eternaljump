@@ -1,11 +1,10 @@
 import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { awardRunCoins } from './state.js';
-import { secureStorage } from './secureStorage.js';
 import { persistTotalCoins } from './identity.js';
 import { config } from './config.js';
-import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, getFc } from './entities/index.js';
-import { RND, FLR, MAX, MIN, $, swapRemove, isColliding } from './utils.js';
+import { spawnParticles, getFc } from './entities/index.js';
+import { FLR, MAX, MIN, $, isColliding } from './utils.js';
 import { initGame } from './lifecycle.js';
 
 import { RankingAPI } from './ranking.js';

@@ -1,11 +1,11 @@
 import { config, SCORE_THRESHOLDS } from '../config.js';
 import { RND, FLR, MAX, MIN, SIN, PI } from '../utils.js';
 import { game } from '../state.js';
-import { IMG, ctx } from '../display.js';
+import { ctx } from '../display.js';
 
 import { dR } from '../renderer/core.js';
 
-import { spawnParticles, spawnDebris, getPt } from './particles.js';
+import { getPt } from './particles.js';
 import { ObjectPool } from './pool.js';
 
 export const P_BD = new ObjectPool<Bird>(() => new Bird());

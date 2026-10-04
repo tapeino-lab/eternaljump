@@ -1,15 +1,11 @@
 import { startDemoRankingScroll } from "../demo-ranking.js";
 import { game, demoState } from '../state.js';
-import { ctx, IMG } from '../display.js';
-import { isAttractMode, runAttractUICycle, setIgnoreNextTap } from '../lifecycle.js';
-import { fireworksSystem } from '../fireworks.js';
-import { airplaneSystem } from '../airplane.js';
+import { ctx } from '../display.js';
+import { isAttractMode, runAttractUICycle } from '../lifecycle.js';
 import { animatedTotalCoins } from '../ui-effects.js';
 import { config } from '../config.js';
-import { RankingAPI } from '../ranking.js';
-import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
+import { MIN, MAX, $ } from '../utils.js';
 
-import { dR } from './core.js';
 
 // DOM Elements Cache to prevent layout thrashing and expensive document.getElementById / querySelector lookups on every frame
 let cachedCanvasWrapper: HTMLElement | null = null;
@@ -27,7 +23,6 @@ let cachedDemoOthersWrapper: HTMLElement | null = null;
 let cachedDemoOthers: HTMLElement | null = null;
 let cachedDemoRankingContainer: HTMLElement | null = null;
 let cachedFadeOverlay: HTMLElement | null = null;
-let lastIndicatorFontSetup = false;
 
 export function drawOffscreenIndicators() {
   for (let _idx_npcs = 0; _idx_npcs < game.npcs.length; _idx_npcs++) {

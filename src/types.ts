@@ -67,7 +67,6 @@ export interface GameState {
   coinsAwardedThisRun?: boolean;
   isBenchmarking?: boolean;
   personalBest: any;
-  showAIThoughts?: boolean;
   meteorOverheat: number;
   npcExclamationBonus?: boolean;
 }

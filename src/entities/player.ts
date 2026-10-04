@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
+import { ABS, FLR, SIN, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
 import { game } from '../state.js';
 import { ctx, IMG, GREEN_IMG, SNOW_IMG, GREEN_SNOW_IMG, BLUE_IMG, BLUE_SNOW_IMG, LITHUANIAN_IMG } from '../display.js';
 import { openShopFromPipe } from '../lifecycle.js';
@@ -7,8 +7,6 @@ import { openShopFromPipe } from '../lifecycle.js';
 import { dR } from '../renderer/core.js';
 
 import { getPt } from './particles.js';
-import { runAI } from '../ai.js';
-import { spawnParticles } from './particles.js';
 
     export class Player {
       isNPC: boolean = false;

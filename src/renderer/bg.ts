@@ -1,13 +1,8 @@
-import { game, demoState } from '../state.js';
-import { ctx, IMG } from '../display.js';
-import { isAttractMode, runAttractUICycle, setIgnoreNextTap } from '../lifecycle.js';
-import { fireworksSystem } from '../fireworks.js';
-import { airplaneSystem } from '../airplane.js';
+import { game } from '../state.js';
+import { ctx } from '../display.js';
 import { config } from '../config.js';
-import { RankingAPI } from '../ranking.js';
-import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
+import { FLR, SIN } from '../utils.js';
 
-import { dR } from './core.js';
 const sharedColorOut = { r: 0, g: 0, b: 0 };
 export function getColorAtScore(s: number, out = sharedColorOut) {
   let phases = config.bgPhases;
@@ -32,19 +27,6 @@ export function getColorAtScore(s: number, out = sharedColorOut) {
   }
   out.r = phases[0].color.r; out.g = phases[0].color.g; out.b = phases[0].color.b;
   return out;
-}
-
-const bgCache = document.createElement('canvas');
-bgCache.width = config.gameWidth;
-bgCache.height = config.gameHeight;
-const bgCtx = bgCache.getContext('2d', { alpha: false });
-let lastBGScore = -1;
-
-export function resetBGScore() {
-  lastBGScore = -1;
-  // Force reallocation in case the browser purged the offscreen canvas
-  bgCache.width = config.gameWidth;
-  bgCache.height = config.gameHeight;
 }
 
 export const cloudCaches: HTMLCanvasElement[] = [];

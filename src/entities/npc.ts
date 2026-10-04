@@ -1,14 +1,11 @@
 import { Player } from './player.js';
 import { config } from '../config.js';
-import { ABS, FLR, SIN, POW, MAX, MIN, RND, PI, hasPlayedOnce } from '../utils.js';
+import { FLR, RND } from '../utils.js';
 import { game } from '../state.js';
-import { ctx, IMG } from '../display.js';
+import { ctx } from '../display.js';
 
-import { dR } from '../renderer/core.js';
 
-import { getPt } from './particles.js';
 import { runAI } from '../ai.js';
-import { spawnParticles } from './particles.js';
 
     export class NPC extends Player {
       constructor(x, y, delayMs, idx) {

@@ -1,5 +1,4 @@
 import type { GameState } from './types.js';
-import { secureStorage } from './secureStorage.js';
 import { persistTotalCoins } from './identity.js';
 
 export function createInitialGameState(): GameState {
@@ -60,7 +59,6 @@ export function createInitialGameState(): GameState {
     isNewTARecord: false,
     coinsAwardedThisRun: false,
     personalBest: null,
-    showAIThoughts: false,
     meteorOverheat: 0,
     npcExclamationBonus: false
   } as unknown as GameState;
@@ -105,9 +103,6 @@ export const game: GameState = createInitialGameState();
  */
 export function resetGameStateData(game: GameState, isConsecutive: boolean = false, flockDir: number = 1, personalBest: any = null) {
   const initial = createInitialGameState();
-
-  // Preserve showAIThoughts value across reset
-  const oldShowAIThoughts = game.showAIThoughts !== undefined ? game.showAIThoughts : false;
 
   game.isConsecutive = isConsecutive;
   game.state = initial.state;
@@ -155,7 +150,6 @@ export function resetGameStateData(game: GameState, isConsecutive: boolean = fal
   game.clearTime = initial.clearTime;
   game.debugUsed = initial.debugUsed;
   game.lastUI = initial.lastUI;
-  game.showAIThoughts = oldShowAIThoughts;
   game.meteorOverheat = 0;
   game.npcExclamationBonus = false;
 }

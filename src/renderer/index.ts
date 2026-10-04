@@ -1,15 +1,12 @@
-import { game, demoState } from '../state.js';
+import { game } from '../state.js';
 import { ctx, IMG, restoreGameCanvas } from '../display.js';
-import { isAttractMode, runAttractUICycle, setIgnoreNextTap } from '../lifecycle.js';
 import { fireworksSystem } from '../fireworks.js';
-import { airplaneSystem } from '../airplane.js';
 import { config } from '../config.js';
-import { RankingAPI } from '../ranking.js';
-import { RND, FLR, MIN, MAX, SIN, ABS, PI, $, hasPlayedOnce } from '../utils.js';
+import { RND, FLR } from '../utils.js';
 
-import { dR, resetFillColor } from './core.js';
-import { getColorAtScore, resetBGScore, drawBG } from './bg.js';
-import { drawHorizontalPipe, drawGameEntities } from './entities.js';
+import { resetFillColor } from './core.js';
+import { drawBG } from './bg.js';
+import { drawGameEntities } from './entities.js';
 import { drawOffscreenIndicators, updateHUD, updateDemoRanking } from './ui.js';
 
 export function drawBackgroundLayer(ts: number) {

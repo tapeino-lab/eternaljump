@@ -2,7 +2,7 @@ import { B64 } from './assets.js';
 import { config } from './config.js';
 import { game, demoState } from './state.js';
 import { onAppResume, onAppSuspend } from './lifecycle.js';
-import { resetBGScore, drawCloudCaches } from './renderer/bg.js';
+import { drawCloudCaches } from './renderer/bg.js';
 import { render } from './renderer/index.js';
 import { wakeLoop } from './loop.js';
 
@@ -227,7 +227,6 @@ export function restoreGameCanvas(): boolean {
 
     drawGroundCache();
     drawCloudCaches();
-    resetBGScore();
 
     for (let k in B64) {
       if (IMG[k] && IMG[k].complete && IMG[k].naturalWidth > 0) {
@@ -264,7 +263,6 @@ function handleAppResume() {
       updateCtrlCenter();
       drawGroundCache();
       drawCloudCaches();
-      resetBGScore();
     }
     onAppResume();
     wakeLoop();
