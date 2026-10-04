@@ -14,11 +14,12 @@
 
 ## Reporting & Communication
 - **Mandatory Reporting**: At the end of every response where code changes were made, you MUST provide a clear summary of what was discussed and the exact changes implemented.
-- **Version and Commit Message**: You MUST always include the updated version number (e.g., `v2.05.37`) and a concise, 1-line English commit message in a code block for the user to copy.
+- **Version and Commit**: You MUST always include the updated version number (e.g., `v2.05.37`) and the commit hash / 1-line English commit message that was pushed.
 
 ## Git Workflow
-- **No Automatic Git Commits**: DO NOT run `git commit` or `git add` in the terminal. Doing so breaks the AI Studio GitHub export UI because it requires uncommitted changes. 
-- **Suggested Commit Message**: At the end of every response where code changes were made, always provide a concise, 1-line commit message in a code block or easily copyable format for the user to paste into the AI Studio GitHub commit UI.
+- **Commit & Push**: AI Studio is no longer used. When a task's changes are complete and `npm run lint` passes, stage the changed files, commit with a concise 1-line English message, and push to `origin/main` (GitHub: `tapeino-lab/eternaljump`).
+- **Deploy Awareness**: Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and publishes to GitHub Pages (production). Never push unverified or half-finished changes.
+- **Secrets**: Never commit API keys, passwords, or their hashes. They are provided only via environment variables (GitHub Secrets for production, `.env` locally, which is git-ignored).
 
 ## State Retention & No Unprompted Reverts
 - **Implicit Approval**: Any code modifications made in previous turns that the user does not explicitly mention or complain about must be treated as fully approved.
