@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="robots" content="noindex">
+  <title>FOLLOW ME! PASSKEY TEST</title>
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; background: #000; color: #fff; font-family: 'Press Start 2P', monospace; }
+    main { max-width: 420px; margin: 0 auto; padding: 20px 16px 40px; }
+    h1 { font-size: 12px; margin: 0 0 16px; text-align: center; line-height: 1.6; }
+    .box { border: 2px solid #fff; border-radius: 4px; padding: 12px; margin-bottom: 14px; font-size: 8px; line-height: 1.9; word-break: break-all; }
+    .label { color: #8cf; }
+    button { display: block; width: 100%; margin: 0 0 10px; padding: 12px 8px; font-family: inherit; font-size: 10px;
+             color: #fff; background: #222; border: 2px solid #fff; border-radius: 4px; cursor: pointer; }
+    button.primary { background: #0a4; }
+    button.warn { background: #622; }
+    #log { color: #ff9; white-space: pre-wrap; }
+    .ok { color: #6f6; } .ng { color: #f66; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>PASSKEY TEST<br><span style="font-size:8px;color:#aaa">game data is not touched</span></h1>
+
+  <div class="box">
+    <div><span class="label">TEST ID:</span> <span id="testId"></span></div>
+    <div><span class="label">MODE:</span> <span id="mode"></span></div>
+    <div><span class="label">OPENED AS:</span> <span id="opened"></span></div>
+    <div><span class="label">PASSKEY READY:</span> <span id="avail"></span></div>
+  </div>
+
+  <button class="primary" id="btnSave">1. SAVE YOUR DATA?</button>
+  <button class="warn" id="btnWipe">2. ERASE LOCAL DATA</button>
+  <button class="primary" id="btnLoad">3. LOAD DATA</button>
+  <button id="btnCarry">4. PREPARE HOME SCREEN TEST</button>
+
+  <div class="box"><div class="label">RESULT</div><div id="log"></div></div>
+</main>
+<script>
+  // Standalone feasibility test for storing the player key in a passkey (WebAuthn user handle).
+  // Uses its own key PK_TEST_ID, never the game's LL_PID.
+  const KEY = 'PK_TEST_ID';
+  const $ = (id) => document.getElementById(id);
+  const log = (msg, cls) => {
+    const line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+    $('log').prepend(line);
+  };
+  const randomHex = (n) => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2, '0')).join('');
+  const enc = (s) => new TextEncoder().encode(s);
+  const dec = (buf) => new TextDecoder().decode(buf);
+
+  const params = new URLSearchParams(location.search);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  $('mode').textContent = isStandalone ? 'HOME SCREEN APP' : 'BROWSER';
+
+  // Home screen carry test: if the launch URL brings a key and local storage is empty, adopt it.
+  let opened = 'NORMAL';
+  if (params.get('from') === 'manifest') opened = 'MANIFEST START_URL';
+  if (params.get('k')) {
+    opened = 'PAGE URL WITH KEY';
+    if (!localStorage.getItem(KEY)) {
+      localStorage.setItem(KEY, params.get('k'));
+      log('KEY CARRIED INTO THIS APP: ' + params.get('k'), 'ok');
+    }
+  }
+  $('opened').textContent = opened;
+
+  function currentId() {
+    let id = localStorage.getItem(KEY);
+    if (!id) { id = 'p_' + randomHex(8); localStorage.setItem(KEY, id); log('NEW TEST ID CREATED'); }
+    return id;
+  }
+  function refresh() { $('testId').textContent = localStorage.getItem(KEY) || '(none)'; }
+  currentId(); refresh();
+
+  (async () => {
+    try {
+      const ok = window.PublicKeyCredential && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      $('avail').innerHTML = ok ? '<span class="ok">YES</span>' : '<span class="ng">NO</span>';
+    } catch (e) { $('avail').innerHTML = '<span class="ng">ERROR</span>'; }
+  })();
+
+  $('btnSave').onclick = async () => {
+    const id = currentId();
+    try {
+      await navigator.credentials.create({ publicKey: {
+        rp: { name: 'FOLLOW ME!' },
+        user: { id: enc(id), name: 'FOLLOW ME! TEST ' + id.slice(-4).toUpperCase(), displayName: 'TEST ' + id.slice(-4).toUpperCase() },
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        authenticatorSelection: { residentKey: 'required', userVerification: 'preferred' },
+        timeout: 60000,
+      }});
+      log('DATA SAVED! (' + id + ')', 'ok');
+    } catch (e) { log('SAVE FAILED: ' + e.name + ' ' + e.message, 'ng'); }
+  };
+
+  $('btnWipe').onclick = () => {
+    localStorage.removeItem(KEY);
+    history.replaceState(null, '', location.pathname);
+    refresh();
+    log('LOCAL DATA ERASED (like a 7-day wipe)');
+  };
+
+  $('btnLoad').onclick = async () => {
+    try {
+      const cred = await navigator.credentials.get({ publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        userVerification: 'preferred',
+        timeout: 60000,
+      }});
+      const id = cred && cred.response && cred.response.userHandle ? dec(cred.response.userHandle) : null;
+      if (!id) { log('NO SAVE FOUND', 'ng'); return; }
+      localStorage.setItem(KEY, id);
+      refresh();
+      log('WELCOME BACK! RESTORED ' + id, 'ok');
+    } catch (e) { log('LOAD FAILED: ' + e.name + ' ' + e.message, 'ng'); }
+  };
+
+  $('btnCarry').onclick = () => {
+    const id = currentId();
+    // Put the key in the page URL so "Add to Home Screen" can carry it into the app.
+    history.replaceState(null, '', location.pathname + '?k=' + encodeURIComponent(id));
+    // Second variant: a manifest whose start_url differs, to learn which URL iOS uses.
+    if (!document.querySelector('link[rel=manifest]')) {
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'passkey-test.webmanifest';
+      document.head.appendChild(link);
+    }
+    log('READY. NOW: SHARE > ADD TO HOME SCREEN, THEN OPEN THE NEW ICON', 'ok');
+  };
+</script>
+</body>
+</html>

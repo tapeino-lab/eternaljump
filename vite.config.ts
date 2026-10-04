@@ -110,6 +110,7 @@ export default defineConfig(() => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf,cjs}'],
+          globIgnores: ['**/passkey-test*'],
           navigateFallbackDenylist: [/admin/i, /api/i],
           runtimeCaching: [
             {
