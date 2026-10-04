@@ -1,5 +1,6 @@
 import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage } from './safeStorage.js';
+import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
 import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, bootCoinsReady } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
@@ -61,26 +62,78 @@ export function compareTARanking(A: any, B: any): number {
 }
 
 /**
- * One-time coin rescue for players whose identity was lost and re-created as a new LootLocker player.
- * Keyed by the NEW LootLocker player_id; the lost total is added once (skipped once local coins
- * already exceed it). Old player identifiers are intentionally not stored here (public repo).
+ * One-time rescue for players whose identity was lost and re-created as a new LootLocker player.
+ * Keyed by the NEW LootLocker player_id. Applied when that player's session starts:
+ * - coins: the lost total is added once (skipped once local coins already reach it)
+ * - pb / ta: the lost personal bests are restored locally and re-submitted under the new account
+ *   (skipped when the local record is already as good or better)
+ * Old player identifiers are intentionally not stored here (public repo).
  */
-const COIN_RESCUE_GRANTS: Record<string, { coins: number; note: string }> = {
-  '63590557': { coins: 148062, note: 'JPN YN: lost account 63534284 (2026-10-04)' },
+interface RescueGrant {
+  note: string;
+  coins?: number;
+  pb?: { alt: number; coins: number; time: number };
+  ta?: { time: number; alt: number; coins: number };
+  lang?: string;
+}
+
+const RESCUE_GRANTS: Record<string, RescueGrant> = {
+  '63590557': {
+    note: 'JPN YN: lost account 63534284 (2026-10-04)',
+    coins: 148062,
+    pb: { alt: 144000, coins: 148, time: 154665 },
+    ta: { time: 78822, alt: 144000, coins: 83 },
+    lang: 'JPN',
+  },
 };
 
-async function applyCoinRescueGrant(playerId: any): Promise<void> {
-  const grant = COIN_RESCUE_GRANTS[String(playerId || '')];
+// Same keys as RankingAPI.pbKey / RankingAPI.taPbKey (not imported to avoid a module cycle)
+const PB_KEY = 'EternalJumper_PB';
+const TA_PB_KEY = '8bitJump_TAPB';
+
+async function applyRescueGrant(playerId: any): Promise<void> {
+  const grant = RESCUE_GRANTS[String(playerId || '')];
   if (!grant) return;
   await bootCoinsReady;
-  const local = Math.max(getStoredTotalCoinsSync(), game ? (game.totalCoins || 0) : 0);
-  if (local >= grant.coins) return;
-  const restored = local + grant.coins;
-  persistTotalCoins(restored);
-  if (game) game.totalCoins = restored;
-  const el = document.getElementById('shopCoinCounter');
-  if (el) el.innerText = restored.toString();
-  console.log(`[Rescue] Restored ${grant.coins} coins (${grant.note}). Total: ${restored}`);
+
+  if (grant.coins) {
+    const local = Math.max(getStoredTotalCoinsSync(), game ? (game.totalCoins || 0) : 0);
+    if (local < grant.coins) {
+      const restored = local + grant.coins;
+      persistTotalCoins(restored);
+      if (game) game.totalCoins = restored;
+      const el = document.getElementById('shopCoinCounter');
+      if (el) el.innerText = restored.toString();
+      console.log(`[Rescue] Restored ${grant.coins} coins (${grant.note}). Total: ${restored}`);
+    }
+  }
+
+  const lang = grant.lang || getLang();
+
+  if (grant.pb) {
+    const localPB = secureStorage.getItem<any>(PB_KEY, null);
+    const pbEntry = { alt: grant.pb.alt, coins: grant.pb.coins, time: grant.pb.time, t: grant.pb.time };
+    const localEntry = localPB ? { alt: localPB.alt || 0, coins: localPB.coins || 0, time: localPB.time || 0, t: localPB.time || 0 } : null;
+    if (!localEntry || compareScoreRanking(pbEntry, localEntry) < 0) {
+      const restoredPB = { alt: grant.pb.alt, coins: grant.pb.coins, time: grant.pb.time };
+      secureStorage.setItem(PB_KEY, restoredPB);
+      if (game) game.personalBest = restoredPB;
+      await LootLockerAPI.submitScore(grant.pb.alt, grant.pb.coins, grant.pb.time, lang);
+      safeStorage.setItem('LL_LAST_FETCH', '0');
+      console.log(`[Rescue] Restored personal best ${grant.pb.alt}m (${grant.note})`);
+    }
+  }
+
+  if (grant.ta) {
+    const localTA = secureStorage.getItem<any>(TA_PB_KEY, null);
+    const localTime = (localTA && typeof localTA.time === 'number' && localTA.time > 0) ? localTA.time : Infinity;
+    if (grant.ta.time < localTime) {
+      secureStorage.setItem(TA_PB_KEY, { time: grant.ta.time });
+      await LootLockerAPI.submitTimeAttackScore(grant.ta.time, grant.ta.alt, grant.ta.coins, lang);
+      safeStorage.setItem('LL_LAST_TA_FETCH', '0');
+      console.log(`[Rescue] Restored time attack ${grant.ta.time}ms (${grant.note})`);
+    }
+  }
 }
 
 export const LootLockerAPI = {
@@ -326,7 +379,7 @@ export const LootLockerAPI = {
           this.playerId = d.player_id;
           safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
           this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
-          applyCoinRescueGrant(this.playerId).catch(() => {});
+          applyRescueGrant(this.playerId).catch(() => {});
           
           // Use client-generated or loaded customizable player name (e.g., "JPN XY")
           try {
