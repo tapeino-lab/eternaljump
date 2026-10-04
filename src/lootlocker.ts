@@ -491,7 +491,8 @@ export const LootLockerAPI = {
           try {
             if (d.metadata) {
               let m = JSON.parse(d.metadata);
-              time = m.t ? m.t * 1000 : 0;
+              // Prefer millisecond precision; m.t is whole seconds
+              time = (typeof m.time === 'number' && m.time > 0) ? m.time : (m.t ? m.t * 1000 : 0);
               if (m.lang) lang = m.lang;
             }
           } catch(e) {}

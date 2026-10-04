@@ -167,8 +167,9 @@ export const getPlayerName = (): string => {
   let currentLang = getLang();
   
   // Validate if player name matches "LANG XX" format (3-letter country code + space + 2 chars)
+  // '---' is getLang()'s code for unmapped languages, so it must be accepted too
   // Migrate/reset legacy name formats automatically if invalid
-  const isValidFormat = n && /^[A-Z]{3}\s[A-Z0-9.\-_!?]{2}$/.test(n);
+  const isValidFormat = n && /^(?:[A-Z]{3}|---)\s[A-Z0-9.\-_!?]{2}$/.test(n);
   
   if (!n || !isValidFormat) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

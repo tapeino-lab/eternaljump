@@ -496,7 +496,7 @@ export let currentLangFilter = '';
               html += '<div class="lang-stats-divider"></div>';
               sorted.forEach(([lang, count]) => {
                 html += `<div class="lang-stats-item">
-                  <button class="modal-btn lang-filter-btn" style="width: 44px; flex: none; padding: 3px 0; font-size: 8px; font-family: 'Press Start 2P'; color: #fff; text-align: center; box-sizing: border-box;" data-lang="${lang}">${lang}</button>
+                  <button class="modal-btn lang-filter-btn" style="width: 44px; flex: none; padding: 3px 0; font-size: 8px; font-family: 'Press Start 2P'; color: #fff; text-align: center; box-sizing: border-box;" data-lang="${escapeHTML(lang)}">${escapeHTML(lang)}</button>
                   <span style="font-size: 8px; font-family: 'Press Start 2P'; margin-left: 6px; color: #fff; text-align: left; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${count}</span>
                 </div>`;
               });
@@ -669,7 +669,7 @@ export let currentLangFilter = '';
         let prevBtn = $('rankingPrevLangBtn');
         let nextBtn = $('rankingNextLangBtn');
         if (titleLabel) {
-            titleLabel.innerHTML = currentLangFilter ? `<span style="color:#fff;">[${currentLangFilter}]</span> RANKING` : 'RANKING';
+            titleLabel.innerHTML = currentLangFilter ? `<span style="color:#fff;">[${escapeHTML(currentLangFilter)}]</span> RANKING` : 'RANKING';
         }
         if (prevBtn && nextBtn) {
             prevBtn.style.display = 'inline-block';
