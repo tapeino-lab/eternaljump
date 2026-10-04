@@ -9,6 +9,7 @@ import { setupToastPrompts } from './pwa.js';
 import { $ } from './utils.js';
 import { RankingAPI } from './ranking/index.js';
 import { resolvePlayerIdentifier, resolveTotalCoinsAsync, persistTotalCoins, markBootCoinsRestored } from './identity.js';
+import { initPasskeyUI } from './passkey-ui.js';
 import './display.js';
 
 // Check if user is navigating to Admin Dashboard
@@ -37,6 +38,7 @@ function initGameApp() {
   setupKeyboardUI();
   initShop();
   setupToastPrompts();
+  initPasskeyUI();
 
   // Multi-layer Identity & Coin Storage Restoration on Startup
   // Take the max, never add a diff: game.totalCoins is loaded from storage by startAttractCycle()

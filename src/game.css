@@ -800,8 +800,8 @@ body.no-fullscreen #hud-time {
 
 .title-version {
   position: absolute;
-  left: 12px;
-  bottom: 12px;
+  left: 6px;
+  top: 246px; /* top-left of the ground; bottom-left is the LOAD DATA button */
   font-family: 'Press Start 2P', monospace;
   font-size: 9px;
   color: rgba(255,255,255,0.72);
@@ -2144,3 +2144,92 @@ body.showing-ranking #btnInstagram {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
 }
 
+
+
+/* ---------- Passkey backup (SAVE YOUR DATA? / LOAD DATA / pause SAVE) ---------- */
+.load-data-btn {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 25;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-family: 'Press Start 2P', sans-serif;
+  white-space: nowrap;
+  background: #333;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+.save-prompt {
+  z-index: 20000;
+  align-items: center;
+  justify-content: center;
+}
+
+.passkey-save-btn {
+  background: #00a844;
+  border-color: #8f8;
+}
+
+.pause-name-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pause-name-lock {
+  display: inline-flex;
+}
+
+.pause-save-btn {
+  margin-top: 8px;
+  padding: 5px 14px;
+  font-size: 9px;
+  font-family: 'Press Start 2P', sans-serif;
+  color: #fff;
+  border: 2px solid #8f8;
+  border-radius: 4px;
+}
+
+/* Keep the pause box clear of the RANK / LANG buttons when the SAVE button is shown */
+.pause-box.has-save-btn {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.pause-box.has-save-btn .pause-label {
+  margin-bottom: 10px;
+}
+.pause-box.has-save-btn .pause-divider {
+  padding-top: 10px;
+}
+
+.passkey-message {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 30000;
+  background: #111;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  padding: 16px 20px;
+  font-family: 'Press Start 2P', sans-serif;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+.passkey-message-title {
+  font-size: 10px;
+  white-space: nowrap;
+}
+.passkey-message-sub {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 8px;
+}

@@ -5,6 +5,7 @@ import { isAttractMode, ignoreNextTap, setIgnoreNextTap, startRealGame, startAtt
 import { RankingAPI } from './ranking.js';
 import { $ } from './utils.js';
 import { settleFlyingCoins } from './update-entities.js';
+import { isSavePromptOpen } from './passkey-ui.js';
 
 export class InputManager {
   public active = new Map<string, number>();
@@ -59,6 +60,13 @@ export class InputManager {
 
   private handleGlobalCapture(e: any): boolean {
     if (e.target.closest('#bottomToast')) return false;
+    if (e.target.closest('#savePrompt') || e.target.closest('#loadDataBtn')) return false;
+    if (isSavePromptOpen()) {
+      // Modal: ignore taps outside the prompt so the result screen does not advance underneath
+      e.preventDefault();
+      e.stopPropagation();
+      return true;
+    }
     if (e.target.closest('#autoCruiseBtn')) return false;
     if ($('nameEditModal')?.style.display === 'flex') return false;
 
@@ -292,7 +300,9 @@ export class InputManager {
             e.target.closest('#nameEditModal') || 
             e.target.closest('#rankingModal') || 
             e.target.closest('#langStatsModal') || 
-            e.target.closest('#pauseScreen')) return;
+            e.target.closest('#pauseScreen') ||
+            e.target.closest('#savePrompt') ||
+            e.target.closest('#loadDataBtn')) return;
         
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
 

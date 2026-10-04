@@ -13,6 +13,7 @@ import { airplaneSystem } from './airplane.js';
 import { runAI } from './ai.js';
 import { spawnParticles } from './entities/index.js';
 import { onEnterShop } from './shop.js';
+import { updateLoadDataButton } from './passkey-ui.js';
 
 let cachedTitleVersion: HTMLElement | null = null;
 let cachedShopScreen: HTMLElement | null = null;
@@ -158,6 +159,7 @@ function runFrame(ts: number) {
   if (stateChanged) {
     updatePauseButton();
     updateAutoCruiseBtnVisibility();
+    updateLoadDataButton();
   }
 
   render(ts);

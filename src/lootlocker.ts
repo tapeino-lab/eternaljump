@@ -2,7 +2,7 @@ import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
-import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, bootCoinsReady } from './identity.js';
+import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, persistPlayerName, bootCoinsReady } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 
 /**
@@ -359,7 +359,11 @@ export const LootLockerAPI = {
       return this._initPromise;
     }
 
-    this._initPromise = (async () => {
+    // The player can be switched while this login is in flight (passkey restore). The result is only
+    // applied if it still belongs to the current player; otherwise a late reply for the previous
+    // identity would overwrite the new session and later submissions would go to the wrong account.
+    const sessionPid = this.playerIdentifier;
+    const loginPromise = (async () => {
       try {
         let r;
         let url = '';
@@ -371,7 +375,7 @@ export const LootLockerAPI = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               game_key: this.apiKey,
-              player_identifier: this.playerIdentifier,
+              player_identifier: sessionPid,
               game_version: this.version.replace('v', '')
             })
           });
@@ -382,7 +386,7 @@ export const LootLockerAPI = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              player_identifier: this.playerIdentifier,
+              player_identifier: sessionPid,
               game_version: this.version.replace('v', '')
             })
           });
@@ -396,6 +400,11 @@ export const LootLockerAPI = {
           return false;
         }
         
+        if (this.playerIdentifier !== sessionPid) {
+          this.log('Player changed during login; discarding the stale session', 'warning');
+          return false;
+        }
+
         if (d.session_token) {
           this.sessionToken = d.session_token;
           setTimeout(() => this.submitPendingScores(), 2000);
@@ -404,8 +413,17 @@ export const LootLockerAPI = {
           this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
           applyRescueGrant(this.playerId).catch(() => {});
           
-          // Use client-generated or loaded customizable player name (e.g., "JPN XY")
+          // Use client-generated or loaded customizable player name (e.g., "JPN XY").
+          // Right after a passkey restore, the server holds the player's real name: adopt it
+          // instead of overwriting it with the random name this device generated.
           try {
+            if (safeStorage.getItem('EJ_ADOPT_SERVER_NAME') === '1') {
+              safeStorage.removeItem('EJ_ADOPT_SERVER_NAME');
+              const serverName = typeof d.player_name === 'string' ? d.player_name.trim() : '';
+              if (/^(?:[A-Z]{3}|---)\s[A-Z0-9.\-_!?]{2}$/.test(serverName)) {
+                persistPlayerName(serverName);
+              }
+            }
             let localName = getPlayerName();
             let tn = document.getElementById('gamePlayerName');
             if (tn) tn.innerText = 'ID: ' + localName;
@@ -420,11 +438,12 @@ export const LootLockerAPI = {
         this.log(`Session guest login failed: ${e.message}`, 'error');
         return false;
       } finally {
-        this._initPromise = null;
+        if (this._initPromise === loginPromise) this._initPromise = null;
       }
     })();
+    this._initPromise = loginPromise;
 
-    return this._initPromise;
+    return loginPromise;
   },
 
 

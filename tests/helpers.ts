@@ -6,6 +6,11 @@ export interface FakeLootLockerOptions {
   remoteCoins?: number | null | 'error';
   /** Status returned for guest session creation */
   sessionStatus?: number;
+  /** Name stored on the LootLocker player (returned by the guest session) */
+  playerName?: string;
+  /** Per-identifier player ids and an optional reply delay, to reproduce login races */
+  players?: Record<string, { playerId: number; name?: string; coins?: number | null; delayMs?: number }>;
+  sessionDelayMs?: number;
   /** Status returned by every authenticated request (after session) unless overridden */
   authStatus?: number;
 }
@@ -15,6 +20,8 @@ export interface FakeLootLockerCall {
   path: string;
   body: any;
   token: string | null;
+  /** Player the session token belongs to (multi-player mode) */
+  playerId?: number;
 }
 
 /**
@@ -30,6 +37,10 @@ export function installFakeLootLocker(opts: FakeLootLockerOptions = {}) {
     authStatus: opts.authStatus ?? 200,
     sessionsCreated: 0,
     validToken: '' as string,
+    validTokens: new Set<string>(),
+    tokenPlayer: {} as Record<string, { playerId: number; name?: string; coins?: number | null; delayMs?: number }>,
+    playerName: opts.playerName ?? '',
+    sessionIdentifiers: [] as string[],
   };
 
   const json = (status: number, body: any) =>
@@ -49,11 +60,35 @@ export function installFakeLootLocker(opts: FakeLootLockerOptions = {}) {
 
     if (path.includes('/game/v2/session/guest')) {
       if (state.sessionStatus !== 200) return json(state.sessionStatus, { error: 'session failed' });
+      if (opts.sessionDelayMs) await new Promise(r => setTimeout(r, opts.sessionDelayMs));
+      const known = opts.players && opts.players[body.player_identifier];
+      if (known) {
+        if (known.delayMs) await new Promise(r => setTimeout(r, known.delayMs));
+        state.sessionsCreated++;
+        state.sessionIdentifiers.push(body.player_identifier);
+        const token = `token_${body.player_identifier}`;
+        state.validTokens.add(token);
+        state.tokenPlayer[token] = known;
+        return json(200, { session_token: token, player_id: known.playerId, player_name: known.name || '' });
+      }
       state.sessionsCreated++;
+      state.sessionIdentifiers.push(body.player_identifier);
       state.validToken = `token_${state.sessionsCreated}`;
-      return json(200, { session_token: state.validToken, player_id: state.playerId });
+      return json(200, { session_token: state.validToken, player_id: state.playerId, player_name: state.playerName });
     }
 
+    const player = token ? state.tokenPlayer[token] : undefined;
+    if (player) {
+      calls[calls.length - 1].playerId = player.playerId;
+      if (path.includes('/cointtl/member/')) {
+        return player.coins == null ? json(404, { message: 'not found' }) : json(200, { score: player.coins, rank: 1 });
+      }
+      if (path.includes('/member/')) return json(404, { message: 'not found' });
+      if (path.endsWith('/submit')) return json(200, { score: body.score, rank: 1 });
+      if (path.includes('/game/player/name')) { player.name = body.name; return json(200, {}); }
+      if (path.includes('/list')) return json(200, { items: [], pagination: { total: 0 } });
+      return json(404, {});
+    }
     if (token !== state.validToken) return json(403, { message: 'invalid session token' });
     if (state.authStatus !== 200) return json(state.authStatus, { error: 'forced failure' });
 
@@ -69,7 +104,7 @@ export function installFakeLootLocker(opts: FakeLootLockerOptions = {}) {
       if (path.includes('/cointtl/')) state.remoteCoins = Math.max(Number(state.remoteCoins) || 0, body.score);
       return json(200, { score: body.score, rank: 1 });
     }
-    if (path.includes('/game/player/name')) return json(200, {});
+    if (path.includes('/game/player/name')) { state.playerName = body.name; return json(200, {}); }
     if (path.includes('/list')) return json(200, { items: [], pagination: { total: 0 } });
     return json(404, {});
   });

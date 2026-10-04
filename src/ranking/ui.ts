@@ -5,6 +5,7 @@ import { safeStorage } from '../safeStorage.js';
 import { $, getLang, escapeHTML, getPlayerName } from '../utils.js';
 import { LootLockerAPI, compareScoreRanking, compareTARanking } from '../lootlocker.js';
 import { RankingAPI } from './api.js';
+import { maybeOfferSave } from '../passkey-ui.js';
 
 let currentRankingSession = 0;
 export let currentLangFilter = '';
@@ -197,6 +198,7 @@ export let currentLangFilter = '';
           $('tapToStartMsg').innerText = 'TAP TO RANKING';
           $('tapToStartMsg').style.display = 'block';
         }, 50);
+        maybeOfferSave(state);
 }
       export const renderRankingTable = function(sList, state, mode, skipScroll = false) {
         let s = sList ? [...sList] : [];
