@@ -8,7 +8,7 @@ import { startAttractCycle } from './lifecycle.js';
 import { setupToastPrompts } from './pwa.js';
 import { $ } from './utils.js';
 import { RankingAPI } from './ranking/index.js';
-import { resolvePlayerIdentifier, resolveTotalCoinsAsync, persistTotalCoins } from './identity.js';
+import { resolvePlayerIdentifier, resolveTotalCoinsAsync, persistTotalCoins, markBootCoinsRestored } from './identity.js';
 import './display.js';
 
 // Check if user is navigating to Admin Dashboard
@@ -39,16 +39,18 @@ function initGameApp() {
   setupToastPrompts();
 
   // Multi-layer Identity & Coin Storage Restoration on Startup
-  const initialBootCoins = game.totalCoins || 0;
+  // Take the max, never add a diff: game.totalCoins is loaded from storage by startAttractCycle()
+  // after this point, so a boot-time diff double-counted the stored balance on every launch.
+  // Coins earned during play are persisted immediately, so restoredCoins already includes them.
   resolvePlayerIdentifier().then(() => {
     resolveTotalCoinsAsync().then((restoredCoins) => {
-      if (restoredCoins > initialBootCoins) {
-        const diff = restoredCoins - initialBootCoins;
-        game.totalCoins = (game.totalCoins || 0) + diff;
+      if (restoredCoins > (game.totalCoins || 0)) {
+        game.totalCoins = restoredCoins;
         persistTotalCoins(game.totalCoins);
         const shopCounter = document.getElementById('shopCoinCounter');
         if (shopCounter) shopCounter.innerText = game.totalCoins.toString();
       }
+      markBootCoinsRestored();
       // Sync with LootLocker cloud in background for returning players
       RankingAPI.syncPersonalBest();
     });

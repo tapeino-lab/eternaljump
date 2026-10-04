@@ -2,7 +2,7 @@ import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage, safeCrypto } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
-import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, restoreAccountByName } from './identity.js';
+import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, restoreAccountByName, bootCoinsReady } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 
 /**
@@ -59,6 +59,29 @@ export function compareTARanking(A: any, B: any): number {
   let rA = (typeof A._originalRank === 'number') ? A._originalRank : (typeof A.rank === 'number' ? A.rank : 999999);
   let rB = (typeof B._originalRank === 'number') ? B._originalRank : (typeof B.rank === 'number' ? B.rank : 999999);
   return rA - rB;
+}
+
+/**
+ * One-time coin rescue for players whose identity was lost and re-created as a new LootLocker player.
+ * Keyed by the NEW LootLocker player_id; the lost total is added once (skipped once local coins
+ * already exceed it). Old player identifiers are intentionally not stored here (public repo).
+ */
+const COIN_RESCUE_GRANTS: Record<string, { coins: number; note: string }> = {
+  '63590557': { coins: 148062, note: 'JPN YN: lost account 63534284 (2026-10-04)' },
+};
+
+async function applyCoinRescueGrant(playerId: any): Promise<void> {
+  const grant = COIN_RESCUE_GRANTS[String(playerId || '')];
+  if (!grant) return;
+  await bootCoinsReady;
+  const local = Math.max(getStoredTotalCoinsSync(), game ? (game.totalCoins || 0) : 0);
+  if (local >= grant.coins) return;
+  const restored = local + grant.coins;
+  persistTotalCoins(restored);
+  if (game) game.totalCoins = restored;
+  const el = document.getElementById('shopCoinCounter');
+  if (el) el.innerText = restored.toString();
+  console.log(`[Rescue] Restored ${grant.coins} coins (${grant.note}). Total: ${restored}`);
 }
 
 export const LootLockerAPI = {
@@ -292,6 +315,7 @@ export const LootLockerAPI = {
           this.playerId = d.player_id;
           safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
           this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
+          applyCoinRescueGrant(this.playerId).catch(() => {});
           
           // Use client-generated or loaded customizable player name (e.g., "JPN XY")
           try {

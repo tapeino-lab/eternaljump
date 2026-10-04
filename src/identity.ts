@@ -214,6 +214,14 @@ export function persistPlayerName(name: string): void {
 }
 
 const COINS_KEY = 'JUMP_TOTAL_COINS';
+
+// Resolved by main.ts once the startup coin restoration has been applied to game state.
+// Anything that raises coins outside of gameplay must wait for this to avoid double-counting.
+let resolveBootCoinsReady: () => void = () => {};
+export const bootCoinsReady: Promise<void> = new Promise((resolve) => { resolveBootCoinsReady = resolve; });
+export function markBootCoinsRestored(): void {
+  resolveBootCoinsReady();
+}
 const COOKIE_COINS_NAME = 'ej_total_coins';
 
 /**

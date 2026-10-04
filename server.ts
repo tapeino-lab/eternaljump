@@ -118,7 +118,7 @@ async function startServer() {
         const sessRes = await fetch(`https://${domainKey}.api.lootlocker.io/game/v2/session/guest`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ game_key: apiKey, game_version: '2.10.81' })
+          body: JSON.stringify({ game_key: apiKey, game_version: '2.10.83' })
         });
         if (sessRes.ok) {
           const sessData = await sessRes.json();
