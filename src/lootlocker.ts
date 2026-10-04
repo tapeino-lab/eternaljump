@@ -150,11 +150,13 @@ export const LootLockerAPI = {
   playerId: safeStorage.getItem('LL_SYS_PLAYER_ID') || null,
   version: `v${import.meta.env.VITE_APP_VERSION}`,
   _initPromise: null as Promise<any> | null,
+  _persistedPid: null as string | null,
   logs: [],
 
   log: function(msg, type = 'info') {
     const timestamp = new Date().toLocaleTimeString();
     this.logs.push({ timestamp, msg, type });
+    if (this.logs.length > 200) this.logs.splice(0, this.logs.length - 200);
     if (type === 'error' || type === 'warning') {
       console.warn(`[LootLocker ${type.toUpperCase()}] ${msg}`);
     }
@@ -175,8 +177,8 @@ export const LootLockerAPI = {
     
     this.log('Checking LootLocker configuration...', 'info');
     
-    // 1. Try Express Proxy backend check first
-    try {
+    // 1. Try Express Proxy backend check first (dev only: production is static GitHub Pages)
+    if (import.meta.env.DEV) try {
       this.log('Checking Express Server proxy availability...', 'info');
       let r = await fetch('/api/lootlocker/config-check');
       if (r.ok) {
@@ -214,6 +216,26 @@ export const LootLockerAPI = {
     return false;
   },
 
+  /**
+   * fetch() for authenticated LootLocker calls. Always sends the CURRENT session token (direct
+   * mode) and, when LootLocker rejects it as expired/invalid (401/403), logs in again once and
+   * retries. Without this a long-lived tab kept failing every submit until reload.
+   */
+  sessionFetch: async function(url: string, init: any = {}): Promise<Response> {
+    const send = () => {
+      const headers = { ...(init.headers || {}) };
+      if (this.isDirectMode && this.sessionToken) headers['x-session-token'] = this.sessionToken;
+      return fetch(url, { ...init, headers });
+    };
+    let r = await send();
+    if (this.isDirectMode && (r.status === 401 || r.status === 403)) {
+      this.log(`Session rejected (${r.status}); logging in again`, 'warning');
+      this.sessionToken = null;
+      if (await this.init()) r = await send();
+    }
+    return r;
+  },
+
   // Last coin total confirmed on the cloud leaderboard this session (null = not yet confirmed)
   knownRemoteCoins: null as number | null,
 
@@ -227,7 +249,7 @@ export const LootLockerAPI = {
       let r;
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.coinLeaderboardId}/member/${this.playerId}`;
-        r = await fetch(url, {
+        r = await this.sessionFetch(url, {
           headers: {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
@@ -322,8 +344,9 @@ export const LootLockerAPI = {
     if (!this.playerIdentifier) {
       this.playerIdentifier = await resolvePlayerIdentifier();
       this.log(`Resolved Player Identifier: ${this.playerIdentifier}`, 'info');
-    } else {
+    } else if (this._persistedPid !== this.playerIdentifier) {
       persistPlayerIdentifier(this.playerIdentifier);
+      this._persistedPid = this.playerIdentifier;
       this.log(`Loaded existing Player Identifier: ${this.playerIdentifier}`, 'info');
     }
     
@@ -421,7 +444,7 @@ export const LootLockerAPI = {
         let afterQuery = cursor ? `&after=${encodeURIComponent(cursor)}` : '';
         if (this.isDirectMode) {
           let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.taLeaderboardId}/list?count=${lm}${afterQuery}`;
-          return await fetch(url, { headers });
+          return await this.sessionFetch(url, { headers });
         } else {
           return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken || '')}&leaderboard_id=${this.taLeaderboardId}`, { headers });
         }
@@ -522,7 +545,7 @@ export const LootLockerAPI = {
       let r;
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/member/${this.playerId}`;
-        r = await fetch(url, {
+        r = await this.sessionFetch(url, {
           headers: {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
@@ -569,7 +592,7 @@ export const LootLockerAPI = {
       let r;
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.taLeaderboardId}/member/${this.playerId}`;
-        r = await fetch(url, {
+        r = await this.sessionFetch(url, {
           headers: {
             'Content-Type': 'application/json',
             'x-session-token': this.sessionToken
@@ -615,7 +638,7 @@ export const LootLockerAPI = {
     try {
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/player/name`;
-        await fetch(url, {
+        await this.sessionFetch(url, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -694,7 +717,7 @@ export const LootLockerAPI = {
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/submit`;
         this.log(`Submitting score directly to: ${url}`, 'info');
-        r = await fetch(url, {
+        r = await this.sessionFetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -802,7 +825,7 @@ export const LootLockerAPI = {
       let r;
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.coinLeaderboardId}/submit`;
-        r = await fetch(url, {
+        r = await this.sessionFetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -898,7 +921,7 @@ export const LootLockerAPI = {
       let r;
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.taLeaderboardId}/submit`;
-        r = await fetch(url, {
+        r = await this.sessionFetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -957,7 +980,7 @@ export const LootLockerAPI = {
         if (this.isDirectMode) {
           let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.leaderboardId}/list?count=${lm}${afterQuery}`;
           if (this.sessionToken) headers['x-session-token'] = this.sessionToken;
-          return await fetch(url, { headers });
+          return await this.sessionFetch(url, { headers });
         } else {
           return await fetch(`/api/lootlocker/leaderboards/list?count=${lm}${afterQuery}&session_token=${encodeURIComponent(this.sessionToken || '')}`, { headers });
         }

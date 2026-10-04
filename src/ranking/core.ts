@@ -188,7 +188,7 @@ import { validatePhysicalScore } from '../security.js';
                 let seen = new Set();
                 scores.forEach(s => {
                   let id = String(s.id);
-                  let isMe = (id === String(pid) || (pIdVal && id === String(pIdVal)) || (s.n && s.n === playerName && s.n !== '???'));
+                  let isMe = (id === String(pid) || (pIdVal && id === String(pIdVal)) || (!pIdVal && s.n && s.n === playerName && s.n !== '???'));
                   let dedupKey = isMe ? '__ME__' : (id || s.n);
                   if (!seen.has(dedupKey)) {
                     seen.add(dedupKey);
@@ -287,7 +287,7 @@ import { validatePhysicalScore } from '../security.js';
                 let seen = new Set();
                 scores.forEach(s => {
                   let id = String(s.id);
-                  let isMe = (id === String(pid) || (pIdVal && id === String(pIdVal)) || (s.n && s.n === playerName && s.n !== '???'));
+                  let isMe = (id === String(pid) || (pIdVal && id === String(pIdVal)) || (!pIdVal && s.n && s.n === playerName && s.n !== '???'));
                   let dedupKey = isMe ? '__ME__' : (id || s.n);
                   if (!seen.has(dedupKey)) {
                     seen.add(dedupKey);
@@ -332,11 +332,13 @@ import { validatePhysicalScore } from '../security.js';
           let pid = LootLockerAPI.playerIdentifier;
           let playerName = getPlayerName();
           let lang = getLang();
+          // Names are not unique; only match my row by name before any player ID is known
+          let pIdVal = LootLockerAPI.playerId ? String(LootLockerAPI.playerId) : safeStorage.getItem('LL_SYS_PLAYER_ID');
 
           if (!isTA) {
             let raw = safeStorage.getItem('LL_CACHED_LEADERBOARD');
             let scores: any[] = raw ? JSON.parse(raw) : [];
-            let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (s.n && s.n === playerName));
+            let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (pIdVal && String(s.id) === pIdVal) || (!pIdVal && s.n && s.n === playerName));
             let myEntry = { id: pid, alt, coins, time, t: time, lang, n: playerName, ts: Date.now() };
 
             if (existingIndex !== -1) {
@@ -353,7 +355,7 @@ import { validatePhysicalScore } from '../security.js';
           } else {
             let raw = safeStorage.getItem('LL_CACHED_TA_LEADERBOARD');
             let scores: any[] = raw ? JSON.parse(raw) : [];
-            let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (s.n && s.n === playerName));
+            let existingIndex = scores.findIndex(s => String(s.id) === String(pid) || (pIdVal && String(s.id) === pIdVal) || (!pIdVal && s.n && s.n === playerName));
             let myEntry = { id: pid, alt, coins, t: time, time, lang, n: playerName, ts: Date.now() };
 
             if (existingIndex !== -1) {

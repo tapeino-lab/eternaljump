@@ -4,6 +4,7 @@ import { ctrlCenterX } from './display.js';
 import { isAttractMode, ignoreNextTap, setIgnoreNextTap, startRealGame, startAttractCycle, togglePause, setAuto } from './lifecycle.js';
 import { RankingAPI } from './ranking.js';
 import { $ } from './utils.js';
+import { settleFlyingCoins } from './update-entities.js';
 
 export class InputManager {
   public active = new Map<string, number>();
@@ -451,6 +452,7 @@ export class InputManager {
           } else if (e.target.closest('#btnConfirmYes')) {
             e.preventDefault();
             e.stopPropagation();
+            if (!game.demoMode) settleFlyingCoins(game);
             let earned = (!game.demoMode && game.scoreCoin) ? game.scoreCoin : 0;
             if (earned > 0) {
               awardRunCoins('PAUSE_QUIT', earned);

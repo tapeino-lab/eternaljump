@@ -63,6 +63,19 @@ let lastLoopCheckState = {
 
 export function loop(ts: number) {
   currentRafId = null;
+  try {
+    runFrame(ts);
+  } catch (e) {
+    console.error('[Loop] Frame failed; continuing', e);
+  } finally {
+    // Schedule the next frame even if this one threw, otherwise the game freezes until reload
+    if (loopRunning && currentRafId === null) {
+      currentRafId = requestAnimationFrame(loop);
+    }
+  }
+}
+
+function runFrame(ts: number) {
   let dT = ts - lastTime;
   lastTime = ts;
 
@@ -148,7 +161,4 @@ export function loop(ts: number) {
   }
 
   render(ts);
-  if (loopRunning) {
-    currentRafId = requestAnimationFrame(loop);
-  }
 }

@@ -6,6 +6,7 @@ import { config } from './config.js';
 import { spawnParticles, getFc } from './entities/index.js';
 import { FLR, MAX, MIN, $, isColliding } from './utils.js';
 import { initGame } from './lifecycle.js';
+import { settleFlyingCoins } from './update-entities.js';
 
 import { RankingAPI } from './ranking.js';
 
@@ -151,6 +152,7 @@ export function updatePlayingState(game: GameState, setIgnoreNextTap: (val: bool
           game.player.isCleared = true;
           document.body.classList.add('game-ended');
           game.endReason = 'CLEAR';
+          settleFlyingCoins(game);
           awardRunCoins('CLEAR', game.scoreCoin);
           if (!isAttractMode && !game.demoMode) {
           }

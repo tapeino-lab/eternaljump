@@ -7,6 +7,7 @@ import { P_PL, P_IT, P_CN, P_CL } from './entities/index.js';
 import { FLR, MAX, MIN, $, swapRemove } from './utils.js';
 
 import { RankingAPI } from './ranking.js';
+import { settleFlyingCoins } from './update-entities.js';
 
 export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boolean) => void, pBtn: HTMLElement | null, isAttractMode: boolean, initGame: any, spawnPlatform: any) {
   let upB = game.cameraY + config.gameHeight * 0.4, lowB = game.cameraY + config.gameHeight * 0.6, nY = game.cameraY;
@@ -99,6 +100,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
         game.state = 'gameover';
         document.body.classList.add('game-ended');
         game.endReason = 'DEATH_FALL';
+        settleFlyingCoins(game);
         awardRunCoins('DEATH_FALL', game.scoreCoin);
         game.player.y = game.cameraY + config.gameHeight - game.player.h * 0.5;
         
@@ -144,6 +146,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
     game.state = 'gameover';
     document.body.classList.add('game-ended');
     game.endReason = 'TIME_UP';
+    settleFlyingCoins(game);
     awardRunCoins('TIME_UP', game.scoreCoin);
     if (!isAttractMode && pBtn) {
       // pBtn.style.display = 'none';

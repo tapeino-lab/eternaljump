@@ -41,6 +41,8 @@ export function render(ts: number) {
   }
 
   resetFillColor();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1.0;
 
   let topColor = drawBackgroundLayer(ts);
 

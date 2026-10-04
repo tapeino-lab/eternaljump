@@ -264,7 +264,8 @@ export let currentLangFilter = '';
             if (!r) return false;
             if (pid && String(r.id) === String(pid)) return true;
             if (pIdVal && String(r.id) === pIdVal) return true;
-            if (myName && r.n === myName && r.n !== '???' && !r.n.startsWith('CPU')) return true;
+            // Names are not unique (many players share "LANG XX"); only use them before we have an ID
+            if (!pIdVal && myName && r.n === myName && r.n !== '???' && !r.n.startsWith('CPU')) return true;
             return false;
         };
 

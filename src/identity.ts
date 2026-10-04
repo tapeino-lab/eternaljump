@@ -44,8 +44,26 @@ function setCookie(name: string, value: string) {
   } catch (e) {}
 }
 
-// IndexedDB helper
+// IndexedDB helper: one shared connection (opening a new one per read/write leaked connections)
+let identityDBPromise: Promise<IDBDatabase | null> | null = null;
+
 function openIdentityDB(): Promise<IDBDatabase | null> {
+  if (!identityDBPromise) {
+    identityDBPromise = openIdentityDBConnection().then((db) => {
+      if (!db) {
+        identityDBPromise = null;
+        return null;
+      }
+      const reset = () => { identityDBPromise = null; };
+      db.onversionchange = () => { db.close(); reset(); };
+      db.onclose = reset;
+      return db;
+    });
+  }
+  return identityDBPromise;
+}
+
+function openIdentityDBConnection(): Promise<IDBDatabase | null> {
   return new Promise((resolve) => {
     try {
       if (typeof window === 'undefined' || !window.indexedDB) {

@@ -173,6 +173,23 @@ export function updateParticles(game: GameState) {
   }
 }
 
+/**
+ * Coins are credited when their flying animation reaches the HUD (~0.5s after pickup).
+ * Call this when a run ends so coins still in flight are counted before the run is
+ * awarded and saved; the animation keeps playing without crediting them again.
+ */
+export function settleFlyingCoins(game: GameState) {
+  if (!game.flyingCoins) return;
+  for (let i = 0; i < game.flyingCoins.length; i++) {
+    let fc = game.flyingCoins[i];
+    if (!fc.dead && fc.onArrive) {
+      let credit = fc.onArrive;
+      fc.onArrive = undefined;
+      try { credit(); } catch (e) {}
+    }
+  }
+}
+
 export function updateFlyingCoins(game: GameState) {
   if (!game.flyingCoins) return;
   for (let i = 0; i < game.flyingCoins.length; i++) {
