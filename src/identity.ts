@@ -133,12 +133,27 @@ export function getStoredPlayerIdentifierSync(): string | null {
   return null;
 }
 
+// In-flight resolution shared by all callers. Without this, concurrent callers on a device with
+// no stored PID (main.ts, lootlocker.ts module init, LootLockerAPI.init) each generated their own
+// PID, which created two LootLocker accounts for one player (consecutive member IDs).
+let pendingPidResolution: Promise<string> | null = null;
+
 /**
  * Asynchronously restores or retrieves player identifier across all 3 layers.
  * If all layers are missing, performs a sanity check for existing player data (coins/inventory).
  * If existing data is found, preserves integrity and generates/restores reliably.
+ * Concurrent calls share a single resolution so only one PID can ever be generated.
  */
-export async function resolvePlayerIdentifier(): Promise<string> {
+export function resolvePlayerIdentifier(): Promise<string> {
+  if (!pendingPidResolution) {
+    pendingPidResolution = resolvePlayerIdentifierOnce().finally(() => {
+      pendingPidResolution = null;
+    });
+  }
+  return pendingPidResolution;
+}
+
+async function resolvePlayerIdentifierOnce(): Promise<string> {
   // 1. Try synchronous check (localStorage + Cookie)
   let pid = getStoredPlayerIdentifierSync();
   if (pid) {
@@ -155,6 +170,10 @@ export async function resolvePlayerIdentifier(): Promise<string> {
     setCookie(COOKIE_NAME, idbPid);
     return idbPid;
   }
+
+  // Re-check: another code path may have persisted a PID while IndexedDB was being read
+  const latePid = getStoredPlayerIdentifierSync();
+  if (latePid) return latePid;
 
   // 3. If truly missing everywhere, check if user already has game progress (coins, inventory, PB)
   const existingCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
