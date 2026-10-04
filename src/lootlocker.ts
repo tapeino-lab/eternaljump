@@ -4,6 +4,7 @@ import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
 import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, persistPlayerName, bootCoinsReady } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
+import { cleanupLeaderboard } from './leaderboard-cleanup.js';
 
 /**
  * Tie-breaker rule: Oldest date first (earliest timestamp / original rank).
@@ -546,6 +547,8 @@ export const LootLockerAPI = {
           return merged;
       };
       
+      validItems = cleanupLeaderboard(validItems, compareTARanking,
+        (a, b) => Math.floor(a.time / 10) === Math.floor(b.time / 10));
       validItems = deduplicateItems(validItems);
       // Sort by lowest time, tie-break with oldest date
       validItems.sort(compareTARanking);
@@ -1100,6 +1103,8 @@ export const LootLockerAPI = {
           return merged;
       };
       
+      validItems = cleanupLeaderboard(validItems, compareScoreRanking,
+        (a, b) => a.alt === b.alt && a.coins === b.coins);
       validItems = deduplicateItemsAlt(validItems);
       // Sort by altitude (highest), coins (highest), tie-break with oldest date
       validItems.sort(compareScoreRanking);
