@@ -365,12 +365,6 @@ export function setupGameCameraAndPlayer(isConsecutive) {
   game.scoreCoin = 0;
   game.flyingCoins = [];
   game.totalCoins = Math.max(game.totalCoins || 0, getStoredTotalCoinsSync());
-  
-  // Dev preview specific: restore known coin balance for the linked player so testing can continue
-  if (import.meta.env.DEV && game.totalCoins === 0) {
-    game.totalCoins = 200827; // Restore JPN T_'s known balance
-    persistTotalCoins(game.totalCoins);
-  }
 
   game.inventory = secureStorage.getItem<Record<string, boolean>>('JUMP_INVENTORY', {});
   let loadedEq = secureStorage.getItem<any>('JUMP_EQUIPPED', {});

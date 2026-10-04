@@ -263,8 +263,8 @@ export function getStoredTotalCoinsSync(): number {
 }
 
 /**
- * Asynchronously resolves total coins across all 3 layers (localStorage, Cookie, IndexedDB),
- * shop inventory lower-bound heuristics, and server log recovery endpoints.
+ * Asynchronously resolves total coins across all 3 layers (localStorage, Cookie, IndexedDB)
+ * and shop inventory lower-bound heuristics.
  */
 export async function resolveTotalCoinsAsync(): Promise<number> {
   let syncMax = getStoredTotalCoinsSync();
@@ -302,61 +302,10 @@ export async function resolveTotalCoinsAsync(): Promise<number> {
     }
   } catch (e) {}
 
-  // 3. Query server recovery log for historical maxCoins matching PID or Player Name
-  try {
-    const pid = getStoredPlayerIdentifierSync();
-    const name = getStoredPlayerNameSync();
-    const queryParams = new URLSearchParams();
-    if (pid) queryParams.set('pid', pid);
-    if (name) queryParams.set('name', name);
-
-    if (queryParams.toString().length > 0) {
-      const res = await fetch(`/api/player-recovery?${queryParams.toString()}`).catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data && typeof data.maxCoins === 'number' && data.maxCoins > syncMax) {
-          console.log('[Identity] Restored total coins from server log recovery:', data.maxCoins);
-          syncMax = data.maxCoins;
-        }
-        if (data && data.pid) {
-          persistPlayerIdentifier(data.pid);
-        }
-      }
-    }
-  } catch (e) {}
-
   if (syncMax > 0) {
     persistTotalCoins(syncMax);
   }
   return syncMax;
-}
-
-/**
- * Manual Recovery Function: Allows a user to enter their Player Name to restore their
- * PID, high scores, and coin balances from server logs & LootLocker cloud.
- */
-export async function restoreAccountByName(playerName: string): Promise<{ success: boolean; coins: number; name: string }> {
-  const name = playerName.trim();
-  if (!name || name.length < 2) return { success: false, coins: 0, name: '' };
-
-  try {
-    const res = await fetch(`/api/player-recovery?name=${encodeURIComponent(name)}`);
-    if (res && res.ok) {
-      const data = await res.json();
-      if (data && (data.maxCoins > 0 || data.pid)) {
-        if (data.pid) {
-          persistPlayerIdentifier(data.pid);
-        }
-        persistPlayerName(data.name || name);
-        if (data.maxCoins > 0) {
-          persistTotalCoins(data.maxCoins);
-        }
-        return { success: true, coins: data.maxCoins || 0, name: data.name || name };
-      }
-    }
-  } catch (e) {}
-
-  return { success: false, coins: 0, name: '' };
 }
 
 /**
