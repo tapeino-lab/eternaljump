@@ -3,7 +3,7 @@ import { initSpawner } from './spawner.js';
 import { game } from './state.js';
 import { setupInputListeners } from './input.js';
 import { setupKeyboardUI } from './keyboard.js';
-import { initShop } from './shop.js';
+import { initShop, SHOP_ITEMS } from './shop.js';
 import { startAttractCycle } from './lifecycle.js';
 import { setupToastPrompts } from './pwa.js';
 import { $ } from './utils.js';
@@ -43,7 +43,8 @@ function initGameApp() {
   // after this point, so a boot-time diff double-counted the stored balance on every launch.
   // Coins earned during play are persisted immediately, so restoredCoins already includes them.
   resolvePlayerIdentifier().then(() => {
-    resolveTotalCoinsAsync().then((restoredCoins) => {
+    const itemPrices = Object.fromEntries(SHOP_ITEMS.map(item => [item.id, item.price]));
+    resolveTotalCoinsAsync(itemPrices).then((restoredCoins) => {
       if (restoredCoins > (game.totalCoins || 0)) {
         game.totalCoins = restoredCoins;
         persistTotalCoins(game.totalCoins);

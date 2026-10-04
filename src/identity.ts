@@ -158,7 +158,7 @@ export async function resolvePlayerIdentifier(): Promise<string> {
 
   // 3. If truly missing everywhere, check if user already has game progress (coins, inventory, PB)
   const existingCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
-  const existingPB = secureStorage.getItem<any>('JUMP_PB_V2', null);
+  const existingPB = secureStorage.getItem<any>('EternalJumper_PB', null); // RankingAPI.pbKey
 
   // Generate new PID
   const newPid = safeCrypto.generateRandomId('p');
@@ -264,23 +264,15 @@ export function getStoredTotalCoinsSync(): number {
 
 /**
  * Asynchronously resolves total coins across all 3 layers (localStorage, Cookie, IndexedDB)
- * and shop inventory lower-bound heuristics.
+ * and shop inventory lower-bound heuristics (itemPrices: shop item id -> unlock price).
  */
-export async function resolveTotalCoinsAsync(): Promise<number> {
+export async function resolveTotalCoinsAsync(itemPrices: Record<string, number> = {}): Promise<number> {
   let syncMax = getStoredTotalCoinsSync();
 
   // 1. Check shop inventory lower-bound price heuristics
   try {
     const inv = secureStorage.getItem<Record<string, boolean>>('JUMP_INVENTORY', {});
     if (inv && typeof inv === 'object') {
-      const itemPrices: Record<string, number> = {
-        'autocruise2': 100000,
-        'lithuanian': 50000,
-        'autocruise': 10000,
-        'helmet': 1000,
-        'skates': 500,
-        'mushroom': 100
-      };
       for (const [id, unlocked] of Object.entries(inv)) {
         if (unlocked && itemPrices[id] && itemPrices[id] > syncMax) {
           console.log(`[Identity] Inferred minimum total coins (${itemPrices[id]}) from unlocked shop item: ${id}`);

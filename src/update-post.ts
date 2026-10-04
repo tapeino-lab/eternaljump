@@ -2,6 +2,7 @@ import type { GameState } from "./types.js";
 import { applyCoinCountUp } from './ui-effects.js';
 import { awardRunCoins } from './state.js';
 import { secureStorage } from './secureStorage.js';
+import { persistTotalCoins } from './identity.js';
 import { config } from './config.js';
 import { P_BD, getBd, P_MT, getMt, spawnParticles, P_PT, P_PL, P_IT, P_CN, P_CL, FlyingCoin } from './entities/index.js';
 import { RND, FLR, MAX, MIN, $, swapRemove } from './utils.js';
@@ -129,7 +130,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
               let earned = game.scoreCoin;
               if (earned > 0) {
                 game.totalCoins += earned;
-                secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+                persistTotalCoins(game.totalCoins);
               }
               initGame();
               if (isAttractMode && earned > 0) applyCoinCountUp(earned, 'DEMO BONUS');
@@ -172,7 +173,7 @@ export function postUpdatePhysics(game: GameState, setIgnoreNextTap: (val: boole
           let earned = game.scoreCoin;
           if (earned > 0) {
             game.totalCoins += earned;
-            secureStorage.setItem('JUMP_TOTAL_COINS', game.totalCoins);
+            persistTotalCoins(game.totalCoins);
           }
           initGame();
           if (isAttractMode && earned > 0) applyCoinCountUp(earned, 'DEMO BONUS');

@@ -162,54 +162,66 @@ export const LootLockerAPI = {
     return false;
   },
 
+  // Last coin total confirmed on the cloud leaderboard this session (null = not yet confirmed)
+  knownRemoteCoins: null as number | null,
+
+  /**
+   * Fetches this player's coin total from the cloud leaderboard.
+   * Returns 0 when the player has no entry yet, or null when it could not be confirmed.
+   */
+  fetchRemoteCoins: async function(): Promise<number | null> {
+    if (!this.coinLeaderboardId || !await this.init()) return null;
+    try {
+      let r;
+      if (this.isDirectMode) {
+        let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.coinLeaderboardId}/member/${this.playerId}`;
+        r = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-token': this.sessionToken
+          }
+        });
+      } else {
+        r = await fetch(`/api/lootlocker/leaderboards/member?member_id=${this.playerId}&session_token=${encodeURIComponent(this.sessionToken)}&leaderboard_id=${this.coinLeaderboardId}`);
+      }
+      if (r.status === 404) {
+        this.knownRemoteCoins = 0;
+        return 0;
+      }
+      if (!r.ok) return null;
+      let d = await r.json();
+      let remote = (d && typeof d.score === 'number' && d.score > 0) ? d.score : 0;
+      this.knownRemoteCoins = remote;
+      return remote;
+    } catch(e: any) {
+      console.warn("Failed to fetch remote coins", e);
+      return null;
+    }
+  },
+
+  // Raises local coins (all storage layers + game state + shop counter) to the given total
+  pullUpLocalCoins: function(total: number) {
+    persistTotalCoins(total);
+    if (game && (game.totalCoins || 0) < total) {
+      game.totalCoins = total;
+    }
+    let el = document.getElementById('shopCoinCounter');
+    if (el && game) el.innerText = game.totalCoins.toString();
+  },
+
   syncTotalCoins: async function() {
-    let localTotal = getStoredTotalCoinsSync();
-    let remoteTotal = 0;
-    
     // Only attempt to fetch remote coins if player has already registered or has stored identity
     if (!this.hasRegisteredPlayer()) return;
 
-    // Attempt to fetch remote coins
-    try {
-      if (this.coinLeaderboardId && await this.init()) {
-        let r;
-        if (this.isDirectMode) {
-          let url = `https://${this.domainKey}.api.lootlocker.io/game/leaderboards/${this.coinLeaderboardId}/member/${this.playerId}`;
-          r = await fetch(url, {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-session-token': this.sessionToken
-            }
-          });
-        } else {
-          r = await fetch(`/api/lootlocker/leaderboards/member?member_id=${this.playerId}&session_token=${encodeURIComponent(this.sessionToken)}&leaderboard_id=${this.coinLeaderboardId}`);
-        }
-        
-        if (r.ok) {
-          let d = await r.json();
-          if (d && typeof d.score === 'number' && d.score > 0) {
-            remoteTotal = d.score;
-            if (remoteTotal > localTotal) {
-              this.log(`Remote coins (${remoteTotal}) > Local coins (${localTotal}). Syncing to local.`, 'info');
-              localTotal = remoteTotal;
-              persistTotalCoins(localTotal);
-              
-              // Update game state if available
-              if (game) {
-                game.totalCoins = localTotal;
-              }
-              // Force shop coin display update if element exists
-              let el = document.getElementById('shopCoinCounter');
-              if (el) el.innerText = localTotal.toString();
-            }
-          }
-        }
-      }
-    } catch(e: any) {
-      console.warn("Failed to fetch remote coins", e);
-    }
+    let remoteTotal = await this.fetchRemoteCoins();
+    // Never submit without knowing the cloud value
+    if (remoteTotal === null) return;
 
-    if (localTotal > remoteTotal && localTotal > 0) {
+    let localTotal = getStoredTotalCoinsSync();
+    if (remoteTotal > localTotal) {
+      this.log(`Remote coins (${remoteTotal}) > Local coins (${localTotal}). Syncing to local.`, 'info');
+      this.pullUpLocalCoins(remoteTotal);
+    } else if (localTotal > remoteTotal && localTotal > 0) {
       await this.submitCoinScore(localTotal, getLang());
     }
   },
@@ -567,21 +579,6 @@ export const LootLockerAPI = {
           body: JSON.stringify({ name: name, session_token: this.sessionToken })
         });
       }
-
-      // Re-submit existing personal best records with the updated name so that LootLocker leaderboard entries reflect the new name immediately
-      const pbKey = 'JUMP_PERSONAL_BEST';
-      const localPB = secureStorage.getItem<any>(pbKey, null);
-      if (localPB && typeof localPB.alt === 'number' && localPB.alt > 0) {
-        const lang = name.split(' ')[0] || getLang();
-        await this.submitScore(localPB.alt, localPB.coins || 0, localPB.time || 0, lang);
-      }
-
-      const taPbKey = 'JUMP_TIME_ATTACK_PERSONAL_BEST';
-      const localTAPB = secureStorage.getItem<any>(taPbKey, null);
-      if (localTAPB && typeof localTAPB.time === 'number' && localTAPB.time > 0) {
-        const lang = name.split(' ')[0] || getLang();
-        await this.submitTimeAttackScore(localTAPB.time, localTAPB.alt || 144000, localTAPB.coins || 0, lang);
-      }
     } catch(e: any) {
       this.log(`Failed to set player name: ${e.message}`, 'error');
     }
@@ -723,6 +720,19 @@ export const LootLockerAPI = {
       return false;
     }
 
+    // Pre-submit cloud guard: confirm the cloud total first and never send a lower value
+    let remote = this.knownRemoteCoins;
+    if (remote === null) remote = await this.fetchRemoteCoins();
+    if (remote === null) {
+      this.log('Coin Score submission skipped (cloud total could not be confirmed)', 'warning');
+      return false;
+    }
+    if (remote > sc) {
+      this.log(`Cloud coins (${remote}) > local (${sc}). Restoring local instead of submitting.`, 'info');
+      this.pullUpLocalCoins(remote);
+      return false;
+    }
+
     let sig = computeGameSignature(0, sc, 0, lang);
     let isDup = safeStorage.getItem('LL_IS_DUPLICATE_BUG') === 'true' ? 1 : 0;
     let meta = JSON.stringify({
@@ -765,6 +775,7 @@ export const LootLockerAPI = {
         return false;
       }
       this.log('Coin Score successfully submitted.', 'success');
+      this.knownRemoteCoins = sc;
       return await r.json();
     } catch (e) {
       this.log(`Coin Score submission failed: ${e.message}`, 'error');
@@ -1019,6 +1030,7 @@ export const LootLockerAPI = {
     this.playerIdentifier = null;
     this.sessionToken = null;
     this.playerId = null;
+    this.knownRemoteCoins = null;
   }
 };
 
