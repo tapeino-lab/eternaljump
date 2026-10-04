@@ -112,13 +112,13 @@ async function startServer() {
     // 4. Query LootLocker Leaderboards (cointtl & hct2) for Cloud Match if maxCoins or pid is missing
     if (targetName && targetName !== 'anonymous') {
       try {
-        const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || 'v1_5c32587ffba44840af7bf11c81cb5147';
+        const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || '';
         const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
         
         const sessRes = await fetch(`https://${domainKey}.api.lootlocker.io/game/v2/session/guest`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ game_key: apiKey, game_version: '2.10.79' })
+          body: JSON.stringify({ game_key: apiKey, game_version: '2.10.81' })
         });
         if (sessRes.ok) {
           const sessData = await sessRes.json();
@@ -568,7 +568,7 @@ async function startServer() {
 
   // Proxy routes for LootLocker Guest Session
   app.post("/api/lootlocker/session/guest", async (req, res) => {
-    const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || 'YOUR_API_KEY_HERE';
+    const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || '';
     const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
     const playerIdentifier = req.body.player_identifier;
     const gameVersion = req.body.game_version || '1.37.11';
@@ -787,7 +787,7 @@ async function startServer() {
 
     serverReadSessionPromise = (async () => {
       try {
-        const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || 'dev_a30dce847162445799eac173326a4f9d';
+        const apiKey = process.env.LOOTLOCKER_API_KEY || process.env.VITE_LOOTLOCKER_API_KEY || '';
         const domainKey = process.env.LOOTLOCKER_DOMAIN_KEY || process.env.VITE_LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
         const response = await fetch(`https://${domainKey}.api.lootlocker.io/game/v2/session/guest`, {
           method: 'POST',
@@ -943,7 +943,8 @@ async function startServer() {
   // ==========================================
   // Middleware to verify admin password via Bearer token, query param, or Authorization header
   const verifyAdmin = (req: express.Request): boolean => {
-    const adminPass = process.env.ADMIN_PASSWORD || 'admin';
+    const adminPass = process.env.ADMIN_PASSWORD || '';
+    if (!adminPass) return false;
     const authHeader = req.headers['authorization'];
     if (authHeader) {
       if (authHeader.startsWith('Bearer ')) {
@@ -1045,10 +1046,9 @@ async function startServer() {
     if (fsSync.existsSync(adminPath)) {
       let content = fsSync.readFileSync(adminPath, "utf-8");
       const currentPass = process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD || '';
-      const defaultHash = '05e9824f196ce156b8dc7c618f989a87d58ebf32881de8eda2e5fb9ce123a91d'; // hash of zxcv0987
-      const adminHash = currentPass ? crypto.createHash('sha256').update(currentPass.trim()).digest('hex') : defaultHash;
+      const adminHash = currentPass ? crypto.createHash('sha256').update(currentPass.trim()).digest('hex') : '';
 
-      const apiKey = process.env.VITE_LOOTLOCKER_API_KEY || process.env.LOOTLOCKER_API_KEY || 'dev_a30dce847162445799eac173326a4f9d';
+      const apiKey = process.env.VITE_LOOTLOCKER_API_KEY || process.env.LOOTLOCKER_API_KEY || '';
       const domainKey = process.env.VITE_LOOTLOCKER_DOMAIN_KEY || process.env.LOOTLOCKER_DOMAIN_KEY || '83ib54ok';
       const lbId = process.env.VITE_LOOTLOCKER_LEADERBOARD_ID || process.env.LOOTLOCKER_LEADERBOARD_ID || 'hct2';
       const taId = process.env.VITE_LOOTLOCKER_TA_LEADERBOARD_ID || 'tatk';

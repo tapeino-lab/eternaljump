@@ -258,10 +258,9 @@
         const enc = new TextEncoder();
         const buf = await crypto.subtle.digest('SHA-256', enc.encode(inputPass.trim()));
         const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-        // Fallback hash for 'zxcv0987'
-        const expectedHash = '__ADMIN_PASSWORD_HASH__' !== '__ADMIN_PASSWORD_HASH__' 
-          ? '__ADMIN_PASSWORD_HASH__' 
-          : '05e9824f196ce156b8dc7c618f989a87d58ebf32881de8eda2e5fb9ce123a91d';
+        // Injected at serve/build time from ADMIN_PASSWORD; deny when unset
+        const expectedHash = '__ADMIN_PASSWORD_HASH__';
+        if (!expectedHash || expectedHash.startsWith('__')) return false;
         return hash === expectedHash;
       } catch (e) {
         return false;
@@ -283,7 +282,7 @@
     // Config for LootLocker
     function getLLConfig() {
       return {
-        apiKey: 'dev_a30dce847162445799eac173326a4f9d',
+        apiKey: '__LL_API_KEY__',
         domain: '83ib54ok',
         altBoard: 'hct2',
         taBoard: 'tatk',
