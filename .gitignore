@@ -8,4 +8,6 @@ coverage/
 !.env.example
 players.json
 play_logs.json
-.claude/
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
