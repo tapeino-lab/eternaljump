@@ -166,6 +166,7 @@ export function getMt(x: number, y: number, vx: number, vy: number) {
       ang: number = 0;
       rot: number = 0;
       hit?: boolean;
+      radarStart: number = 0;
 
       init(x: number, y: number, vx: number, vy: number) {
         this.broken = false;
@@ -180,6 +181,7 @@ export function getMt(x: number, y: number, vx: number, vy: number) {
         this.hitTimer = 0;
         this.ang = RND() * PI * 2;
         this.rot = (RND() - 0.5) * 0.06;
+        this.radarStart = 0;
       }
       update() {
         if (this.hitTimer > 0) this.hitTimer--;

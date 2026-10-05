@@ -449,26 +449,27 @@ import { getPt } from './particles.js';
           ctx.fillStyle = c;
           ctx.fillRect(ox + x * vS, oy + y * vS, w * vS, h * vS);
         };
-        // 4x4の丸レンズ (角なし): 銀フチ + 2x2のガラス + 瞳
-        const lens = (gx: number, gy: number, pupilX: number) => {
-          px(gx, gy - 1, 2, 1, '#ddd');
-          px(gx - 1, gy, 1, 2, '#ddd');
-          px(gx + 2, gy, 1, 2, '#888');
-          px(gx, gy + 2, 2, 1, '#888');
-          px(gx, gy, 2, 2, '#e8f6ff');
-          px(pupilX, gy, 1, 2, '#3a2010');
+        // 4x4の丸レンズ (角なし): 銅色フチ + 2x2の緑レンズ + ハイライト
+        const lens = (gx: number, gy: number) => {
+          px(gx, gy - 1, 2, 1, '#fdc86e');
+          px(gx - 1, gy, 1, 2, '#d69435');
+          px(gx + 2, gy, 1, 2, '#6f2e10');
+          px(gx, gy + 2, 2, 1, '#6f2e10');
+          px(gx, gy, 2, 2, '#0b5650');
+          px(gx, gy, 1, 1, '#59d68a');
         };
 
         if (eye.front) {
           // 正面: 両目 (x=6, x=9) にレンズ、左右にベルト
-          px(eye.back, eye.ey + 1, 1, 1, '#111');
-          px(12, eye.ey + 1, 1, 1, '#111');
-          lens(5, eye.ey, 6);
-          lens(9, eye.ey, 9);
+          px(eye.back, eye.ey + 1, 1, 1, '#9f582b');
+          px(12, eye.ey + 1, 1, 1, '#9f582b');
+          lens(5, eye.ey);
+          lens(9, eye.ey);
+          px(7, eye.ey, 2, 1, '#d69435');
         } else {
           // 横向き: 進行方向の目にレンズ、後頭部までベルト
-          px(eye.back, eye.ey + 1, eye.ex - 1 - eye.back, 1, '#111');
-          lens(eye.ex, eye.ey, eye.ex + 1);
+          px(eye.back, eye.ey + 1, eye.ex - 1 - eye.back, 1, '#9f582b');
+          lens(eye.ex, eye.ey);
         }
       }
 
