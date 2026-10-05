@@ -7,7 +7,7 @@ import { RND, FLR } from '../utils.js';
 import { resetFillColor } from './core.js';
 import { drawBG } from './bg.js';
 import { drawGameEntities } from './entities.js';
-import { drawOffscreenIndicators, updateHUD, updateDemoRanking } from './ui.js';
+import { drawOffscreenIndicators, drawRadarIndicators, updateHUD, updateDemoRanking } from './ui.js';
 
 export function drawBackgroundLayer(ts: number) {
   return drawBG(ts);
@@ -31,6 +31,7 @@ export function drawUILayer(topColor: any, ts: number) {
   }
   
   drawOffscreenIndicators();
+  drawRadarIndicators();
   updateHUD(topColor);
   updateDemoRanking(ts);
 }

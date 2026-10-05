@@ -242,6 +242,46 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
   <rect x="4" y="6" width="1" height="2" fill="#f4c878"/>
   <rect x="4" y="8" width="8" height="1" fill="#905010"/>
 </svg>`
+  },
+  {
+    id: 'goggles',
+    name: 'MINI GOGGLES',
+    desc: "See what's coming",
+    price: 200000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="0" y="5" width="1" height="3" fill="#222"/>
+  <rect x="15" y="5" width="1" height="3" fill="#222"/>
+  <rect x="3" y="3" width="3" height="1" fill="#000"/>
+  <rect x="2" y="4" width="1" height="1" fill="#000"/>
+  <rect x="6" y="4" width="1" height="1" fill="#000"/>
+  <rect x="1" y="5" width="1" height="3" fill="#000"/>
+  <rect x="7" y="5" width="1" height="3" fill="#000"/>
+  <rect x="2" y="8" width="1" height="1" fill="#000"/>
+  <rect x="6" y="8" width="1" height="1" fill="#000"/>
+  <rect x="3" y="9" width="3" height="1" fill="#000"/>
+  <rect x="3" y="4" width="3" height="1" fill="#ddd"/>
+  <rect x="2" y="5" width="1" height="3" fill="#ddd"/>
+  <rect x="6" y="5" width="1" height="3" fill="#888"/>
+  <rect x="3" y="8" width="3" height="1" fill="#888"/>
+  <rect x="3" y="5" width="3" height="3" fill="#e8f6ff"/>
+  <rect x="4" y="6" width="1" height="1" fill="#6b3d1a"/>
+  <rect x="3" y="5" width="1" height="1" fill="#fff"/>
+  <rect x="10" y="3" width="3" height="1" fill="#000"/>
+  <rect x="9" y="4" width="1" height="1" fill="#000"/>
+  <rect x="13" y="4" width="1" height="1" fill="#000"/>
+  <rect x="8" y="5" width="1" height="3" fill="#000"/>
+  <rect x="14" y="5" width="1" height="3" fill="#000"/>
+  <rect x="9" y="8" width="1" height="1" fill="#000"/>
+  <rect x="13" y="8" width="1" height="1" fill="#000"/>
+  <rect x="10" y="9" width="3" height="1" fill="#000"/>
+  <rect x="10" y="4" width="3" height="1" fill="#ddd"/>
+  <rect x="9" y="5" width="1" height="3" fill="#ddd"/>
+  <rect x="13" y="5" width="1" height="3" fill="#888"/>
+  <rect x="10" y="8" width="3" height="1" fill="#888"/>
+  <rect x="10" y="5" width="3" height="3" fill="#e8f6ff"/>
+  <rect x="11" y="6" width="1" height="1" fill="#6b3d1a"/>
+  <rect x="10" y="5" width="1" height="1" fill="#fff"/>
+</svg>`
   }
 ];
 

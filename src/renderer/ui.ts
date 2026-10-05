@@ -86,6 +86,52 @@ export function drawOffscreenIndicators() {
   }
 }
 
+// MINI GOGGLES: radar triangles at the top edge for mushrooms / meteors still above the screen
+function drawRadarTriangle(sx: number, alpha: number, color: string) {
+  let indX = MAX(10, MIN(config.gameWidth - 10, sx));
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(indX, 10);
+  ctx.rotate(-Math.PI / 2);
+  ctx.beginPath();
+  ctx.moveTo(6, 0);
+  ctx.lineTo(-5, 5);
+  ctx.lineTo(-5, -5);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawRadarIndicators() {
+  if (!game.equipped?.['goggles'] || game.state !== 'playing' || game.demoMode || isAttractMode) return;
+
+  // Mushrooms: fade with distance (near = 0.85, one screen or more above = 0.45)
+  for (let pass = 0; pass < 2; pass++) {
+    let wantType = pass === 0 ? 'green' : 'red';
+    let color = pass === 0 ? '#2c2' : '#f33';
+    for (let _idx_items = 0; _idx_items < game.items.length; _idx_items++) {
+      let it = game.items[_idx_items];
+      if (it.collected || it.blacklisted || it.type !== wantType) continue;
+      let dist = game.cameraY - (it.y + it.h);
+      if (dist <= 0) continue;
+      drawRadarTriangle(it.x + it.w / 2, 0.85 - 0.4 * MIN(1, dist / config.gameHeight), color);
+    }
+  }
+
+  // Meteors: drawn last (on top) and blinking as a hazard warning
+  let blinkOn = Math.floor(performance.now() / 150) % 2 === 0;
+  for (let _idx_meteors = 0; _idx_meteors < game.meteors.length; _idx_meteors++) {
+    let m = game.meteors[_idx_meteors];
+    if (m.broken) continue;
+    if (game.cameraY - (m.y + m.h) <= 0) continue;
+    drawRadarTriangle(m.x + m.w / 2, blinkOn ? 0.9 : 0.35, '#fd0');
+  }
+}
+
 function getEquippedIconSVG(id: string | null): string {
   if (id === 'magnet') {
     return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
@@ -242,6 +288,41 @@ function getEquippedIconSVG(id: string | null): string {
       <!-- White Fluffy Cuff / Trim directly connected to gold -->
       <rect x="3" y="11" width="9" height="2" fill="#fff"/>
       <rect x="3" y="13" width="9" height="1" fill="#ddd"/>
+    </svg>`;
+  } else if (id === 'goggles') {
+    return `<svg viewBox="0 0 16 16" width="12" height="12" shape-rendering="crispEdges">
+      <rect x="0" y="5" width="1" height="3" fill="#222"/>
+      <rect x="15" y="5" width="1" height="3" fill="#222"/>
+      <rect x="3" y="3" width="3" height="1" fill="#000"/>
+      <rect x="2" y="4" width="1" height="1" fill="#000"/>
+      <rect x="6" y="4" width="1" height="1" fill="#000"/>
+      <rect x="1" y="5" width="1" height="3" fill="#000"/>
+      <rect x="7" y="5" width="1" height="3" fill="#000"/>
+      <rect x="2" y="8" width="1" height="1" fill="#000"/>
+      <rect x="6" y="8" width="1" height="1" fill="#000"/>
+      <rect x="3" y="9" width="3" height="1" fill="#000"/>
+      <rect x="3" y="4" width="3" height="1" fill="#ddd"/>
+      <rect x="2" y="5" width="1" height="3" fill="#ddd"/>
+      <rect x="6" y="5" width="1" height="3" fill="#888"/>
+      <rect x="3" y="8" width="3" height="1" fill="#888"/>
+      <rect x="3" y="5" width="3" height="3" fill="#e8f6ff"/>
+      <rect x="4" y="6" width="1" height="1" fill="#6b3d1a"/>
+      <rect x="3" y="5" width="1" height="1" fill="#fff"/>
+      <rect x="10" y="3" width="3" height="1" fill="#000"/>
+      <rect x="9" y="4" width="1" height="1" fill="#000"/>
+      <rect x="13" y="4" width="1" height="1" fill="#000"/>
+      <rect x="8" y="5" width="1" height="3" fill="#000"/>
+      <rect x="14" y="5" width="1" height="3" fill="#000"/>
+      <rect x="9" y="8" width="1" height="1" fill="#000"/>
+      <rect x="13" y="8" width="1" height="1" fill="#000"/>
+      <rect x="10" y="9" width="3" height="1" fill="#000"/>
+      <rect x="10" y="4" width="3" height="1" fill="#ddd"/>
+      <rect x="9" y="5" width="1" height="3" fill="#ddd"/>
+      <rect x="13" y="5" width="1" height="3" fill="#888"/>
+      <rect x="10" y="8" width="3" height="1" fill="#888"/>
+      <rect x="10" y="5" width="3" height="3" fill="#e8f6ff"/>
+      <rect x="11" y="6" width="1" height="1" fill="#6b3d1a"/>
+      <rect x="10" y="5" width="1" height="1" fill="#fff"/>
     </svg>`;
   }
   return '';

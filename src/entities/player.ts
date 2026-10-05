@@ -331,6 +331,7 @@ import { getPt } from './particles.js';
                 ctx.translate(0, dH / 2);
               }
               ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
+              this.drawGoggles(dH, vS, vOy, imgKey);
               this.drawHelmet(dH, vS, vOy, cImg);
               this.drawRod(dH, vS, vOy, imgKey);
               this.drawGlove(dH, vS, vOy, imgKey);
@@ -352,6 +353,7 @@ import { getPt } from './particles.js';
             ctx.translate(0, dH / 2);
           }
           ctx.drawImage(drawImg, FLR((-this.w / 2) * vS), FLR(-dH * vS + vOy), FLR(this.w * vS), FLR(dH * vS));
+          this.drawGoggles(dH, vS, vOy, imgKey);
           this.drawHelmet(dH, vS, vOy, cImg);
           this.drawRod(dH, vS, vOy, imgKey);
           this.drawGlove(dH, vS, vOy, imgKey);
@@ -422,6 +424,52 @@ import { getPt } from './particles.js';
         ctx.fillRect(startX, startY, 2 * vS, 2 * vS);
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(startX, startY, 1 * vS, 1 * vS); // subtle top highlight
+      }
+
+      drawGoggles(dH: number, vS: number, vOy: number, imgKey: string) {
+        if (this.isNPC || !game.equipped?.['goggles']) return;
+
+        // 各スプライトの目の位置 (スプライト内ピクセル座標、右向き基準)
+        // ex/ey: 目の左上, back: 後頭部のX (ベルトの終点), front: 正面向き(両目)
+        const EYES: Record<string, { ex: number; ey: number; back: number; front?: boolean }> = {
+          std: { ex: 9, ey: 2, back: 3 },
+          wlk1: { ex: 9, ey: 2, back: 3 },
+          wlk3: { ex: 9, ey: 2, back: 3 },
+          wlk2: { ex: 10, ey: 3, back: 4 },
+          jmp: { ex: 10, ey: 3, back: 4 },
+          pwr: { ex: 9, ey: 6, back: 2 },
+          fal: { ex: 6, ey: 2, back: 3, front: true },
+        };
+        const eye = EYES[imgKey];
+        if (!eye) return;
+
+        const ox = FLR((-this.w / 2) * vS);
+        const oy = FLR(-dH * vS + vOy);
+        const px = (x: number, y: number, w: number, h: number, c: string) => {
+          ctx.fillStyle = c;
+          ctx.fillRect(ox + x * vS, oy + y * vS, w * vS, h * vS);
+        };
+        // 4x4の丸レンズ (角なし): 銀フチ + 2x2のガラス + 瞳
+        const lens = (gx: number, gy: number, pupilX: number) => {
+          px(gx, gy - 1, 2, 1, '#ddd');
+          px(gx - 1, gy, 1, 2, '#ddd');
+          px(gx + 2, gy, 1, 2, '#888');
+          px(gx, gy + 2, 2, 1, '#888');
+          px(gx, gy, 2, 2, '#e8f6ff');
+          px(pupilX, gy, 1, 2, '#3a2010');
+        };
+
+        if (eye.front) {
+          // 正面: 両目 (x=6, x=9) にレンズ、左右にベルト
+          px(eye.back, eye.ey + 1, 1, 1, '#111');
+          px(12, eye.ey + 1, 1, 1, '#111');
+          lens(5, eye.ey, 6);
+          lens(9, eye.ey, 9);
+        } else {
+          // 横向き: 進行方向の目にレンズ、後頭部までベルト
+          px(eye.back, eye.ey + 1, eye.ex - 1 - eye.back, 1, '#111');
+          lens(eye.ex, eye.ey, eye.ex + 1);
+        }
       }
 
       drawHelmet(dH: number, vS: number, vOy: number, cImg?: HTMLImageElement) {
