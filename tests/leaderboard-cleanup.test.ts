@@ -19,6 +19,14 @@ describe('leaderboard cleanup (display only)', () => {
     expect(cleanupLeaderboard(rows, compareScoreRanking, same).map(r => r.id)).toEqual(['63090777', '777']);
   });
 
+  it('collapses the USA SN pair re-audited on 2026-10-06 (same run re-sent)', () => {
+    const rows = [
+      { id: '63579136', alt: 114316, coins: 61, ts: 1790664995911 },
+      { id: '63579143', alt: 114316, coins: 61, ts: 1790665103327 },
+    ];
+    expect(cleanupLeaderboard(rows, compareScoreRanking, same).map(r => r.id)).toEqual(['63579143']);
+  });
+
   it('prefers the newest account when records are identical (JPN YN after rescue)', () => {
     const rows = [
       { id: '63534284', alt: 144000, coins: 148, ts: 1790829007411 },

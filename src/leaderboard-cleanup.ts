@@ -40,6 +40,24 @@ export const SAME_PLAYER_GROUPS: string[][] = [
   ['63104206', '63104207'], // USA GO
   ['63548993', '63551351'], // USA H6
   ['63553267', '63553334'], // USA IL
+  // Re-audited 2026-10-06 incl. the coin board (strict proof only: byte-identical metadata,
+  // same-name accounts created within 2s, or the same run re-sent with an identical sig).
+  ['63103818', '63103819'], // SPA 2U
+  ['63137749', '63153454'], // USA 27
+  ['63138800', '63138801'], // ENG D3
+  ['63178299', '63178300'], // ENG MK
+  ['63188442', '63188443'], // LTU ZL
+  ['63251785', '63251786'], // JPN 2U
+  ['63256660', '63256761'], // JPN 64 / JPN W6
+  ['63270260', '63270261'], // BRA EA
+  ['63285361', '63285362'], // SPA Y9
+  ['63485177', '63485178'], // USA EJ / (no name)
+  ['63522615', '63522616'], // BRA MB
+  ['63551923', '63551930'], // USA X3
+  ['63552078', '63552081'], // USA 77
+  ['63552200', '63552369'], // USA 9V
+  ['63571184', '63571221'], // USA PY
+  ['63579136', '63579143'], // USA SN
 ];
 
 const groupOf = new Map<string, number>();
