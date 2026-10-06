@@ -21,6 +21,234 @@ export const SHOP_ITEMS: ShopItemConfig[] = [
     desc: 'Warp to space',
     price: 1000,
     iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="5" y="8" width="6" height="6" fill="#fcc"/>
+  <rect x="2" y="2" width="12" height="6" fill="#2c2"/>
+  <rect x="4" y="4" width="3" height="3" fill="#fff"/>
+  <rect x="9" y="4" width="3" height="3" fill="#fff"/>
+</svg>`
+  },
+
+  {
+    id: 'helmet',
+    name: 'HELMET',
+    desc: 'Protects from meteors',
+    price: 3000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="4" y="3" width="8" height="1" fill="#000"/>
+  <rect x="2" y="4" width="2" height="1" fill="#000"/>
+  <rect x="12" y="4" width="2" height="1" fill="#000"/>
+  <rect x="1" y="5" width="1" height="6" fill="#000"/>
+  <rect x="14" y="5" width="1" height="6" fill="#000"/>
+  <rect x="0" y="11" width="1" height="2" fill="#000"/>
+  <rect x="15" y="11" width="1" height="2" fill="#000"/>
+  <rect x="1" y="13" width="14" height="1" fill="#000"/>
+  <rect x="4" y="4" width="8" height="1" fill="#fd0"/>
+  <rect x="2" y="5" width="12" height="6" fill="#fd0"/>
+  <rect x="1" y="11" width="14" height="2" fill="#fd0"/>
+  <rect x="7" y="4" width="2" height="7" fill="#f80"/>
+  <rect x="3" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
+  <rect x="11" y="5" width="2" height="2" fill="#fff" opacity="0.7"/>
+</svg>`
+  },
+  {
+    id: 'autocruise',
+    name: 'AUTO CRUISE',
+    desc: '"I\'ll take care of it."',
+    price: 6000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+      <!-- Main Monitor Outline -->
+      <rect x="2" y="2" width="12" height="12" fill="#111"/>
+      
+      <!-- Casing Base -->
+      <rect x="3" y="3" width="10" height="10" fill="#d8d4c0"/>
+      <!-- Highlights -->
+      <rect x="3" y="3" width="10" height="1" fill="#fff"/>
+      <rect x="3" y="4" width="1" height="9" fill="#fff"/>
+      <!-- Shadows -->
+      <rect x="4" y="12" width="9" height="1" fill="#a09888"/>
+      <rect x="12" y="4" width="1" height="8" fill="#a09888"/>
+
+      <!-- Screen Bezel -->
+      <rect x="4" y="4" width="8" height="7" fill="#111"/>
+      
+      <!-- Screen -->
+      <rect x="5" y="5" width="6" height="5" fill="#113311"/>
+      <rect x="5" y="5" width="6" height="1" fill="#1a4d1a"/>
+      
+      <!-- Face (Green Phosphor) -->
+      <rect x="6" y="6" width="1" height="1" fill="#33ff33"/>
+      <rect x="9" y="6" width="1" height="1" fill="#33ff33"/>
+      <rect x="7" y="8" width="2" height="1" fill="#33ff33"/>
+
+      <!-- Drive & LED -->
+      <rect x="5" y="11" width="3" height="1" fill="#555"/>
+      <rect x="10" y="11" width="1" height="1" fill="#ff3333"/>
+    </svg>`
+  },
+  {
+    id: 'skates',
+    name: 'SNOW BOOTS',
+    desc: 'Soft touch on ice',
+    price: 10000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="3" y="3" width="5" height="1" fill="#000"/>
+  <rect x="2" y="4" width="1" height="8" fill="#000"/>
+  <rect x="8" y="4" width="1" height="3" fill="#000"/>
+  <rect x="9" y="7" width="1" height="2" fill="#000"/>
+  <rect x="10" y="9" width="3" height="1" fill="#000"/>
+  <rect x="13" y="10" width="1" height="2" fill="#000"/>
+  <rect x="12" y="12" width="1" height="1" fill="#000"/>
+  <rect x="2" y="12" width="1" height="2" fill="#000"/>
+  <rect x="13" y="12" width="1" height="2" fill="#000"/>
+  <rect x="3" y="14" width="10" height="1" fill="#000"/>
+  <rect x="3" y="4" width="5" height="8" fill="#4be"/>
+  <rect x="8" y="7" width="1" height="5" fill="#4be"/>
+  <rect x="9" y="10" width="4" height="2" fill="#4be"/>
+  <rect x="3" y="4" width="5" height="2" fill="#eef"/>
+  <rect x="3" y="6" width="1" height="6" fill="#9ff"/>
+  <rect x="4" y="10" width="6" height="1" fill="#9ff"/>
+  <rect x="7" y="6" width="1" height="6" fill="#17b"/>
+  <rect x="8" y="11" width="4" height="1" fill="#17b"/>
+  <rect x="3" y="12" width="10" height="2" fill="#e0c280"/>
+  <rect x="4" y="13" width="1" height="1" fill="#b89c5e"/>
+  <rect x="6" y="13" width="1" height="1" fill="#b89c5e"/>
+  <rect x="8" y="13" width="1" height="1" fill="#b89c5e"/>
+  <rect x="10" y="13" width="1" height="1" fill="#b89c5e"/>
+</svg>`
+  },
+  {
+    id: 'magnet',
+    name: 'MAGNET',
+    desc: 'Easy coin collect',
+    price: 15000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="3" y="2" width="10" height="1" fill="#000"/>
+  <rect x="2" y="3" width="1" height="10" fill="#000"/>
+  <rect x="13" y="3" width="1" height="10" fill="#000"/>
+  <rect x="3" y="13" width="3" height="1" fill="#000"/>
+  <rect x="10" y="13" width="3" height="1" fill="#000"/>
+  <rect x="6" y="6" width="1" height="7" fill="#000"/>
+  <rect x="9" y="6" width="1" height="7" fill="#000"/>
+  <rect x="7" y="5" width="2" height="1" fill="#000"/>
+  <rect x="3" y="3" width="10" height="2" fill="#e52521"/>
+  <rect x="3" y="5" width="3" height="4" fill="#e52521"/>
+  <rect x="10" y="5" width="3" height="4" fill="#e52521"/>
+  <rect x="3" y="9" width="3" height="4" fill="#ccc"/>
+  <rect x="10" y="9" width="3" height="4" fill="#ccc"/>
+  <rect x="4" y="3" width="8" height="1" fill="#fff" opacity="0.5"/>
+  <rect x="4" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
+  <rect x="11" y="4" width="1" height="4" fill="#fff" opacity="0.5"/>
+ </svg>`
+  },
+  {
+    id: 'rod',
+    name: 'IRON ROD',
+    desc: 'Break meteors for treasures',
+    price: 20000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="10" y="1" width="1" height="1" fill="#fff"/><rect x="11" y="1" width="1" height="1" fill="#777"/><rect x="12" y="1" width="1" height="1" fill="#777"/><rect x="13" y="1" width="1" height="1" fill="#444"/><rect x="9" y="2" width="1" height="1" fill="#fff"/><rect x="10" y="2" width="1" height="1" fill="#fff"/><rect x="11" y="2" width="1" height="1" fill="#fff"/><rect x="12" y="2" width="1" height="1" fill="#777"/><rect x="13" y="2" width="1" height="1" fill="#444"/><rect x="14" y="2" width="1" height="1" fill="#222"/><rect x="9" y="3" width="1" height="1" fill="#777"/><rect x="10" y="3" width="1" height="1" fill="#fff"/><rect x="11" y="3" width="1" height="1" fill="#777"/><rect x="12" y="3" width="1" height="1" fill="#777"/><rect x="13" y="3" width="1" height="1" fill="#444"/><rect x="14" y="3" width="1" height="1" fill="#222"/><rect x="9" y="4" width="1" height="1" fill="#777"/><rect x="10" y="4" width="1" height="1" fill="#777"/><rect x="11" y="4" width="1" height="1" fill="#777"/><rect x="12" y="4" width="1" height="1" fill="#444"/><rect x="13" y="4" width="1" height="1" fill="#222"/><rect x="14" y="4" width="1" height="1" fill="#222"/><rect x="8" y="5" width="1" height="1" fill="#888"/><rect x="9" y="5" width="1" height="1" fill="#444"/><rect x="10" y="5" width="1" height="1" fill="#444"/><rect x="11" y="5" width="1" height="1" fill="#444"/><rect x="12" y="5" width="1" height="1" fill="#222"/><rect x="13" y="5" width="1" height="1" fill="#222"/><rect x="14" y="5" width="1" height="1" fill="#222"/><rect x="7" y="6" width="1" height="1" fill="#888"/><rect x="8" y="6" width="1" height="1" fill="#888"/><rect x="9" y="6" width="1" height="1" fill="#555"/><rect x="10" y="6" width="1" height="1" fill="#222"/><rect x="11" y="6" width="1" height="1" fill="#222"/><rect x="12" y="6" width="1" height="1" fill="#222"/><rect x="13" y="6" width="1" height="1" fill="#222"/><rect x="6" y="7" width="1" height="1" fill="#888"/><rect x="7" y="7" width="1" height="1" fill="#888"/><rect x="8" y="7" width="1" height="1" fill="#555"/><rect x="9" y="7" width="1" height="1" fill="#333"/><rect x="10" y="7" width="1" height="1" fill="#333"/><rect x="5" y="8" width="1" height="1" fill="#888"/><rect x="6" y="8" width="1" height="1" fill="#888"/><rect x="7" y="8" width="1" height="1" fill="#555"/><rect x="8" y="8" width="1" height="1" fill="#333"/><rect x="9" y="8" width="1" height="1" fill="#333"/><rect x="4" y="9" width="1" height="1" fill="#888"/><rect x="5" y="9" width="1" height="1" fill="#888"/><rect x="6" y="9" width="1" height="1" fill="#555"/><rect x="7" y="9" width="1" height="1" fill="#333"/><rect x="8" y="9" width="1" height="1" fill="#333"/><rect x="3" y="10" width="1" height="1" fill="#888"/><rect x="4" y="10" width="1" height="1" fill="#888"/><rect x="5" y="10" width="1" height="1" fill="#555"/><rect x="6" y="10" width="1" height="1" fill="#333"/><rect x="7" y="10" width="1" height="1" fill="#333"/><rect x="2" y="11" width="1" height="1" fill="#888"/><rect x="3" y="11" width="1" height="1" fill="#888"/><rect x="4" y="11" width="1" height="1" fill="#555"/><rect x="5" y="11" width="1" height="1" fill="#333"/><rect x="6" y="11" width="1" height="1" fill="#333"/><rect x="1" y="12" width="1" height="1" fill="#888"/><rect x="2" y="12" width="1" height="1" fill="#888"/><rect x="3" y="12" width="1" height="1" fill="#555"/><rect x="4" y="12" width="1" height="1" fill="#333"/><rect x="5" y="12" width="1" height="1" fill="#333"/><rect x="1" y="13" width="1" height="1" fill="#888"/><rect x="2" y="13" width="1" height="1" fill="#555"/><rect x="3" y="13" width="1" height="1" fill="#333"/><rect x="4" y="13" width="1" height="1" fill="#333"/><rect x="1" y="14" width="1" height="1" fill="#555"/><rect x="2" y="14" width="1" height="1" fill="#333"/><rect x="3" y="14" width="1" height="1" fill="#333"/>
+ </svg>`
+  },
+  {
+    id: 'breakfast',
+    name: 'BREAKFAST',
+    desc: 'A bite to wake up',
+    price: 30000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="5" y="8" width="6" height="6" fill="#fcc"/>
+  <rect x="2" y="2" width="12" height="6" fill="#f33"/>
+  <rect x="4" y="4" width="3" height="3" fill="#fff"/>
+  <rect x="9" y="4" width="3" height="3" fill="#fff"/>
+</svg>`
+  },
+  {
+    id: 'autocruise2',
+    name: 'AUTO CRUISE 2',
+    desc: '"Right away, Michael."',
+    price: 50000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+      <!-- Main Monitor Outline -->
+      <rect x="2" y="2" width="12" height="12" fill="#000"/>
+      
+      <!-- Glossy Black Casing Base -->
+      <rect x="3" y="3" width="10" height="10" fill="#24262b"/>
+      <!-- Metallic Highlights -->
+      <rect x="3" y="3" width="10" height="1" fill="#5c6270"/>
+      <rect x="3" y="4" width="1" height="9" fill="#434752"/>
+      <rect x="3" y="3" width="2" height="1" fill="#9ea5b3"/>
+      <rect x="3" y="4" width="1" height="2" fill="#9ea5b3"/>
+      <!-- Shadows -->
+      <rect x="4" y="12" width="9" height="1" fill="#0f1012"/>
+      <rect x="12" y="4" width="1" height="8" fill="#0f1012"/>
+
+      <!-- Screen Bezel -->
+      <rect x="4" y="4" width="8" height="7" fill="#050505"/>
+      
+      <!-- Screen -->
+      <rect x="5" y="5" width="6" height="5" fill="#2b0808"/>
+      <rect x="5" y="5" width="6" height="1" fill="#471010"/>
+      
+      <!-- Face (Red Phosphor) -->
+      <rect x="6" y="6" width="1" height="1" fill="#ff2a2a"/>
+      <rect x="9" y="6" width="1" height="1" fill="#ff2a2a"/>
+      <rect x="7" y="8" width="2" height="1" fill="#ff2a2a"/>
+
+      <!-- Drive & LEDs -->
+      <rect x="4" y="11" width="3" height="1" fill="#1b1c20"/>
+      <rect x="9" y="11" width="1" height="1" fill="#ffdd22"/>
+      <rect x="11" y="11" width="1" height="1" fill="#ff8800"/>
+    </svg>`
+  },
+  {
+    id: 'golden_glove',
+    name: 'GOLDEN GLOVE',
+    desc: 'Harvest gold from ice',
+    price: 75000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <!-- Golden Body Fill (#fd0) -->
+  <rect x="5" y="2" width="5" height="1" fill="#fd0"/>
+  <rect x="4" y="3" width="7" height="8" fill="#fd0"/>
+  <!-- Thumb Fill -->
+  <rect x="11" y="6" width="2" height="3" fill="#fd0"/>
+
+  <!-- Left Highlight / Shine (#fff) -->
+  <rect x="5" y="2" width="2" height="1" fill="#fff"/>
+  <rect x="4" y="3" width="2" height="6" fill="#fff"/>
+
+  <!-- Right Shading (Amber Gold #c80) -->
+  <rect x="9" y="3" width="2" height="8" fill="#c80"/>
+  <rect x="11" y="7" width="2" height="2" fill="#c80"/>
+
+  <!-- White Fluffy Cuff / Trim directly connected to gold (y=11..13) -->
+  <rect x="3" y="11" width="9" height="2" fill="#fff"/>
+  <rect x="3" y="13" width="9" height="1" fill="#ddd"/>
+</svg>`
+  },
+  {
+    id: 'lithuanian',
+    name: 'LITHUANIA<br>COSTUME',
+    desc: 'HELMET × SNOW BOOTS',
+    price: 100000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
+  <rect x="4" y="5" width="8" height="4" fill="#dca342"/>
+  <rect x="2" y="9" width="12" height="2" fill="#dca342"/>
+  <rect x="4" y="4" width="8" height="1" fill="#000"/>
+  <rect x="3" y="5" width="1" height="4" fill="#000"/>
+  <rect x="12" y="5" width="1" height="4" fill="#000"/>
+  <rect x="1" y="9" width="1" height="2" fill="#000"/>
+  <rect x="14" y="9" width="1" height="2" fill="#000"/>
+  <rect x="2" y="11" width="12" height="1" fill="#000"/>
+  <rect x="5" y="5" width="2" height="1" fill="#f4c878"/>
+  <rect x="4" y="6" width="1" height="2" fill="#f4c878"/>
+  <rect x="4" y="8" width="8" height="1" fill="#905010"/>
+</svg>`
+  },
+  {
+    id: 'goggles',
+    name: 'MINI GOGGLES',
+    desc: "See what's coming",
+    price: 200000,
+    iconSvg: `<svg viewBox="0 0 16 16" width="24" height="24" shape-rendering="crispEdges">
   <rect x="5" y="2" width="6" height="1" fill="#1a0f08"/>
   <rect x="3" y="3" width="2" height="1" fill="#1a0f08"/>
   <rect x="5" y="3" width="6" height="1" fill="#fdc86e"/>
