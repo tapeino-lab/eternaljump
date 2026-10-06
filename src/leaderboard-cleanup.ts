@@ -15,12 +15,12 @@ export const HIDDEN_MEMBER_IDS = new Set<string>([
 /**
  * Accounts proven to belong to the same player: consecutive member IDs (two accounts created at
  * once by the old duplicate-PID bug) or byte-identical records (the same run sent by two accounts),
- * plus confirmed rescues. Matched by member ID, never by name, so other players who happen to
+ * plus confirmed rescues and likely resets (see below). Matched by member ID, never by name, so other players who happen to
  * share a "LANG XX" name are not affected.
  */
 export const SAME_PLAYER_GROUPS: string[][] = [
   ['63103831', '63103832'], // ENG EK
-  ['63255448', '63255449'], // JPN KA
+  ['63255448', '63255449', '63497262'], // JPN KA
   ['63094426', '63094427'], // JPN XN
   ['63534284', '63590557'], // JPN YN (rescued 2026-10-04)
   ['63107322', '63107323'], // LTU 2Z
@@ -36,7 +36,7 @@ export const SAME_PLAYER_GROUPS: string[][] = [
   ['63570276', '63571619'], // USA 5P
   ['63416138', '63416139'], // USA 8S
   ['63552966', '63588577'], // USA BB
-  ['63556439', '63556506'], // USA BK
+  ['63554125', '63556439', '63556506', '63562808', '63562847', '63571083', '63571548'], // USA BK (7 accounts, sequential resets 09-22..09-27)
   ['63104206', '63104207'], // USA GO
   ['63548993', '63551351'], // USA H6
   ['63553267', '63553334'], // USA IL
@@ -45,7 +45,7 @@ export const SAME_PLAYER_GROUPS: string[][] = [
   ['63103818', '63103819'], // SPA 2U
   ['63137749', '63153454'], // USA 27
   ['63138800', '63138801'], // ENG D3
-  ['63178299', '63178300'], // ENG MK
+  ['63178299', '63178300', '63188734'], // ENG MK
   ['63188442', '63188443'], // LTU ZL
   ['63251785', '63251786'], // JPN 2U
   ['63256660', '63256761'], // JPN 64 / JPN W6
@@ -58,6 +58,13 @@ export const SAME_PLAYER_GROUPS: string[][] = [
   ['63552200', '63552369'], // USA 9V
   ['63571184', '63571221'], // USA PY
   ['63579136', '63579143'], // USA SN
+  // Likely resets (data wipe -> new account): same name, accounts used one after another with no
+  // overlapping activity. Not strictly proven; merged on the owner's call ("when in doubt, merge").
+  ['63539781', '63551410'], // JPN T_
+  ['63550926', '63550932'], // USA 39
+  ['63571182', '63571193'], // USA UT
+  ['63552025', '63552055'], // USA 7J
+  ['63415006', '63415015', '63416921'], // USA JF
 ];
 
 const groupOf = new Map<string, number>();
