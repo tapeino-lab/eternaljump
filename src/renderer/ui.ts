@@ -364,7 +364,6 @@ function getEquippedIconSVG(id: string | null): string {
       <rect x="1" y="12" width="1" height="1" fill="#1a0f08"/>
       <rect x="2" y="12" width="1" height="1" fill="#d69435"/>
       <rect x="3" y="12" width="4" height="1" fill="#6f2e10"/>
-      <rect x="7" y="12" width="2" height="1" fill="#ac9fb1"/>
       <rect x="9" y="12" width="1" height="1" fill="#d69435"/>
       <rect x="10" y="12" width="4" height="1" fill="#6f2e10"/>
       <rect x="14" y="12" width="1" height="1" fill="#1a0f08"/>
