@@ -17,7 +17,11 @@
 - **Version and Commit**: You MUST always include the updated version number (e.g., `v2.05.37`) and the commit hash / 1-line English commit message that was pushed.
 
 ## Git Workflow
-- **Commit & Push**: AI Studio is no longer used. When a task's changes are complete and `npm run lint` passes, stage the changed files, commit with a concise 1-line English message, and push to `origin/main` (GitHub: `tapeino-lab/eternaljump`).
+- **Tools in use**: This repo is edited by both Claude Code and Google AI Studio (via its GitHub sync). Neither tool is the sole owner; follow every rule in this file regardless of which tool you are.
+- **Sync First**: Before starting any task, pull the latest `origin/main` (`git pull --ff-only` / AI Studio "Pull") so you build on the other tool's changes. Never force-push and never overwrite a file with a stale copy.
+- **One Tool at a Time**: Do not edit in both tools at once. Finish, push, and let the other tool pull before it starts.
+- **Commit & Push**: When a task's changes are complete and `npm run lint` passes (and `npm test` where available), stage the changed files, commit with a concise 1-line English message, and push to `origin/main` (GitHub: `tapeino-lab/eternaljump`).
+- **Review Diffs Before Pushing**: Check the diff for unintended deletions or truncation, especially in very large files such as `src/assets.ts` (inline base64 images) and `src/shop.ts` (inline SVG icons). Never replace a whole large file when only part of it needs to change.
 - **Deploy Awareness**: Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and publishes to GitHub Pages (production). Never push unverified or half-finished changes.
 - **Secrets**: Never commit API keys, passwords, or their hashes. They are provided only via environment variables (GitHub Secrets for production, `.env` locally, which is git-ignored).
 
