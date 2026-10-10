@@ -381,6 +381,7 @@ let lastTimeStyle = '';
 let lastIsTitleState: boolean | null = null;
 let lastIsTimerVisState: boolean | null = null;
 let lastEquippedKey = '';
+let lastEquippedIconKey: string | null = null;
 
 export function updateHUD(topColor) {
   let lum = topColor.r * 0.299 + topColor.g * 0.587 + topColor.b * 0.114;
@@ -492,9 +493,10 @@ export function updateHUD(topColor) {
     }
     if (eqList.length > 0) {
       badge.style.display = 'inline-flex';
-      let iconsHtml = eqList.map(id => getEquippedIconSVG(id)).join('');
-      if (iconContainer.innerHTML !== iconsHtml) {
-        iconContainer.innerHTML = iconsHtml;
+      // Compare by equipped key: serialized innerHTML never matches the SVG template, so it was rebuilt every update
+      if (lastEquippedIconKey !== eqKey) {
+        iconContainer.innerHTML = eqList.map(id => getEquippedIconSVG(id)).join('');
+        lastEquippedIconKey = eqKey;
       }
     } else {
       badge.style.display = 'none';

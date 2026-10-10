@@ -6,6 +6,8 @@ import { dR } from '../renderer/core.js';
 import { spawnParticles } from './particles.js';
 import { ObjectPool } from './pool.js';
 
+let cachedCoinContainer: HTMLElement | null = null;
+
 export const P_CN = new ObjectPool<Coin>(() => new Coin());
 export const P_IT = new ObjectPool<Item>(() => new Item());
 export const P_FC = new ObjectPool<FlyingCoin>(() => new FlyingCoin(0, 0));
@@ -203,17 +205,16 @@ export function getIt(y: number, type: 'red' | 'green' = 'red', overrideX?: numb
             try { this.onArrive(); } catch (e) {}
           }
 
-          let uiLayer = document.getElementById('ui');
-          if (uiLayer) {
-            let coinIcon = uiLayer.querySelector('.coin-icon');
-            let coinContainer = coinIcon ? coinIcon.parentElement : null;
-            if (coinContainer) {
-              coinContainer.animate([
-                { transform: 'scale(1)', filter: 'brightness(1)' },
-                { transform: 'scale(1.6)', filter: 'brightness(2)' },
-                { transform: 'scale(1)', filter: 'brightness(1)' }
-              ], { duration: 250, easing: 'ease-out' });
-            }
+          if (!cachedCoinContainer || !cachedCoinContainer.isConnected) {
+            let coinIcon = document.getElementById('ui')?.querySelector('.coin-icon');
+            cachedCoinContainer = coinIcon ? coinIcon.parentElement : null;
+          }
+          if (cachedCoinContainer) {
+            cachedCoinContainer.animate([
+              { transform: 'scale(1)', filter: 'brightness(1)' },
+              { transform: 'scale(1.6)', filter: 'brightness(2)' },
+              { transform: 'scale(1)', filter: 'brightness(1)' }
+            ], { duration: 250, easing: 'ease-out' });
           }
         }
       }
