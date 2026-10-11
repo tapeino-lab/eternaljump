@@ -122,6 +122,22 @@ describe('rescue grants', () => {
     expect(ll.submits('tatk').map(c => c.body.score)).toEqual([999921178]);
   });
 
+  it('restores the 3rd account (63616356) with 172395 coins and 78122ms TA', async () => {
+    const { identity, game, secureStorage } = await bootAs(63616356, 2266);
+    expect(identity.getStoredTotalCoinsSync()).toBe(2266 + 172395);
+    expect(game.totalCoins).toBe(2266 + 172395);
+    expect(secureStorage.getItem('8bitJump_TAPB', null)).toEqual({ time: 78122 });
+  });
+
+  it('restores 172395 coins by player name for unknown new accounts', async () => {
+    Object.defineProperty(navigator, 'language', { value: 'ja-JP', configurable: true });
+    const ctx = await load();
+    ctx.identity.persistPlayerName('JPN YN');
+    const { identity, game } = await bootAs(99999999, 100);
+    expect(identity.getStoredTotalCoinsSync()).toBe(100 + 172395);
+    expect(game.totalCoins).toBe(100 + 172395);
+  });
+
   it('does not touch other players', async () => {
     const { ll, identity } = await bootAs(11111111, 4930);
     expect(identity.getStoredTotalCoinsSync()).toBe(4930);
