@@ -95,31 +95,19 @@ const RESCUE_GRANTS: Record<string, RescueGrant> = {
   },
 };
 
-const RESCUE_GRANTS_BY_NAME: Record<string, RescueGrant> = {
-  'JPN YN': {
-    note: 'JPN YN: permanent name floor',
-    coins: 172395,
-    pb: { alt: 144000, coins: 148, time: 154665 },
-    ta: { time: 78122, alt: 144000, coins: 133 },
-    lang: 'JPN',
-  },
-};
-
 // Same keys as RankingAPI.pbKey / RankingAPI.taPbKey (not imported to avoid a module cycle)
 const PB_KEY = 'EternalJumper_PB';
 const TA_PB_KEY = '8bitJump_TAPB';
 
-async function applyRescueGrant(playerId: any, playerName?: string): Promise<void> {
-  const pIdStr = String(playerId || '');
-  const pName = (playerName || getPlayerName() || '').trim();
-  const grant = RESCUE_GRANTS[pIdStr] || (pName ? RESCUE_GRANTS_BY_NAME[pName] : undefined);
+async function applyRescueGrant(playerId: any): Promise<void> {
+  const grant = RESCUE_GRANTS[String(playerId || '')];
   if (!grant) return;
   await bootCoinsReady;
 
   if (grant.coins) {
     const local = Math.max(getStoredTotalCoinsSync(), game ? (game.totalCoins || 0) : 0);
     if (local < grant.coins) {
-      const restored = Math.max(local + grant.coins, grant.coins);
+      const restored = local + grant.coins;
       persistTotalCoins(restored);
       if (game) game.totalCoins = restored;
       const el = document.getElementById('shopCoinCounter');
@@ -431,7 +419,7 @@ export const LootLockerAPI = {
           this.playerId = d.player_id;
           safeStorage.setItem('LL_SYS_PLAYER_ID', this.playerId);
           this.log(`Session connected successfully! Player ID: ${this.playerId}`, 'success');
-          applyRescueGrant(this.playerId, getPlayerName()).catch(() => {});
+          applyRescueGrant(this.playerId).catch(() => {});
           
           // Use client-generated or loaded customizable player name (e.g., "JPN XY").
           // Right after a passkey restore, the server holds the player's real name: adopt it
@@ -677,7 +665,6 @@ export const LootLockerAPI = {
   setPlayerName: async function(name: string) {
     if (!await this.init()) return;
     try {
-      applyRescueGrant(this.playerId, name).catch(() => {});
       if (this.isDirectMode) {
         let url = `https://${this.domainKey}.api.lootlocker.io/game/player/name`;
         await this.sessionFetch(url, {

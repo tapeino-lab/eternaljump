@@ -129,13 +129,14 @@ describe('rescue grants', () => {
     expect(secureStorage.getItem('8bitJump_TAPB', null)).toEqual({ time: 78122 });
   });
 
-  it('restores 172395 coins by player name for unknown new accounts', async () => {
+  it('does not grant by player name to an unknown account', async () => {
     Object.defineProperty(navigator, 'language', { value: 'ja-JP', configurable: true });
     const ctx = await load();
     ctx.identity.persistPlayerName('JPN YN');
-    const { identity, game } = await bootAs(99999999, 100);
-    expect(identity.getStoredTotalCoinsSync()).toBe(100 + 172395);
-    expect(game.totalCoins).toBe(100 + 172395);
+    const { ll, identity } = await bootAs(99999999, 100);
+    expect(identity.getStoredTotalCoinsSync()).toBe(100);
+    expect(ll.submits('hct2')).toHaveLength(0);
+    expect(ll.submits('tatk')).toHaveLength(0);
   });
 
   it('does not touch other players', async () => {
