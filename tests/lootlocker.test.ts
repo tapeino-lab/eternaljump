@@ -129,6 +129,17 @@ describe('rescue grants', () => {
     expect(secureStorage.getItem('8bitJump_TAPB', null)).toEqual({ time: 78122 });
   });
 
+  it('restores the 4th account (63718778) with 311400 coins and its best records', async () => {
+    const { ll, identity, game, secureStorage } = await bootAs(63718778, 8150,
+      { alt: 144000, coins: 122, time: 144034 }, { time: 81234 });
+    expect(identity.getStoredTotalCoinsSync()).toBe(8150 + 311400);
+    expect(game.totalCoins).toBe(8150 + 311400);
+    expect(secureStorage.getItem('EternalJumper_PB', null)).toEqual({ alt: 144000, coins: 162, time: 120112 });
+    expect(secureStorage.getItem('8bitJump_TAPB', null)).toEqual({ time: 71974 });
+    expect(ll.submits('hct2').map(c => c.body.score)).toEqual([144000162]);
+    expect(ll.submits('tatk').map(c => c.body.score)).toEqual([999928026]);
+  });
+
   it('does not grant by player name to an unknown account', async () => {
     Object.defineProperty(navigator, 'language', { value: 'ja-JP', configurable: true });
     const ctx = await load();

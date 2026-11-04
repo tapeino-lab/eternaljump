@@ -93,6 +93,13 @@ const RESCUE_GRANTS: Record<string, RescueGrant> = {
     ta: { time: 78122, alt: 144000, coins: 133 },
     lang: 'JPN',
   },
+  '63718778': {
+    note: 'JPN YN: lost account 63616356 (2026-11-04)',
+    coins: 311400,
+    pb: { alt: 144000, coins: 162, time: 120112 },
+    ta: { time: 71974, alt: 144000, coins: 93 },
+    lang: 'JPN',
+  },
 };
 
 // Same keys as RankingAPI.pbKey / RankingAPI.taPbKey (not imported to avoid a module cycle)
