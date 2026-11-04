@@ -158,6 +158,18 @@ describe('rescue grants', () => {
   });
 });
 
+describe('score metadata', () => {
+  it('carries reset diagnostics but never the player identifier', async () => {
+    const ll = installFakeLootLocker({ remoteCoins: 100 });
+    const { identity, LootLockerAPI } = await load();
+    identity.persistTotalCoins(5000);
+    await LootLockerAPI.submitCoinScore(5000, 'JPN');
+    const body = ll.submits('cointtl')[0].body;
+    expect(JSON.parse(body.metadata).diag).toMatch(/^s=[lcin?];l=/);
+    expect(body.metadata).not.toContain(LootLockerAPI.playerIdentifier);
+  });
+});
+
 describe('session expiry', () => {
   it('logs in again and retries when LootLocker rejects an expired token', async () => {
     const ll = installFakeLootLocker({ remoteCoins: 100 });

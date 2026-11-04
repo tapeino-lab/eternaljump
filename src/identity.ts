@@ -84,10 +84,17 @@ function openIdentityDBConnection(): Promise<IDBDatabase | null> {
   });
 }
 
+// True when the latest IndexedDB read failed, as opposed to finding nothing
+let idbReadFailed = false;
+
 export async function getIndexedDBValue(key: string): Promise<string | null> {
+  idbReadFailed = false;
   try {
     const db = await openIdentityDB();
-    if (!db) return null;
+    if (!db) {
+      idbReadFailed = typeof window !== 'undefined' && !!window.indexedDB;
+      return null;
+    }
     return new Promise((resolve) => {
       try {
         const tx = db.transaction(STORE_NAME, 'readonly');
@@ -100,12 +107,14 @@ export async function getIndexedDBValue(key: string): Promise<string | null> {
             resolve(null);
           }
         };
-        req.onerror = () => resolve(null);
+        req.onerror = () => { idbReadFailed = true; resolve(null); };
       } catch (e) {
+        idbReadFailed = true;
         resolve(null);
       }
     });
   } catch (e) {
+    idbReadFailed = true;
     return null;
   }
 }
@@ -175,15 +184,26 @@ async function resolvePlayerIdentifierOnce(): Promise<string> {
   // 1. Try synchronous check (localStorage + Cookie)
   let pid = getStoredPlayerIdentifierSync();
   if (pid) {
-    // Save to IndexedDB in background
-    setIndexedDBValue(PID_KEY, pid).catch(() => {});
+    // Save to IndexedDB in background, keeping a different older identifier instead of losing it
+    const syncedPid = pid;
+    getIndexedDBValue(PID_KEY).then((stored) => {
+      diag.idb = idbReadFailed ? 'err' : !stored ? 'none' : stored === syncedPid ? 'same' : 'diff';
+      if (stored && stored !== syncedPid) setIndexedDBValue(PREV_PID_KEY, stored).catch(() => {});
+      setIndexedDBValue(PID_KEY, syncedPid).catch(() => {});
+    }).catch(() => {});
     return pid;
   }
 
-  // 2. Check IndexedDB
-  const idbPid = await getIndexedDBValue(PID_KEY);
+  // 2. Check IndexedDB (retry a failed read once: a new identifier here would orphan the account)
+  let idbPid = await getIndexedDBValue(PID_KEY);
+  if (idbReadFailed) {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    idbPid = await getIndexedDBValue(PID_KEY);
+  }
+  diag.idb = idbReadFailed ? 'err' : idbPid ? 'same' : 'none';
   if (idbPid && idbPid.trim().length > 3) {
     console.log('[Identity] Restored player identifier from IndexedDB:', idbPid);
+    diag.source = 'i';
     safeStorage.setItem(PID_KEY, idbPid);
     setCookie(COOKIE_NAME, idbPid);
     return idbPid;
@@ -197,7 +217,14 @@ async function resolvePlayerIdentifierOnce(): Promise<string> {
   const existingCoins = secureStorage.getItem<number>('JUMP_TOTAL_COINS', 0);
   const existingPB = secureStorage.getItem<any>('EternalJumper_PB', null); // RankingAPI.pbKey
 
-  // Generate new PID
+  // Generate new PID, recording what this device still knew at that moment
+  diag.source = 'n';
+  safeStorage.setItem(PID_ORIGIN_KEY, [
+    Date.now(),
+    safeStorage.getItem('LL_SYS_PLAYER_ID') || '-',
+    existingCoins >= 100 ? 1 : 0,
+    existingPB && existingPB.alt > 0 ? 1 : 0,
+  ].join('|'));
   const newPid = safeCrypto.generateRandomId('p');
   safeStorage.setItem(PID_KEY, newPid);
   setCookie(COOKIE_NAME, newPid);
@@ -209,6 +236,65 @@ async function resolvePlayerIdentifierOnce(): Promise<string> {
   }
 
   return newPid;
+}
+
+// ---------- Reset diagnostics ----------
+// Sent as `diag` in coin leaderboard metadata (submitted after every game), so why an account was
+// re-created can be read from the board. Metadata is public: coarse values and member IDs only,
+// never the player identifier. Kept off the score boards so a metadata size limit can't cost a record.
+const PID_ORIGIN_KEY = 'EJ_PID_ORIGIN';
+const PREV_PID_KEY = 'LL_PID_PREV';
+
+// Taken at module load, before getStoredPlayerIdentifierSync() heals the layers from each other
+const bootHadLocal = !!safeStorage.getItem(PID_KEY);
+const bootHadCookie = !!getCookie(COOKIE_NAME);
+const diag = {
+  source: bootHadLocal ? 'l' : bootHadCookie ? 'c' : '?',
+  idb: '?',
+  persisted: '?',
+};
+
+function describeContext(): string {
+  try {
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    const os = isIOS ? 'ios' : /Android/.test(ua) ? 'android' : /Mac OS X/.test(ua) ? 'mac' : /Windows/.test(ua) ? 'win' : 'other';
+    const browser = /\bLine\//.test(ua) ? 'line'
+      : /Instagram/.test(ua) ? 'ig'
+      : /FBAN|FBAV/.test(ua) ? 'fb'
+      : /Twitter|TwitterAndroid/.test(ua) ? 'x'
+      : /CriOS|Chrome\//.test(ua) ? 'chrome'
+      : /FxiOS|Firefox\//.test(ua) ? 'firefox'
+      : /Safari\//.test(ua) ? 'safari'
+      : 'other';
+    const standalone = (navigator as any).standalone === true || !!window.matchMedia?.('(display-mode: standalone)').matches;
+    return `${os}.${browser}.${standalone ? 'app' : 'tab'}`;
+  } catch (e) {
+    return '?';
+  }
+}
+
+/** Compact reset diagnostics for coin metadata, e.g. "s=n;l=-c;i=none;x=ios.safari.tab;p=0;o=<origin>". */
+export function getIdentityDiag(): string {
+  const layers = (bootHadLocal ? 'l' : '-') + (bootHadCookie ? 'c' : '-');
+  const origin = safeStorage.getItem(PID_ORIGIN_KEY) || '';
+  return `s=${diag.source};l=${layers};i=${diag.idb};x=${describeContext()};p=${diag.persisted};o=${origin}`;
+}
+
+/**
+ * Asks the browser not to evict this site's storage. Skipped on Firefox, which shows a permission
+ * prompt for it; the other browsers decide silently.
+ */
+export async function requestPersistentStorage(): Promise<void> {
+  try {
+    const storage = navigator.storage;
+    if (!storage || !storage.persisted) return;
+    let persisted = await storage.persisted();
+    if (!persisted && storage.persist && !/Firefox\//.test(navigator.userAgent)) {
+      persisted = await storage.persist();
+    }
+    diag.persisted = persisted ? '1' : '0';
+  } catch (e) {}
 }
 
 /**

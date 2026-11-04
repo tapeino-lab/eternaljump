@@ -2,7 +2,7 @@ import { FLR, getPlayerName, getLang } from './utils.js';
 import { safeStorage } from './safeStorage.js';
 import { secureStorage } from './secureStorage.js';
 import { game } from './state.js';
-import { getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, persistPlayerName, bootCoinsReady } from './identity.js';
+import { getIdentityDiag, getStoredPlayerIdentifierSync, resolvePlayerIdentifier, persistPlayerIdentifier, getStoredTotalCoinsSync, persistTotalCoins, persistPlayerName, bootCoinsReady } from './identity.js';
 import { validatePhysicalScore, checkSubmissionRateLimit, computeGameSignature } from './security.js';
 import { cleanupLeaderboard } from './leaderboard-cleanup.js';
 
@@ -854,7 +854,8 @@ export const LootLockerAPI = {
       ts: Date.now(),
       act: 'コイン更新',
       sig: sig,
-      d: isDup
+      d: isDup,
+      diag: getIdentityDiag()
     });
 
     try {

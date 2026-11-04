@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { flush } from './helpers';
 
 async function loadIdentity() {
@@ -120,5 +120,70 @@ describe('player name', () => {
     localStorage.setItem('JUMP_PLAYER_NAME', 'USA AB');
     const { getPlayerName } = await import('../src/utils');
     expect(getPlayerName()).toBe('JPN AB');
+  });
+});
+
+describe('reset diagnostics', () => {
+  it('records the old member ID when a new identifier is generated, without exposing identifiers', async () => {
+    localStorage.setItem('LL_SYS_PLAYER_ID', '63616356');
+    const id = await loadIdentity();
+    const pid = await id.resolvePlayerIdentifier();
+    const diag = id.getIdentityDiag();
+    expect(diag).toContain('s=n;l=--;i=none;');
+    expect(diag).toMatch(/o=\d+\|63616356\|0\|0$/);
+    expect(diag).not.toContain(pid);
+  });
+
+  it('reports the layer that supplied an existing identifier and keeps the origin stable', async () => {
+    localStorage.setItem('LL_PID', 'p_existing');
+    const id = await loadIdentity();
+    await id.resolvePlayerIdentifier();
+    await flush();
+    expect(id.getIdentityDiag()).toContain('s=l;l=l-;i=none;');
+    expect(id.getIdentityDiag()).toMatch(/o=$/);
+  });
+
+  it('keeps a different identifier found in IndexedDB instead of overwriting it', async () => {
+    const first = await loadIdentity();
+    await first.setIndexedDBValue('LL_PID', 'p_older');
+    localStorage.setItem('LL_PID', 'p_current');
+    vi.resetModules();
+    const id = await loadIdentity();
+    await id.resolvePlayerIdentifier();
+    await flush(30);
+    expect(id.getIdentityDiag()).toContain('i=diff;');
+    expect(await id.getIndexedDBValue('LL_PID_PREV')).toBe('p_older');
+    expect(await id.getIndexedDBValue('LL_PID')).toBe('p_current');
+  });
+
+  it('retries a failed IndexedDB read before generating a new identifier', async () => {
+    const first = await loadIdentity();
+    await first.setIndexedDBValue('LL_PID', 'p_survivor');
+    vi.resetModules();
+    const realOpen = indexedDB.open.bind(indexedDB);
+    let failures = 1;
+    vi.spyOn(indexedDB, 'open').mockImplementation((...args: [string, number?]) => {
+      if (failures-- > 0) throw new Error('transient');
+      return realOpen(...args);
+    });
+    const id = await loadIdentity();
+    expect(await id.resolvePlayerIdentifier()).toBe('p_survivor');
+    expect(id.getIdentityDiag()).toContain('s=i;');
+  });
+
+  it('asks for persistent storage silently, but never on Firefox', async () => {
+    const persist = vi.fn(async () => true);
+    Object.defineProperty(navigator, 'storage', { value: { persisted: async () => false, persist }, configurable: true });
+    const id = await loadIdentity();
+    await id.requestPersistentStorage();
+    expect(persist).toHaveBeenCalledTimes(1);
+    expect(id.getIdentityDiag()).toContain('p=1;');
+
+    const ua = vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 Firefox/130.0');
+    persist.mockClear();
+    await id.requestPersistentStorage();
+    expect(persist).not.toHaveBeenCalled();
+    ua.mockRestore();
+    delete (navigator as any).storage;
   });
 });

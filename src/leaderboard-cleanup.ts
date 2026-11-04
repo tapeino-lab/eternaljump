@@ -58,6 +58,7 @@ export const SAME_PLAYER_GROUPS: string[][] = [
   ['63552200', '63552369'], // USA 9V
   ['63571184', '63571221'], // USA PY
   ['63579136', '63579143'], // USA SN
+  ['63168546', '63683204'], // RUS BK / RUS 1M (identical 99,048m record, new account flagged d; 2026-11-04 audit)
   // Likely resets (data wipe -> new account): same name, accounts used one after another with no
   // overlapping activity. Not strictly proven; merged on the owner's call ("when in doubt, merge").
   ['63539781', '63551410'], // JPN T_

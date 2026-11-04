@@ -8,7 +8,7 @@ import { startAttractCycle } from './lifecycle.js';
 import { setupToastPrompts } from './pwa.js';
 import { $ } from './utils.js';
 import { RankingAPI } from './ranking/index.js';
-import { resolvePlayerIdentifier, resolveTotalCoinsAsync, persistTotalCoins, markBootCoinsRestored } from './identity.js';
+import { requestPersistentStorage, resolvePlayerIdentifier, resolveTotalCoinsAsync, persistTotalCoins, markBootCoinsRestored } from './identity.js';
 import { initPasskeyUI } from './passkey-ui.js';
 import './display.js';
 
@@ -44,6 +44,7 @@ function initGameApp() {
   // Take the max, never add a diff: game.totalCoins is loaded from storage by startAttractCycle()
   // after this point, so a boot-time diff double-counted the stored balance on every launch.
   // Coins earned during play are persisted immediately, so restoredCoins already includes them.
+  requestPersistentStorage();
   resolvePlayerIdentifier().then(() => {
     const itemPrices = Object.fromEntries(SHOP_ITEMS.map(item => [item.id, item.price]));
     resolveTotalCoinsAsync(itemPrices).then((restoredCoins) => {
