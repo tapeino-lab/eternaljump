@@ -130,7 +130,7 @@ describe('reset diagnostics', () => {
     const pid = await id.resolvePlayerIdentifier();
     const diag = id.getIdentityDiag();
     expect(diag).toContain('s=n;l=--;i=none;');
-    expect(diag).toMatch(/o=\d+\|63616356\|0\|0$/);
+    expect(diag).toMatch(/o=\d+\|63616356\|0\|0\|none\|[a-z]+\.[a-z]+\.(app|tab);f=$/);
     expect(diag).not.toContain(pid);
   });
 
@@ -140,7 +140,7 @@ describe('reset diagnostics', () => {
     await id.resolvePlayerIdentifier();
     await flush();
     expect(id.getIdentityDiag()).toContain('s=l;l=l-;i=none;');
-    expect(id.getIdentityDiag()).toMatch(/o=$/);
+    expect(id.getIdentityDiag()).toMatch(/o=;f=$/);
   });
 
   it('keeps a different identifier found in IndexedDB instead of overwriting it', async () => {
@@ -152,6 +152,7 @@ describe('reset diagnostics', () => {
     await id.resolvePlayerIdentifier();
     await flush(30);
     expect(id.getIdentityDiag()).toContain('i=diff;');
+    expect(id.getIdentityDiag()).toMatch(/f=\d+$/);
     expect(await id.getIndexedDBValue('LL_PID_PREV')).toBe('p_older');
     expect(await id.getIndexedDBValue('LL_PID')).toBe('p_current');
   });

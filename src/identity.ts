@@ -84,16 +84,12 @@ function openIdentityDBConnection(): Promise<IDBDatabase | null> {
   });
 }
 
-// True when the latest IndexedDB read failed, as opposed to finding nothing
-let idbReadFailed = false;
-
-export async function getIndexedDBValue(key: string): Promise<string | null> {
-  idbReadFailed = false;
+/** Reads a value, reporting a failed read separately from finding nothing. */
+async function readIndexedDBValue(key: string): Promise<{ value: string | null; failed: boolean }> {
   try {
     const db = await openIdentityDB();
     if (!db) {
-      idbReadFailed = typeof window !== 'undefined' && !!window.indexedDB;
-      return null;
+      return { value: null, failed: typeof window !== 'undefined' && !!window.indexedDB };
     }
     return new Promise((resolve) => {
       try {
@@ -101,22 +97,20 @@ export async function getIndexedDBValue(key: string): Promise<string | null> {
         const store = tx.objectStore(STORE_NAME);
         const req = store.get(key);
         req.onsuccess = () => {
-          if (req.result && typeof req.result === 'string') {
-            resolve(req.result);
-          } else {
-            resolve(null);
-          }
+          resolve({ value: req.result && typeof req.result === 'string' ? req.result : null, failed: false });
         };
-        req.onerror = () => { idbReadFailed = true; resolve(null); };
+        req.onerror = () => resolve({ value: null, failed: true });
       } catch (e) {
-        idbReadFailed = true;
-        resolve(null);
+        resolve({ value: null, failed: true });
       }
     });
   } catch (e) {
-    idbReadFailed = true;
-    return null;
+    return { value: null, failed: true };
   }
+}
+
+export async function getIndexedDBValue(key: string): Promise<string | null> {
+  return (await readIndexedDBValue(key)).value;
 }
 
 export async function setIndexedDBValue(key: string, val: string): Promise<void> {
@@ -186,21 +180,25 @@ async function resolvePlayerIdentifierOnce(): Promise<string> {
   if (pid) {
     // Save to IndexedDB in background, keeping a different older identifier instead of losing it
     const syncedPid = pid;
-    getIndexedDBValue(PID_KEY).then((stored) => {
-      diag.idb = idbReadFailed ? 'err' : !stored ? 'none' : stored === syncedPid ? 'same' : 'diff';
-      if (stored && stored !== syncedPid) setIndexedDBValue(PREV_PID_KEY, stored).catch(() => {});
+    readIndexedDBValue(PID_KEY).then(({ value: stored, failed }) => {
+      diag.idb = failed ? 'err' : !stored ? 'none' : stored === syncedPid ? 'same' : 'diff';
+      if (stored && stored !== syncedPid) {
+        safeStorage.setItem(PID_DIFF_KEY, String(Date.now()));
+        setIndexedDBValue(PREV_PID_KEY, stored).catch(() => {});
+      }
       setIndexedDBValue(PID_KEY, syncedPid).catch(() => {});
     }).catch(() => {});
     return pid;
   }
 
   // 2. Check IndexedDB (retry a failed read once: a new identifier here would orphan the account)
-  let idbPid = await getIndexedDBValue(PID_KEY);
-  if (idbReadFailed) {
+  let idbRead = await readIndexedDBValue(PID_KEY);
+  if (idbRead.failed) {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    idbPid = await getIndexedDBValue(PID_KEY);
+    idbRead = await readIndexedDBValue(PID_KEY);
   }
-  diag.idb = idbReadFailed ? 'err' : idbPid ? 'same' : 'none';
+  const idbPid = idbRead.value;
+  diag.idb = idbRead.failed ? 'err' : idbPid ? 'same' : 'none';
   if (idbPid && idbPid.trim().length > 3) {
     console.log('[Identity] Restored player identifier from IndexedDB:', idbPid);
     diag.source = 'i';
@@ -224,6 +222,8 @@ async function resolvePlayerIdentifierOnce(): Promise<string> {
     safeStorage.getItem('LL_SYS_PLAYER_ID') || '-',
     existingCoins >= 100 ? 1 : 0,
     existingPB && existingPB.alt > 0 ? 1 : 0,
+    diag.idb,
+    describeContext(),
   ].join('|'));
   const newPid = safeCrypto.generateRandomId('p');
   safeStorage.setItem(PID_KEY, newPid);
@@ -244,6 +244,7 @@ async function resolvePlayerIdentifierOnce(): Promise<string> {
 // never the player identifier. Kept off the score boards so a metadata size limit can't cost a record.
 const PID_ORIGIN_KEY = 'EJ_PID_ORIGIN';
 const PREV_PID_KEY = 'LL_PID_PREV';
+const PID_DIFF_KEY = 'EJ_PID_DIFF_AT';
 
 // Taken at module load, before getStoredPlayerIdentifierSync() heals the layers from each other
 const bootHadLocal = !!safeStorage.getItem(PID_KEY);
@@ -274,11 +275,16 @@ function describeContext(): string {
   }
 }
 
-/** Compact reset diagnostics for coin metadata, e.g. "s=n;l=-c;i=none;x=ios.safari.tab;p=0;o=<origin>". */
+/**
+ * Compact reset diagnostics for coin metadata. s/l/i/x/p describe this page load (source layer, layers
+ * present, IndexedDB state, context, persisted); o and f outlive it: o = the identifier's creation
+ * "time|old member ID|had coins|had PB|IndexedDB state|context", f = when IndexedDB last disagreed.
+ */
 export function getIdentityDiag(): string {
   const layers = (bootHadLocal ? 'l' : '-') + (bootHadCookie ? 'c' : '-');
   const origin = safeStorage.getItem(PID_ORIGIN_KEY) || '';
-  return `s=${diag.source};l=${layers};i=${diag.idb};x=${describeContext()};p=${diag.persisted};o=${origin}`;
+  const diffAt = safeStorage.getItem(PID_DIFF_KEY) || '';
+  return `s=${diag.source};l=${layers};i=${diag.idb};x=${describeContext()};p=${diag.persisted};o=${origin};f=${diffAt}`;
 }
 
 /**
