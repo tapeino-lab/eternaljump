@@ -10,6 +10,11 @@ describe('leaderboard cleanup (display only)', () => {
     expect(cleanupLeaderboard(rows, compareScoreRanking, same).map(r => r.id)).toEqual(['1']);
   });
 
+  it('hides the dev preview accounts', () => {
+    const rows = ['63566652', '63568691', '63572287', '63598365', '1'].map(id => ({ id, alt: 1000, coins: 1 }));
+    expect(cleanupLeaderboard(rows, compareScoreRanking, same).map(r => r.id)).toEqual(['1']);
+  });
+
   it('keeps only the best row of a same-player group', () => {
     const rows = [
       { id: '63090777', n: 'LTU TT', alt: 144000, coins: 101, ts: 0 },

@@ -210,6 +210,9 @@
     let playerActivityList = [];
     let activityTimeline = [];
     let lootlockerRawData = { altitude: [], timeAttack: [], coins: [] };
+    // The owner's dev preview accounts (also hidden from the game's boards by src/leaderboard-cleanup.ts)
+    const HIDDEN_TEST_IDS = new Set(['63566652', '63568691', '63572287', '63598365']);
+    const withoutTestAccounts = (items) => (items || []).filter(i => !HIDDEN_TEST_IDS.has(String(i.member_id)));
     let serverRawData = null;
 
     // Password & Storage Helpers
@@ -413,15 +416,15 @@
 
         if (resCoins && resCoins.ok) {
           const d = await resCoins.json();
-          lootlockerRawData.coins = d.items || [];
+          lootlockerRawData.coins = withoutTestAccounts(d.items);
         }
         if (resAlt && resAlt.ok) {
           const d = await resAlt.json();
-          lootlockerRawData.altitude = d.items || [];
+          lootlockerRawData.altitude = withoutTestAccounts(d.items);
         }
         if (resTa && resTa.ok) {
           const d = await resTa.json();
-          lootlockerRawData.timeAttack = d.items || [];
+          lootlockerRawData.timeAttack = withoutTestAccounts(d.items);
         }
       } catch (e) {
         console.error('LootLocker fetch failed', e);

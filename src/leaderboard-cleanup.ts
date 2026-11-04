@@ -5,11 +5,15 @@
  * Audited 2026-10-05 against the live hct2 / tatk boards.
  */
 
-/** Leftover test entries (TestClearPlayer, TEST B2 x2). */
+/** Leftover test entries (TestClearPlayer, TEST B2 x2, the owner's dev preview accounts JPN XU / 0M / 6N / IS). */
 export const HIDDEN_MEMBER_IDS = new Set<string>([
   '63551639',
   '63582745',
   '63582746',
+  '63566652',
+  '63568691',
+  '63572287',
+  '63598365',
 ]);
 
 /**
