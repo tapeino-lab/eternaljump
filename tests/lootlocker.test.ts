@@ -140,6 +140,15 @@ describe('rescue grants', () => {
     expect(ll.submits('tatk').map(c => c.body.score)).toEqual([999928026]);
   });
 
+  it('restores the 6th account (64081725) with both lost accounts\' coins and the best records', async () => {
+    const { ll, identity, secureStorage } = await bootAs(64081725, 841,
+      { alt: 144000, coins: 109, time: 159417 }, { time: 159417 });
+    expect(identity.getStoredTotalCoinsSync()).toBe(841 + 381947 + 1578);
+    expect(secureStorage.getItem('EternalJumper_PB', null)).toEqual({ alt: 144000, coins: 165, time: 117198 });
+    expect(ll.submits('hct2').map(c => c.body.score)).toEqual([144000165]);
+    expect(ll.submits('tatk').map(c => c.body.score)).toEqual([999928026]);
+  });
+
   it('does not grant by player name to an unknown account', async () => {
     Object.defineProperty(navigator, 'language', { value: 'ja-JP', configurable: true });
     const ctx = await load();
