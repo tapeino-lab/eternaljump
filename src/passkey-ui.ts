@@ -8,7 +8,7 @@ import { $, getPlayerName } from './utils.js';
 import { isPasskeySupported, isPasskeySaved, savePasskey, readPasskeyPid, adoptPlayerIdentifier } from './passkey.js';
 import {
   isPasswordBackupEnabled, canSaveToPasswordManager, isPasswordSaved, markSaveSubmitted, consumeSaveRedirect,
-  parseRestoredLogin, markPasswordSaved, PASSWORD_USERNAME_PREFIX,
+  parseRestoredLogin, markPasswordSaved, PASSWORD_USERNAME_PREFIX, shouldOfferSave, isPasswordOffered,
 } from './password-backup.js';
 import { getStoredPlayerIdentifierSync } from './identity.js';
 
@@ -111,11 +111,20 @@ function showSavePrompt() {
 
 /** Offers the backup once a player has something worth keeping (first 1,000 coins or a clear). */
 export async function maybeOfferSave(state: string) {
-  if (promptedThisSession || game.demoMode || isAttractMode || isDataSaved()) return;
-  if (!((game.totalCoins || 0) >= 1000 || state === 'clear')) return;
+  if (promptedThisSession || game.demoMode || isAttractMode) return;
   const shown = parseInt(safeStorage.getItem(PROMPTS_KEY) || '0', 10) || 0;
-  if (shown >= MAX_PROMPTS) return;
-  if (!(isPasswordBackupEnabled() && canSaveToPasswordManager()) && !(await isPasskeySupported())) return;
+  const passwordFlag = isPasswordBackupEnabled() && canSaveToPasswordManager();
+  if (!shouldOfferSave({
+    passwordFlag,
+    totalCoins: game.totalCoins || 0,
+    clear: state === 'clear',
+    promptsShown: shown,
+    maxPrompts: MAX_PROMPTS,
+    passkeySaved: isPasskeySaved(),
+    passwordSaved: isPasswordSaved(),
+    passwordOffered: isPasswordOffered(),
+  })) return;
+  if (!passwordFlag && !(await isPasskeySupported())) return;
   promptedThisSession = true;
   safeStorage.setItem(PROMPTS_KEY, String(shown + 1));
   setTimeout(() => {
@@ -317,10 +326,6 @@ export function initPasskeyUI() {
     updatePauseSaveUI();
   });
 
-  if (isPasswordBackupEnabled() && consumeSaveRedirect()) {
-    setTimeout(() => {
-      showMessage('DATA SAVED!', true);
-      updatePauseSaveUI();
-    }, 800);
-  }
+  // Safari shows its own "Save Password?" sheet after this reload; whether it was accepted is unknown here
+  if (isPasswordBackupEnabled()) consumeSaveRedirect();
 }

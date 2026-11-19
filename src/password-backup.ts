@@ -8,6 +8,7 @@ import { PID_PATTERN } from './passkey.js';
 const FLAG_KEY = 'EJ_PWSAVE_TEST';
 const SAVED_KEY = 'EJ_PW_SAVED';
 const PENDING_KEY = 'EJ_PW_PENDING';
+const OFFERED_KEY = 'EJ_PW_OFFERED';
 /** The host is shared with other games, so saved logins are labelled with the game name. */
 export const PASSWORD_USERNAME_PREFIX = 'ETERNAL JUMP · ';
 
@@ -41,7 +42,12 @@ export function markSaveSubmitted() {
   if (pid) safeStorage.setItem(PENDING_KEY, pid);
 }
 
-/** Boot: handles the ?pwsaved=1 return from the form POST. True when a save was just confirmed. */
+/**
+ * Boot: handles the ?pwsaved=1 return from the form POST. Safari asks "Save Password?" only after this
+ * reload and the page cannot see the answer, so nothing is marked saved here (a later successful
+ * restore does that). Records that this key was offered, so the result screen stops asking.
+ * True when the return belongs to the current key.
+ */
 export function consumeSaveRedirect(): boolean {
   const params = new URLSearchParams(location.search);
   if (!params.has('pwsaved')) return false;
@@ -52,12 +58,41 @@ export function consumeSaveRedirect(): boolean {
     history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
   } catch (e) { /* ignore */ }
   const pid = getStoredPlayerIdentifierSync();
-  if (pid && safeStorage.getItem(PENDING_KEY) === pid) {
-    markPasswordSaved(pid);
-    safeStorage.removeItem(PENDING_KEY);
+  const pending = safeStorage.getItem(PENDING_KEY);
+  safeStorage.removeItem(PENDING_KEY);
+  if (pid && pending === pid) {
+    safeStorage.setItem(OFFERED_KEY, pid);
     return true;
   }
   return false;
+}
+
+export interface SaveOfferState {
+  passwordFlag: boolean;
+  totalCoins: number;
+  clear: boolean;
+  promptsShown: number;
+  maxPrompts: number;
+  passkeySaved: boolean;
+  passwordSaved: boolean;
+  passwordOffered: boolean;
+}
+
+/**
+ * Whether the result screen offers the backup. Without the flag: the passkey rules (first 1,000
+ * coins or a clear, at most maxPrompts times). With the flag: after any game, until this key has
+ * been offered through the form once.
+ */
+export function shouldOfferSave(s: SaveOfferState): boolean {
+  if (s.passwordFlag) return !s.passwordSaved && !s.passwordOffered;
+  if (s.passkeySaved) return false;
+  if (!(s.totalCoins >= 1000 || s.clear)) return false;
+  return s.promptsShown < s.maxPrompts;
+}
+
+export function isPasswordOffered(): boolean {
+  const pid = getStoredPlayerIdentifierSync();
+  return !!pid && safeStorage.getItem(OFFERED_KEY) === pid;
 }
 
 /** Returns the player key from an autofilled login, or null unless it is one of ours. */

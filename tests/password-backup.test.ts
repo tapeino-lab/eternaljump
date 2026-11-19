@@ -65,9 +65,29 @@ describe('password backup', () => {
     setUrl('?pwsaved=1');
     expect(pb.consumeSaveRedirect()).toBe(true);
     expect(location.search).toBe('');
-    expect(pb.isPasswordSaved()).toBe(true);
-    expect(safeStorage.getItem('EJ_PW_SAVED')).toBe(pid);
+    // The player may still decline Safari's sheet: offered, not saved
+    expect(pb.isPasswordSaved()).toBe(false);
+    expect(pb.isPasswordOffered()).toBe(true);
     expect(safeStorage.getItem('EJ_PW_PENDING')).toBeNull();
+  });
+
+  it('decides when the result screen offers the backup', async () => {
+    const { pb } = await load();
+    const base = { passwordFlag: false, totalCoins: 0, clear: false, promptsShown: 0, maxPrompts: 2,
+      passkeySaved: false, passwordSaved: false, passwordOffered: false };
+    // Flag off: unchanged passkey rules
+    expect(pb.shouldOfferSave(base)).toBe(false);
+    expect(pb.shouldOfferSave({ ...base, totalCoins: 1000 })).toBe(true);
+    expect(pb.shouldOfferSave({ ...base, clear: true })).toBe(true);
+    expect(pb.shouldOfferSave({ ...base, totalCoins: 1000, promptsShown: 2 })).toBe(false);
+    expect(pb.shouldOfferSave({ ...base, totalCoins: 1000, passkeySaved: true })).toBe(false);
+    expect(pb.shouldOfferSave({ ...base, totalCoins: 1000, passwordOffered: true })).toBe(true);
+    // Flag on: after any game, until offered once or saved
+    const on = { ...base, passwordFlag: true };
+    expect(pb.shouldOfferSave(on)).toBe(true);
+    expect(pb.shouldOfferSave({ ...on, promptsShown: 5 })).toBe(true);
+    expect(pb.shouldOfferSave({ ...on, passwordOffered: true })).toBe(false);
+    expect(pb.shouldOfferSave({ ...on, passwordSaved: true })).toBe(false);
   });
 
   it('with the flag off nothing counts as saved and the form path stays closed', async () => {
