@@ -2167,6 +2167,25 @@ body.showing-ranking #btnInstagram {
   justify-content: center;
 }
 
+.pw-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 6px 0;
+  padding: 6px;
+  font-size: 16px; /* 16px+ stops iOS from zooming into the field */
+  font-family: 'Press Start 2P', sans-serif;
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+.pw-passkey-btn {
+  margin-top: 8px;
+  font-size: 8px;
+  padding: 4px 8px;
+}
+
 .passkey-save-btn {
   background: #00a844;
   border-color: #8f8;

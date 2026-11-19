@@ -17,7 +17,7 @@ const SAVED_KEY = 'EJ_PASSKEY_PID';
 /** After a restore, take the name stored on LootLocker instead of pushing the local random one. */
 export const ADOPT_SERVER_NAME_KEY = 'EJ_ADOPT_SERVER_NAME';
 
-const PID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
+export const PID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
 
 let supportPromise: Promise<boolean> | null = null;
 

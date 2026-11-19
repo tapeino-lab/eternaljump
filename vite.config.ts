@@ -109,6 +109,7 @@ export default defineConfig(() => {
           ]
         },
         workbox: {
+          importScripts: ['save-data-sw.js'],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf,cjs}'],
           navigateFallbackDenylist: [/admin/i, /api/i],
           runtimeCaching: [
